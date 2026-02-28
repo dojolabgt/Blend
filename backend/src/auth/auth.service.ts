@@ -5,10 +5,11 @@ import * as bcrypt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
 import { AuthenticatedUser } from './interfaces/authenticated-user.interface';
 import { User } from '../users/user.entity';
-
+import { UserRole } from './constants/roles';
 import { SettingsService } from '../core/settings/settings.service';
 import { RegisterDto } from './dto/register.dto';
 import { MailService } from '../core/mail/mail.service';
+import { FreelancerProfileService } from '../freelancer-profile/freelancer-profile.service';
 
 @Injectable()
 export class AuthService {
@@ -20,7 +21,8 @@ export class AuthService {
     private configService: ConfigService,
     private settingsService: SettingsService,
     private mailService: MailService,
-  ) {}
+    private freelancerProfileService: FreelancerProfileService,
+  ) { }
 
   async register(registerDto: RegisterDto) {
     const settings = await this.settingsService.getSettings();
@@ -35,7 +37,15 @@ export class AuthService {
       throw new ForbiddenException('User already exists');
     }
 
-    const newUser = await this.usersService.create(registerDto);
+    // All public registrations create a FREELANCER account
+    const newUser = await this.usersService.create({
+      ...registerDto,
+      role: UserRole.FREELANCER,
+    });
+
+    // Auto-create an empty FreelancerProfile linked to the new user
+    await this.freelancerProfileService.create(newUser.id);
+
     return this.login(this.mapToAuthenticatedUser(newUser));
   }
 

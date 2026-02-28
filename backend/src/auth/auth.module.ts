@@ -9,12 +9,14 @@ import { LocalStrategy } from './strategies/local.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { RefreshTokenStrategy } from './strategies/refreshToken.strategy';
 import { SettingsModule } from '../core/settings/settings.module';
+import { FreelancerProfileModule } from '../freelancer-profile/freelancer-profile.module';
 
 @Module({
   imports: [
     UsersModule,
     PassportModule,
     SettingsModule,
+    FreelancerProfileModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
@@ -28,4 +30,4 @@ import { SettingsModule } from '../core/settings/settings.module';
   providers: [AuthService, LocalStrategy, JwtStrategy, RefreshTokenStrategy],
   exports: [AuthService],
 })
-export class AuthModule {}
+export class AuthModule { }

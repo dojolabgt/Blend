@@ -4,6 +4,7 @@ import { ValidationPipe, Logger } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { HttpExceptionFilter } from './shared/filters/http-exception.filter';
+import { ApiResponseInterceptor } from './common/interceptors/api-response.interceptor';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import * as bodyParser from 'body-parser';
@@ -39,6 +40,9 @@ async function bootstrap() {
 
   // Register global exception filter
   app.useGlobalFilters(new HttpExceptionFilter());
+
+  // Register global response interceptor (wraps success responses in { success, data })
+  app.useGlobalInterceptors(new ApiResponseInterceptor());
 
   // Configure CORS with explicit settings for multiple frontends
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';

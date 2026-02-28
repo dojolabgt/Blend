@@ -11,6 +11,9 @@ import { AuthModule } from './auth/auth.module';
 import { StorageModule } from './storage/storage.module';
 import { SettingsModule } from './core/settings/settings.module';
 import { MailModule } from './core/mail/mail.module';
+import { EncryptionModule } from './common/encryption/encryption.module';
+import { TokenModule } from './common/token/token.module';
+import { FreelancerProfileModule } from './freelancer-profile/freelancer-profile.module';
 
 @Module({
   imports: [
@@ -30,9 +33,10 @@ import { MailModule } from './core/mail/mail.module';
         DATABASE_NAME: Joi.string().required(),
         JWT_SECRET: Joi.string().required(),
         JWT_REFRESH_SECRET: Joi.string().required(),
+        SEED_ADMIN_EMAIL: Joi.string().email().optional(),
         SEED_ADMIN_PASSWORD: Joi.string().optional(),
-        SEED_CLIENT_PASSWORD: Joi.string().optional(),
-        SEED_TEAM_PASSWORD: Joi.string().optional(),
+        SEED_FREELANCER_EMAIL: Joi.string().email().optional(),
+        SEED_FREELANCER_PASSWORD: Joi.string().optional(),
         STORAGE_TYPE: Joi.string()
           .valid('local', 's3', 'cloudinary')
           .default('local'),
@@ -43,6 +47,11 @@ import { MailModule } from './core/mail/mail.module';
         MAIL_USER: Joi.string().allow('').optional(),
         MAIL_PASSWORD: Joi.string().allow('').optional(),
         MAIL_FROM: Joi.string().required(),
+        // Blend encryption
+        ENCRYPTION_KEY: Joi.string().length(32).required(),
+        // Blend's own Recurrente keys (for billing freelancers)
+        BLEND_RECURRENTE_PUBLIC_KEY: Joi.string().required(),
+        BLEND_RECURRENTE_SECRET_KEY: Joi.string().required(),
       }),
     }),
     ThrottlerModule.forRoot([
@@ -72,6 +81,9 @@ import { MailModule } from './core/mail/mail.module';
     AuthModule,
     SettingsModule,
     MailModule,
+    EncryptionModule,
+    TokenModule,
+    FreelancerProfileModule,
   ],
   controllers: [AppController],
   providers: [

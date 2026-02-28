@@ -322,6 +322,30 @@ GET /admin/metrics
 
 ---
 
+## Fase 0.5: Refactor Core y Preparación Multi-Tenant (✓ Completada)
+**Objetivo:** Adaptar el código base a un entorno robusto, tipado y multi-rol para soportar la escalabilidad.
+
+- [x] Unificar enums (`UserRole`) y centralizar tipos.
+- [x] Crear interceptares robustos (unwrap de `ApiResponse<T>`).
+- [x] Reconstruir la arquitectura de rutas en Next.js usando *Route Groups* (`(admin)`, `(freelancer)`, `(client)`).
+- [x] Extraer layouts compartidos (`DashboardShell`, `Sidebar`) independientes de rol.
+- [x] Crear el servicio base del backend para Perfiles de Freelancer con encripción de claves.
+
+## Fase 1: Perfiles Freelancer y Gestión de Usuarios Avanzada (🔄 En Progreso)
+**Objetivo:** Reconstruir el frontend desde cero (`frontend-app`) e integrar las funciones base del Multi-tenant.
+
+**Backend (✓ Listo):**
+- Módulos `users` y `freelancer-profile` con encriptación AES-256-GCM.
+- Endpoints CRUD para usuarios y actualización de claves Recurrente.
+
+**Frontend (frontend-app):**
+- Setup limpio de Next.js, Shadcn y Tailwind.
+- Portar lógica base (Tipos, Interceptores, Contexto de Auth).
+- **Perfil del Freelancer**: Formularios de perfil básico y almacenamiento seguro de claves Recurrente (Pública/Privada) conectando con el endpoint `/me/recurrente-keys`.
+- **Panel de Admin**: Tabla y diálogos completos de gestión de Usuarios.
+
+---
+
 ## Fase 9 — Notificaciones y Automatizaciones
 
 ### Emails transaccionales (todos los planes)

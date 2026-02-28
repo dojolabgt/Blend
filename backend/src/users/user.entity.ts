@@ -24,7 +24,7 @@ export class User {
   @Column()
   name: string;
 
-  @Column({ type: 'enum', enum: UserRole, default: UserRole.USER })
+  @Column({ type: 'enum', enum: UserRole, default: UserRole.FREELANCER })
   @Index() // Index for role-based queries
   role: UserRole;
 

@@ -37,14 +37,18 @@ services:
       STORAGE_TYPE: ${STORAGE_TYPE}
       UPLOAD_MAX_SIZE: ${UPLOAD_MAX_SIZE}
       ALLOWED_IMAGE_TYPES: ${ALLOWED_IMAGE_TYPES}
+      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL}
       SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD}
-      SEED_CLIENT_PASSWORD: ${SEED_CLIENT_PASSWORD}
-      SEED_TEAM_PASSWORD: ${SEED_TEAM_PASSWORD}
+      SEED_FREELANCER_EMAIL: ${SEED_FREELANCER_EMAIL}
+      SEED_FREELANCER_PASSWORD: ${SEED_FREELANCER_PASSWORD}
       MAIL_HOST: ${MAIL_HOST}
       MAIL_PORT: ${MAIL_PORT}
       MAIL_USER: ${MAIL_USER}
       MAIL_PASSWORD: ${MAIL_PASSWORD}
       MAIL_FROM: ${MAIL_FROM}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      BLEND_RECURRENTE_PUBLIC_KEY: ${BLEND_RECURRENTE_PUBLIC_KEY}
+      BLEND_RECURRENTE_SECRET_KEY: ${BLEND_RECURRENTE_SECRET_KEY}
     volumes:
       - ./backend:/app
       - /app/node_modules
@@ -53,9 +57,9 @@ services:
         condition: service_healthy
     command: npm run start:dev
 
-  frontend:
+  frontend-app:
     build:
-      context: ./frontend
+      context: ./frontend-app
       dockerfile: Dockerfile.dev
     ports:
       - "3000:3000"
@@ -63,7 +67,7 @@ services:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
       NEXT_PUBLIC_IMAGE_BACKEND_URL: ${NEXT_PUBLIC_IMAGE_BACKEND_URL}
     volumes:
-      - ./frontend:/app
+      - ./frontend-app:/app
       - /app/node_modules
       - /app/.next
     depends_on:
