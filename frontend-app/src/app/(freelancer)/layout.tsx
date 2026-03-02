@@ -5,7 +5,7 @@ import { useAuth } from '@/features/auth/hooks/useAuth';
 import { UserRole } from '@/types';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { NavItemConfig } from '@/components/layout/NavItem';
-import { LayoutDashboard, Users, Briefcase, FileText, CreditCard, UserSquare, Sparkles } from 'lucide-react';
+import { LayoutDashboard, Users, Briefcase, FileText, CreditCard, UserSquare, Sparkles, Palette } from 'lucide-react';
 
 import { TopHeader } from '@/components/layout/Header';
 import { Settings } from 'lucide-react';
@@ -16,7 +16,8 @@ const freelancerNavItems: NavItemConfig[] = [
     { href: '/dashboard/services', label: 'Servicios', icon: Briefcase, section: 'NEGOCIO' },
     { href: '/dashboard/quotes', label: 'Cotizaciones', icon: FileText, section: 'COBROS' },
     { href: '/dashboard/payments', label: 'Pagos', icon: CreditCard, section: 'COBROS' },
-    { href: '/dashboard/profile', label: 'Mi Perfil', icon: UserSquare, section: 'CONFIGURACIÓN' },
+    { href: '/dashboard/profile', label: 'Mi Perfil (Marca)', icon: Palette, section: 'CONFIGURACIÓN' },
+    { href: '/dashboard/account', label: 'Mi Cuenta', icon: UserSquare, section: 'CONFIGURACIÓN' },
     { href: '/dashboard/settings', label: 'Integraciones', icon: Settings, section: 'CONFIGURACIÓN' },
     { href: '/dashboard/billing', label: 'Mi Plan', icon: Sparkles, section: 'CONFIGURACIÓN' },
 ];

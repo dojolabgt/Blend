@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Menu, X } from 'lucide-react';
 import { NavItem, NavItemConfig } from './NavItem';
-import { cn } from '@/lib/utils';
+import { cn, getImageUrl } from '@/lib/utils';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
@@ -26,8 +26,9 @@ export function Sidebar({ navItems }: SidebarProps) {
         return acc;
     }, {} as Record<string, NavItemConfig[]>);
 
-    const businessName = freelancerProfile?.businessName || 'Blend Studio';
+    // Branding Logic
     const isProOrPremium = freelancerProfile?.plan === 'pro' || freelancerProfile?.plan === 'premium';
+    const businessName = (isProOrPremium && freelancerProfile?.businessName) ? freelancerProfile.businessName : 'Blend Studio';
     const displayLogo = isProOrPremium ? (freelancerProfile?.logo || undefined) : undefined;
     const initials = businessName.substring(0, 2).toUpperCase();
 
@@ -40,7 +41,7 @@ export function Sidebar({ navItems }: SidebarProps) {
             <div className="md:hidden flex items-center justify-between px-4 py-3 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 fixed top-0 w-full z-40 shadow-sm">
                 <div className="flex items-center gap-2">
                     <Avatar className="w-8 h-8 rounded-lg shadow-sm border border-border">
-                        <AvatarImage src={displayLogo} alt={businessName} className="object-cover" />
+                        <AvatarImage src={getImageUrl(displayLogo)} alt={businessName} className="object-cover" />
                         <AvatarFallback className="bg-primary/10 text-primary rounded-lg text-xs" style={brandColorStyle}>
                             {initials}
                         </AvatarFallback>
@@ -64,7 +65,7 @@ export function Sidebar({ navItems }: SidebarProps) {
                 {/* Logo Area */}
                 <div className="h-16 flex items-center px-6 border-b border-zinc-100 dark:border-zinc-800/60 gap-3 shrink-0">
                     <Avatar className="w-8 h-8 rounded-lg shadow-sm border border-border">
-                        <AvatarImage src={displayLogo} alt={businessName} className="object-cover" />
+                        <AvatarImage src={getImageUrl(displayLogo)} alt={businessName} className="object-cover" />
                         <AvatarFallback className="bg-primary/10 text-primary rounded-lg text-xs font-bold" style={brandColorStyle}>
                             {initials}
                         </AvatarFallback>

@@ -8,9 +8,9 @@ export interface User {
     id: string;
     email: string;
     role: UserRole;
-    firstName?: string;
-    lastName?: string;
+    name: string;
     status: 'active' | 'inactive';
+    profileImage?: string;
     lastLoginAt?: string;
     createdAt: string;
     updatedAt: string;

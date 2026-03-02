@@ -26,11 +26,12 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { getImageUrl } from '@/lib/utils';
 
 const profileSchema = z.object({
     businessName: z.string().max(100, 'El nombre no puede exceder 100 caracteres').optional(),
     brandColor: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, 'Color hexadecimal inválido').optional().or(z.literal('')),
-    logo: z.string().url('Debe ser una URL válida').optional().or(z.literal('')),
+    logo: z.string().optional().or(z.literal('')),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
@@ -81,15 +82,26 @@ export function ProfileForm({ initialData, onUpdate }: ProfileFormProps) {
         const file = e.target.files?.[0];
         if (!file) return;
 
+        // Validar tamaño máximo (2MB)
+        const MAX_SIZE_MB = 2;
+        if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+            toast.error(`La imagen excede el límite de ${MAX_SIZE_MB}MB. Por favor, elige una más pequeña.`);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+            return;
+        }
+
         setIsUploadingLogo(true);
         try {
             const updatedProfile = await freelancerProfileApi.uploadLogo(file);
             form.setValue('logo', updatedProfile.logo ?? '');
             toast.success('Logo subido correctamente');
             onUpdate(updatedProfile);
-        } catch (error: unknown) {
+        } catch (error: any) {
             console.error('Error uploading logo', error);
-            const msg = error instanceof Error ? error.message : 'Error al subir el logo';
+            // Capturar el error 413 o mensaje del backend si existe
+            const backendMsg = error?.response?.data?.message;
+            const msg = typeof backendMsg === 'string' ? backendMsg :
+                (error?.response?.status === 413 ? 'El archivo es demasiado grande para el servidor.' : 'Error al subir el logo');
             toast.error(msg);
         } finally {
             setIsUploadingLogo(false);
@@ -108,7 +120,7 @@ export function ProfileForm({ initialData, onUpdate }: ProfileFormProps) {
                         className="relative h-20 w-20 md:h-24 md:w-24 border-2 border-background shadow-sm cursor-pointer transition-all duration-300 group-hover:scale-[1.02]"
                         onClick={() => fileInputRef.current?.click()}
                     >
-                        <AvatarImage src={currentLogo} alt={businessName} className="object-cover" />
+                        <AvatarImage src={getImageUrl(currentLogo)} alt={businessName} className="object-cover" />
                         <AvatarFallback className="text-2xl md:text-3xl font-bold bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300">
                             {initials}
                         </AvatarFallback>
