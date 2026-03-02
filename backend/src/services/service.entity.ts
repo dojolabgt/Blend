@@ -6,6 +6,19 @@ export enum ServiceCurrency {
     USD = 'USD',
 }
 
+export enum ServiceUnitType {
+    HOUR = 'HOUR',
+    PROJECT = 'PROJECT',
+    MONTH = 'MONTH',
+    UNIT = 'UNIT',
+}
+
+export enum ServiceChargeType {
+    ONE_TIME = 'ONE_TIME',
+    HOURLY = 'HOURLY',
+    RECURRING = 'RECURRING',
+}
+
 @Entity('services')
 export class Service {
     @PrimaryGeneratedColumn('uuid')
@@ -20,11 +33,38 @@ export class Service {
     @Column()
     name: string;
 
+    @Column({ type: 'varchar', nullable: true })
+    sku: string;
+
     @Column({ type: 'text', nullable: true })
     description: string;
 
     @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
-    defaultPrice: number;
+    basePrice: number;
+
+    @Column({ type: 'enum', enum: ServiceUnitType, default: ServiceUnitType.UNIT })
+    unitType: ServiceUnitType;
+
+    @Column({ type: 'enum', enum: ServiceChargeType, default: ServiceChargeType.ONE_TIME })
+    chargeType: ServiceChargeType;
+
+    @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+    internalCost: number;
+
+    @Column({ default: true })
+    isTaxable: boolean;
+
+    @Column({ type: 'varchar', nullable: true })
+    imageUrl: string;
+
+    @Column({ type: 'int', nullable: true })
+    estimatedDeliveryDays: number;
+
+    @Column({ type: 'text', nullable: true })
+    specificTerms: string;
+
+    @Column({ type: 'jsonb', nullable: true })
+    metadata: Record<string, any>;
 
     @Column({ type: 'enum', enum: ServiceCurrency, default: ServiceCurrency.GTQ })
     currency: ServiceCurrency;

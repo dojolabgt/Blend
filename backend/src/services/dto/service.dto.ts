@@ -1,5 +1,5 @@
-import { IsString, IsOptional, IsNumber, IsEnum, IsBoolean } from 'class-validator';
-import { ServiceCurrency } from '../service.entity';
+import { IsString, IsOptional, IsNumber, IsEnum, IsBoolean, IsInt, IsObject, ValidateNested } from 'class-validator';
+import { ServiceCurrency, ServiceUnitType, ServiceChargeType } from '../service.entity';
 
 export class CreateServiceDto {
     @IsString()
@@ -7,13 +7,49 @@ export class CreateServiceDto {
 
     @IsOptional()
     @IsString()
+    sku?: string;
+
+    @IsOptional()
+    @IsString()
     description?: string;
 
     @IsNumber()
-    defaultPrice: number;
+    basePrice: number;
 
     @IsEnum(ServiceCurrency)
     currency: ServiceCurrency;
+
+    @IsOptional()
+    @IsEnum(ServiceUnitType)
+    unitType?: ServiceUnitType;
+
+    @IsOptional()
+    @IsEnum(ServiceChargeType)
+    chargeType?: ServiceChargeType;
+
+    @IsOptional()
+    @IsNumber()
+    internalCost?: number;
+
+    @IsOptional()
+    @IsBoolean()
+    isTaxable?: boolean;
+
+    @IsOptional()
+    @IsString()
+    imageUrl?: string;
+
+    @IsOptional()
+    @IsInt()
+    estimatedDeliveryDays?: number;
+
+    @IsOptional()
+    @IsString()
+    specificTerms?: string;
+
+    @IsOptional()
+    @IsObject()
+    metadata?: Record<string, any>;
 
     @IsOptional()
     @IsString()
@@ -27,15 +63,51 @@ export class UpdateServiceDto {
 
     @IsOptional()
     @IsString()
+    sku?: string;
+
+    @IsOptional()
+    @IsString()
     description?: string;
 
     @IsOptional()
     @IsNumber()
-    defaultPrice?: number;
+    basePrice?: number;
 
     @IsOptional()
     @IsEnum(ServiceCurrency)
     currency?: ServiceCurrency;
+
+    @IsOptional()
+    @IsEnum(ServiceUnitType)
+    unitType?: ServiceUnitType;
+
+    @IsOptional()
+    @IsEnum(ServiceChargeType)
+    chargeType?: ServiceChargeType;
+
+    @IsOptional()
+    @IsNumber()
+    internalCost?: number;
+
+    @IsOptional()
+    @IsBoolean()
+    isTaxable?: boolean;
+
+    @IsOptional()
+    @IsString()
+    imageUrl?: string;
+
+    @IsOptional()
+    @IsInt()
+    estimatedDeliveryDays?: number;
+
+    @IsOptional()
+    @IsString()
+    specificTerms?: string;
+
+    @IsOptional()
+    @IsObject()
+    metadata?: Record<string, any>;
 
     @IsOptional()
     @IsString()

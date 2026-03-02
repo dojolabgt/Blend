@@ -133,7 +133,7 @@ export default function ServicesPage() {
                                         </span>
                                     </TableCell>
                                     <TableCell className="text-right font-mono">
-                                        {formatCurrency(service.defaultPrice, service.currency)}
+                                        {formatCurrency(service.basePrice, service.currency)}
                                     </TableCell>
                                     <TableCell>
                                         <DropdownMenu>

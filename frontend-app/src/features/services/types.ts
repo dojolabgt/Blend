@@ -3,13 +3,35 @@ export enum ServiceCurrency {
     USD = 'USD',
 }
 
+export enum ServiceUnitType {
+    HOUR = 'HOUR',
+    PROJECT = 'PROJECT',
+    MONTH = 'MONTH',
+    UNIT = 'UNIT',
+}
+
+export enum ServiceChargeType {
+    ONE_TIME = 'ONE_TIME',
+    HOURLY = 'HOURLY',
+    RECURRING = 'RECURRING',
+}
+
 export interface Service {
     id: string;
     workspaceId: string;
     name: string;
+    sku?: string;
     description?: string;
-    defaultPrice: number;
+    basePrice: number;
     currency: ServiceCurrency;
+    unitType: ServiceUnitType;
+    chargeType: ServiceChargeType;
+    internalCost: number;
+    isTaxable: boolean;
+    imageUrl?: string;
+    estimatedDeliveryDays?: number;
+    specificTerms?: string;
+    metadata?: Record<string, any>;
     category?: string;
     isActive: boolean;
     createdAt: string;
@@ -18,9 +40,18 @@ export interface Service {
 
 export interface CreateServiceDto {
     name: string;
+    sku?: string;
     description?: string;
-    defaultPrice: number;
+    basePrice: number;
     currency: ServiceCurrency;
+    unitType?: ServiceUnitType;
+    chargeType?: ServiceChargeType;
+    internalCost?: number;
+    isTaxable?: boolean;
+    imageUrl?: string;
+    estimatedDeliveryDays?: number;
+    specificTerms?: string;
+    metadata?: Record<string, any>;
     category?: string;
 }
 
