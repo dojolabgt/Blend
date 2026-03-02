@@ -23,17 +23,21 @@ export function TopHeader() {
 
     if (!user) return null;
 
-    const initials = user.name?.[0] || user.email[0];
-    const fullName = user.name || 'Usuario';
-    const displayUserImage = user.profileImage;
+    const { activeWorkspace } = useAuth();
+    const isProOrPremium = activeWorkspace?.plan === 'pro' || activeWorkspace?.plan === 'premium';
+    const businessName = isProOrPremium ? (activeWorkspace?.businessName || user.name || 'Mi Espacio') : (user.name || 'Usuario');
+    const initials = isProOrPremium
+        ? businessName.substring(0, 2).toUpperCase()
+        : (user.name?.[0] || user.email[0]).toUpperCase();
+    const displayUserImage = isProOrPremium ? (activeWorkspace?.logo || user.profileImage) : user.profileImage;
 
     return (
-        <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-end px-6 bg-[#FDFDFD] dark:bg-[#0A0A0A] border-b border-zinc-100 dark:border-zinc-800/80">
+        <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-end px-6 bg-[#FFFFFF] dark:bg-[#0A0A0A] border-b border-zinc-100 dark:border-zinc-800/80">
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <button className="flex items-center gap-2 outline-none rounded-full hover:ring-2 hover:ring-zinc-100 dark:hover:ring-zinc-800 transition-all p-1">
                         <Avatar className="h-9 w-9 border border-zinc-300 dark:border-zinc-700">
-                            <AvatarImage src={getImageUrl(displayUserImage)} alt={fullName} className="object-cover" />
+                            <AvatarImage src={getImageUrl(displayUserImage)} alt={businessName} className="object-cover" />
                             <AvatarFallback className="bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 font-bold uppercase">
                                 {initials}
                             </AvatarFallback>
@@ -43,7 +47,7 @@ export function TopHeader() {
                 <DropdownMenuContent className="w-56" align="end" forceMount>
                     <DropdownMenuLabel className="font-normal">
                         <div className="flex flex-col space-y-1">
-                            <p className="text-sm font-medium leading-none">{fullName}</p>
+                            <p className="text-sm font-medium leading-none">{businessName}</p>
                             <p className="text-xs leading-none text-muted-foreground">
                                 {user.email}
                             </p>

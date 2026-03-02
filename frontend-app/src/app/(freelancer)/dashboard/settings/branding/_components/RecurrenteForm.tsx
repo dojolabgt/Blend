@@ -69,20 +69,13 @@ export function RecurrenteForm({ isConfigured, onUpdateStatus }: RecurrenteFormP
     }
 
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Configuración de Pagos</CardTitle>
-                <CardDescription>
-                    Conecta tu cuenta de Recurrente para procesar cobros y cotizaciones.
-                </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-
+        <div className="space-y-6 pt-2">
+            <div>
                 {isConfigured ? (
                     <Alert className="bg-emerald-50 text-emerald-900 border-emerald-200">
                         <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                         <AlertTitle>Recurrente Conectado</AlertTitle>
-                        <AlertDescription>
+                        <AlertDescription className="text-emerald-800/80">
                             Tus claves han sido configuradas y encriptadas de forma segura.
                             Puedes ingresar nuevas claves si deseas actualizar tu conexión.
                         </AlertDescription>
@@ -91,60 +84,66 @@ export function RecurrenteForm({ isConfigured, onUpdateStatus }: RecurrenteFormP
                     <Alert className="bg-amber-50 text-amber-900 border-amber-200">
                         <AlertCircle className="h-4 w-4 text-amber-600" />
                         <AlertTitle>Falta Configuración</AlertTitle>
-                        <AlertDescription>
+                        <AlertDescription className="text-amber-800/80">
                             No has configurado tus claves de Recurrente. No podrás cobrar hasta que lo hagas.
                         </AlertDescription>
                     </Alert>
                 )}
+            </div>
 
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                        <FormField
-                            control={form.control}
-                            name="publicKey"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Llave Pública (Public Key)</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            placeholder="pk_test_..."
-                                            {...field}
-                                        />
-                                    </FormControl>
-                                    <FormDescription>
-                                        Encuentra esta llave en Recurrente {'>'} Desarrolladores {'>'} API Keys.
-                                    </FormDescription>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+                    <FormField
+                        control={form.control}
+                        name="publicKey"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel className="text-zinc-700 dark:text-zinc-300">Llave Pública (Public Key)</FormLabel>
+                                <FormControl>
+                                    <Input
+                                        placeholder="pk_test_..."
+                                        className="h-11 rounded-lg"
+                                        {...field}
+                                    />
+                                </FormControl>
+                                <FormDescription className="text-xs">
+                                    Encuentra esta llave en Recurrente {'>'} Desarrolladores {'>'} API Keys.
+                                </FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
 
-                        <FormField
-                            control={form.control}
-                            name="privateKey"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Llave Privada (Private / Secret Key)</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            type="password"
-                                            placeholder="sk_test_..."
-                                            {...field}
-                                        />
-                                    </FormControl>
-                                    <FormDescription>
-                                        Esta llave nunca será mostrada de nuevo. Si la pierdes, deberás generar una nueva en Recurrente.
-                                    </FormDescription>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <Button type="submit" disabled={isLoading}>
+                    <FormField
+                        control={form.control}
+                        name="privateKey"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel className="text-zinc-700 dark:text-zinc-300">Llave Privada (Private / Secret Key)</FormLabel>
+                                <FormControl>
+                                    <Input
+                                        type="password"
+                                        placeholder="sk_test_..."
+                                        className="h-11 rounded-lg"
+                                        {...field}
+                                    />
+                                </FormControl>
+                                <FormDescription className="text-xs">
+                                    Esta llave nunca será mostrada de nuevo. Si la pierdes, deberás generar una nueva.
+                                </FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <div className="pt-6 border-t border-border mt-4 flex items-center justify-between">
+                        <p className="text-xs text-muted-foreground mr-4">Asegúrate de guardar tus cambios.</p>
+                        <Button type="submit" className="h-11 px-8 rounded-xl shrink-0" disabled={isLoading}>
                             {isLoading ? 'Guardando...' : 'Guardar Claves'}
                         </Button>
-                    </form>
-                </Form>
-            </CardContent>
-        </Card>
+                    </div>
+                </form>
+            </Form>
+        </div>
     );
 }

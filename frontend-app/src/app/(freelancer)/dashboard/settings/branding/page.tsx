@@ -18,8 +18,7 @@ export default function ProfilePage() {
                 </p>
             </div>
 
-            {/* Content — constrained width for form pages */}
-            <div className="max-w-2xl">
+            <div className="max-w-3xl">
                 {isLoading ? (
                     <Skeleton className="h-[420px] w-full rounded-xl" />
                 ) : (

@@ -11,7 +11,16 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { toast } from 'sonner';
+import { PrimaryButton } from '@/components/common/PrimaryButton';
 import { Sparkles, CheckCircle2, XCircle, Clock, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -133,9 +142,9 @@ export default function BillingPage() {
     return (
         <DashboardShell>
             {/* Page Header */}
-            <div className="mb-8">
-                <h1 className="text-2xl font-bold tracking-tight">Facturación y Planes</h1>
-                <p className="text-muted-foreground mt-1">
+            <div className="mb-10 max-w-2xl">
+                <h1 className="text-xl font-medium text-zinc-900 dark:text-zinc-100 tracking-tight">Facturación y Planes</h1>
+                <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">
                     Administra tu suscripción a Blend y tu historial de pagos.
                 </p>
             </div>
@@ -143,12 +152,12 @@ export default function BillingPage() {
             <div className="space-y-8">
 
                 {/* --- 1. CURRENT PLAN CARD --- */}
-                <div className="rounded-2xl border bg-gradient-to-br from-zinc-50 to-white dark:from-zinc-900 dark:to-zinc-900/50 overflow-hidden shadow-sm relative">
+                <Card className="bg-gradient-to-br from-zinc-50 to-white dark:from-zinc-900 dark:to-zinc-900/50 overflow-hidden relative border-zinc-200 dark:border-zinc-800">
                     {/* Decorative Background Icon */}
                     <div className="absolute -top-10 -right-10 opacity-[0.03] dark:opacity-[0.02] pointer-events-none">
                         <Sparkles className="w-64 h-64" />
                     </div>
-                    <div className="p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+                    <CardContent className="p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
                         {isLoading ? (
                             <div className="space-y-3 w-full">
                                 <Skeleton className="h-5 w-24" />
@@ -215,8 +224,8 @@ export default function BillingPage() {
                                 )}
                             </>
                         )}
-                    </div>
-                </div>
+                    </CardContent>
+                </Card>
 
                 {/* --- 2. UPGRADE PLANS SECTION --- */}
                 {!isLoading && (
@@ -247,17 +256,17 @@ export default function BillingPage() {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-6 lg:gap-8 mt-4">
                             {/* FREE PLAN */}
-                            <div className="rounded-2xl border bg-white dark:bg-zinc-900/60 overflow-hidden shadow-sm flex flex-col relative transition-all duration-300 hover:shadow-md hover:border-zinc-300 dark:hover:border-zinc-700 hover:-translate-y-1">
-                                <div className="p-6 md:p-8 flex flex-col flex-grow">
-                                    <div className="mb-6">
-                                        <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">Free</h3>
-                                        <p className="text-sm text-muted-foreground min-h-[40px] leading-relaxed">
-                                            Para empezar a usar Blend y probar la plataforma.
-                                        </p>
-                                    </div>
+                            <Card className="flex flex-col relative transition-all duration-300">
+                                <CardHeader className="pb-5">
+                                    <CardTitle className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Free</CardTitle>
+                                    <CardDescription className="min-h-[40px] text-sm leading-relaxed">
+                                        Para empezar a usar Blend y probar la plataforma.
+                                    </CardDescription>
+                                </CardHeader>
 
+                                <CardContent className="flex flex-col flex-grow pb-8">
                                     <div className="mb-6 space-y-1">
                                         <div className="flex items-end gap-1">
                                             <span className="text-4xl font-extrabold tracking-tight text-foreground">
@@ -281,36 +290,36 @@ export default function BillingPage() {
                                             </li>
                                         ))}
                                     </ul>
+                                </CardContent>
 
-                                    <div className="mt-auto">
-                                        <Button
-                                            variant="outline"
-                                            className="w-full h-11 text-zinc-700 bg-zinc-50 border-zinc-200 hover:bg-zinc-100 dark:text-zinc-300 dark:bg-zinc-800/50 dark:border-zinc-800 dark:hover:bg-zinc-800 rounded-xl"
-                                            disabled={true}
-                                        >
-                                            Tu plan actual
-                                        </Button>
-                                    </div>
-                                </div>
-                            </div>
+                                <CardFooter className="pt-0">
+                                    <Button
+                                        variant="outline"
+                                        className="w-full h-12 text-zinc-500 bg-transparent border-border dark:border-zinc-800 rounded-xl"
+                                        disabled={true}
+                                    >
+                                        Tu plan actual
+                                    </Button>
+                                </CardFooter>
+                            </Card>
 
                             {/* PRO PLAN */}
-                            <div className="rounded-2xl border-2 border-violet-500 dark:border-violet-500 bg-gradient-to-br from-white via-violet-50/50 to-violet-100/50 dark:from-zinc-900 dark:via-zinc-900 dark:to-violet-950/20 overflow-hidden shadow-xl flex flex-col relative transition-all duration-300 md:scale-105 z-10 hover:shadow-2xl">
+                            <Card className="border-2 border-violet-500/20 dark:border-violet-500/30 bg-violet-50/30 dark:bg-violet-950/10 overflow-hidden flex flex-col relative transition-all duration-300 shadow-sm hover:shadow-md hover:border-violet-500/40">
                                 {/* Badge overlay */}
-                                <div className="absolute top-0 inset-x-0 bg-violet-600 text-white text-[11px] font-bold uppercase tracking-widest py-1.5 text-center shadow-sm">
+                                <div className="absolute top-0 inset-x-0 bg-violet-600 text-white text-[11px] font-bold uppercase tracking-widest py-1.5 text-center shadow-sm z-20">
                                     Más Popular
                                 </div>
 
-                                <div className="p-6 md:p-8 pt-10 flex flex-col flex-grow relative z-10">
-                                    <div className="mb-6">
-                                        <h3 className="text-xl font-bold flex items-center gap-2 text-violet-700 dark:text-violet-400 mb-2">
-                                            Pro <Sparkles className="w-5 h-5 text-violet-500" />
-                                        </h3>
-                                        <p className="text-sm text-muted-foreground min-h-[40px] leading-relaxed">
-                                            Ideal para freelancers buscando automatizar cobros de forma profesional.
-                                        </p>
-                                    </div>
+                                <CardHeader className="pt-10 pb-5 relative z-10">
+                                    <CardTitle className="text-xl font-bold flex items-center gap-2 text-violet-700 dark:text-violet-400">
+                                        Pro <Sparkles className="w-4 h-4 text-violet-500" />
+                                    </CardTitle>
+                                    <CardDescription className="min-h-[40px] text-sm leading-relaxed">
+                                        Ideal para freelancers buscando automatizar cobros de forma profesional.
+                                    </CardDescription>
+                                </CardHeader>
 
+                                <CardContent className="flex flex-col flex-grow pb-8 relative z-10">
                                     <div className="mb-6 space-y-1">
                                         {status?.prices ? (
                                             <>
@@ -342,59 +351,60 @@ export default function BillingPage() {
                                             </li>
                                         ))}
                                     </ul>
+                                </CardContent>
 
-                                    <div className="mt-auto space-y-3">
-                                        {planKey === 'pro' ? (
-                                            <Button
-                                                className="w-full h-12 text-md bg-zinc-100 hover:bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-zinc-300 font-bold rounded-xl shadow-sm transition-all"
-                                                disabled={true}
+                                <CardFooter className="pt-0 flex flex-col space-y-3 relative z-10">
+                                    {planKey === 'pro' ? (
+                                        <Button
+                                            className="w-full h-12 text-md bg-zinc-100 hover:bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-zinc-300 font-bold rounded-xl shadow-sm transition-all"
+                                            disabled={true}
+                                        >
+                                            Tu plan actual
+                                        </Button>
+                                    ) : planKey === 'premium' ? (
+                                        <Button
+                                            className="w-full h-12 text-md bg-zinc-100 hover:bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-zinc-300 font-bold rounded-xl shadow-sm transition-all"
+                                            disabled={true}
+                                        >
+                                            Incluido en Premium
+                                        </Button>
+                                    ) : (
+                                        <>
+                                            <PrimaryButton
+                                                className="w-full bg-violet-600 hover:bg-violet-700"
+                                                onClick={() => handleSubscribe('pro', isYearly ? 'year' : 'month')}
+                                                disabled={isSubscribing}
                                             >
-                                                Tu plan actual
-                                            </Button>
-                                        ) : planKey === 'premium' ? (
-                                            <Button
-                                                className="w-full h-12 text-md bg-zinc-100 hover:bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-zinc-300 font-bold rounded-xl shadow-sm transition-all"
-                                                disabled={true}
-                                            >
-                                                Incluido en Premium
-                                            </Button>
-                                        ) : (
-                                            <>
+                                                {isSubscribing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                                Upgrade a Pro
+                                            </PrimaryButton>
+                                            {process.env.NODE_ENV === 'development' && (
                                                 <Button
-                                                    className="w-full h-12 text-md bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl shadow-md transition-all active:scale-[0.98]"
-                                                    onClick={() => handleSubscribe('pro', isYearly ? 'year' : 'month')}
+                                                    variant="outline"
+                                                    className="w-full h-10 text-xs rounded-xl"
+                                                    onClick={() => handleDevOverride('pro')}
                                                     disabled={isSubscribing}
                                                 >
-                                                    {isSubscribing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                                    Upgrade a Pro
+                                                    [DEV] Activar Inmediato
                                                 </Button>
-                                                {process.env.NODE_ENV === 'development' && (
-                                                    <Button
-                                                        className="w-full h-10 text-sm bg-zinc-800 hover:bg-zinc-900 text-white font-bold rounded-xl shadow-sm transition-all"
-                                                        onClick={() => handleDevOverride('pro')}
-                                                        disabled={isSubscribing}
-                                                    >
-                                                        [DEV] Activar Inmediato
-                                                    </Button>
-                                                )}
-                                            </>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
+                                            )}
+                                        </>
+                                    )}
+                                </CardFooter>
+                            </Card>
 
                             {/* PREMIUM PLAN */}
-                            <div className="rounded-2xl border border-amber-300 dark:border-amber-500/40 bg-white dark:bg-zinc-900 overflow-hidden shadow-sm flex flex-col relative transition-all duration-300 hover:shadow-md hover:border-amber-400 dark:hover:border-amber-500/60 hover:-translate-y-1">
-                                <div className="p-6 md:p-8 flex flex-col flex-grow relative z-10">
-                                    <div className="mb-6">
-                                        <h3 className="text-xl font-bold flex items-center gap-2 text-amber-600 dark:text-amber-400 mb-2">
-                                            Premium
-                                        </h3>
-                                        <p className="text-sm text-muted-foreground min-h-[40px] leading-relaxed">
-                                            Para equipos o agencias. Todo ilimitado y experiencia personalizada.
-                                        </p>
-                                    </div>
+                            <Card className="flex flex-col relative transition-all duration-300">
+                                <CardHeader className="pb-5 relative z-10">
+                                    <CardTitle className="text-xl font-bold flex items-center gap-2 text-amber-600 dark:text-amber-400">
+                                        Premium
+                                    </CardTitle>
+                                    <CardDescription className="min-h-[40px] text-sm leading-relaxed">
+                                        Para equipos o agencias. Todo ilimitado y experiencia personalizada.
+                                    </CardDescription>
+                                </CardHeader>
 
+                                <CardContent className="flex flex-col flex-grow pb-8 relative z-10">
                                     <div className="mb-6 space-y-1">
                                         {status?.prices ? (
                                             <>
@@ -426,44 +436,46 @@ export default function BillingPage() {
                                             </li>
                                         ))}
                                     </ul>
+                                </CardContent>
 
-                                    <div className="mt-auto space-y-3">
-                                        {remainingValueText && (
-                                            <p className="text-xs font-medium text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-2 rounded-md text-center">
-                                                {remainingValueText}
-                                            </p>
-                                        )}
-                                        {planKey === 'premium' ? (
-                                            <Button
-                                                className="w-full h-11 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-bold rounded-xl shadow-sm transition-all"
-                                                disabled={true}
+                                <CardFooter className="pt-0 flex flex-col space-y-3 relative z-10">
+                                    {remainingValueText && (
+                                        <p className="text-xs font-medium text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-2 rounded-md text-center">
+                                            {remainingValueText}
+                                        </p>
+                                    )}
+                                    {planKey === 'premium' ? (
+                                        <Button
+                                            variant="outline"
+                                            className="w-full h-12 text-zinc-500 bg-transparent border-border dark:border-zinc-800 rounded-xl"
+                                            disabled={true}
+                                        >
+                                            Tu plan actual
+                                        </Button>
+                                    ) : (
+                                        <>
+                                            <PrimaryButton
+                                                className="w-full bg-amber-600 hover:bg-amber-700"
+                                                onClick={() => handleSubscribe('premium', isYearly ? 'year' : 'month')}
+                                                disabled={isSubscribing}
                                             >
-                                                Tu plan actual
-                                            </Button>
-                                        ) : (
-                                            <>
+                                                {isSubscribing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                                {planKey === 'pro' ? 'Upgrade a Premium' : 'Comprar Premium'}
+                                            </PrimaryButton>
+                                            {process.env.NODE_ENV === 'development' && (
                                                 <Button
-                                                    className="w-full h-11 bg-amber-50 rounded-xl text-amber-700 hover:bg-amber-100 hover:text-amber-800 dark:bg-amber-500/10 dark:text-amber-400 dark:hover:bg-amber-500/20"
-                                                    onClick={() => handleSubscribe('premium', isYearly ? 'year' : 'month')}
+                                                    variant="outline"
+                                                    className="w-full h-10 text-xs rounded-xl"
+                                                    onClick={() => handleDevOverride('premium')}
                                                     disabled={isSubscribing}
                                                 >
-                                                    {isSubscribing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                                    {planKey === 'pro' ? 'Upgrade a Premium' : 'Comprar Premium'}
+                                                    [DEV] Activar Inmediato
                                                 </Button>
-                                                {process.env.NODE_ENV === 'development' && (
-                                                    <Button
-                                                        className="w-full h-10 text-sm bg-zinc-800 hover:bg-zinc-900 text-white font-bold rounded-xl shadow-sm transition-all"
-                                                        onClick={() => handleDevOverride('premium')}
-                                                        disabled={isSubscribing}
-                                                    >
-                                                        [DEV] Activar Inmediato
-                                                    </Button>
-                                                )}
-                                            </>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
+                                            )}
+                                        </>
+                                    )}
+                                </CardFooter>
+                            </Card>
                         </div>
 
                     </div>
@@ -471,35 +483,44 @@ export default function BillingPage() {
 
                 {/* --- 3. BILLING HISTORY --- */}
                 {filteredHistory.length > 0 && (
-                    <div className="rounded-xl border bg-white dark:bg-zinc-900 overflow-hidden shadow-sm">
-                        <div className="p-6 pb-4 border-b">
-                            <h3 className="text-lg font-semibold tracking-tight">Historial de pagos</h3>
-                        </div>
-                        <div className="divide-y divide-border">
-                            {filteredHistory.map((sub) => {
-                                const st = STATUS_LABEL[sub.status] ?? { label: sub.status, color: '' };
-                                return (
-                                    <div key={sub.id} className="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                        <div>
-                                            <p className="text-sm font-semibold capitalize flex items-center gap-2">
-                                                Blend {(sub as any).plan || 'Pro'}
-                                                <span className="text-muted-foreground font-normal text-xs uppercase tracking-wider">
-                                                    ({sub.interval === 'month' ? 'Mensual' : 'Anual'})
-                                                </span>
-                                            </p>
-                                            <p className="text-sm text-muted-foreground mt-1">
-                                                {formatDate(sub.createdAt)}
-                                            </p>
+                    <Card>
+                        <CardHeader className="p-6 pb-4 border-b border-border/50">
+                            <CardTitle>Historial de pagos</CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                            <div className="divide-y divide-border/50">
+                                {filteredHistory.map((sub) => {
+                                    const st = STATUS_LABEL[sub.status] ?? { label: sub.status, color: '' };
+                                    return (
+                                        <div key={sub.id} className="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-colors">
+                                            <div>
+                                                <p className="text-sm font-semibold capitalize flex items-center gap-2">
+                                                    Blend {(sub as any).plan || 'Pro'}
+                                                    <span className="text-muted-foreground font-normal text-xs uppercase tracking-wider">
+                                                        ({sub.interval === 'month' ? 'Mensual' : 'Anual'})
+                                                    </span>
+                                                </p>
+                                                <p className="text-sm text-muted-foreground mt-1">
+                                                    {formatDate(sub.createdAt)}
+                                                </p>
+                                            </div>
+                                            <Badge className={`text-xs px-2.5 py-1 border ${st.color}`}>
+                                                {sub.status === 'active' && <CheckCircle2 className="w-3.5 h-3.5 mr-1" />}
+                                                {sub.status === 'cancelled' && <XCircle className="w-3.5 h-3.5 mr-1" />}
+                                                {st.label}
+                                            </Badge>
                                         </div>
-                                        <Badge className={`text-xs px-2.5 py-1 border ${st.color}`}>
-                                            {sub.status === 'active' && <CheckCircle2 className="w-3.5 h-3.5 mr-1" />}
-                                            {sub.status === 'cancelled' && <XCircle className="w-3.5 h-3.5 mr-1" />}
-                                            {st.label}
-                                        </Badge>
-                                    </div>
-                                );
-                            })}
-                        </div>
+                                    );
+                                })}
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
+                {isLoading && (
+                    <div className="space-y-4 pt-4">
+                        <Skeleton className="h-48 w-full rounded-xl" />
+                        <Skeleton className="h-32 w-full rounded-xl" />
                     </div>
                 )}
 

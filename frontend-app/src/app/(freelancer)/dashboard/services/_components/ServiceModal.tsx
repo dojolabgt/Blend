@@ -46,6 +46,7 @@ const serviceSchema = z.object({
 });
 
 type ServiceFormValues = z.infer<typeof serviceSchema>;
+type ServiceFormInput = z.input<typeof serviceSchema>;
 
 interface ServiceModalProps {
     open: boolean;
@@ -57,7 +58,7 @@ interface ServiceModalProps {
 export function ServiceModal({ open, onOpenChange, onSuccess, initialData }: ServiceModalProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const form = useForm<ServiceFormValues>({
+    const form = useForm<ServiceFormInput, any, ServiceFormValues>({
         resolver: zodResolver(serviceSchema),
         defaultValues: {
             name: '',
@@ -221,7 +222,7 @@ export function ServiceModal({ open, onOpenChange, onSuccess, initialData }: Ser
                                             <FormItem>
                                                 <FormLabel>Precio Venta</FormLabel>
                                                 <FormControl>
-                                                    <Input type="number" {...field} className="rounded-xl" />
+                                                    <Input type="number" {...field} value={field.value as string | number | undefined} className="rounded-xl" />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -234,7 +235,7 @@ export function ServiceModal({ open, onOpenChange, onSuccess, initialData }: Ser
                                             <FormItem>
                                                 <FormLabel>Costo Interno (Opcional)</FormLabel>
                                                 <FormControl>
-                                                    <Input type="number" {...field} value={field.value === null ? '' : field.value} className="rounded-xl" />
+                                                    <Input type="number" {...field} value={(field.value === null ? '' : field.value) as string | number | undefined} className="rounded-xl" />
                                                 </FormControl>
                                                 <FormDescription className="text-xs">Para calcular margen</FormDescription>
                                                 <FormMessage />
@@ -347,7 +348,7 @@ export function ServiceModal({ open, onOpenChange, onSuccess, initialData }: Ser
                                                     type="number"
                                                     placeholder="Ej. 14"
                                                     {...field}
-                                                    value={field.value === null ? '' : field.value}
+                                                    value={(field.value === null ? '' : field.value) as string | number | undefined}
                                                     className="rounded-xl"
                                                 />
                                             </FormControl>

@@ -16,10 +16,8 @@ const freelancerNavItems: NavItemConfig[] = [
     { href: '/dashboard/services', label: 'Servicios', icon: Briefcase, section: 'NEGOCIO' },
     { href: '/dashboard/quotes', label: 'Cotizaciones', icon: FileText, section: 'COBROS' },
     { href: '/dashboard/payments', label: 'Pagos', icon: CreditCard, section: 'COBROS' },
-    { href: '/dashboard/profile', label: 'Mi Perfil (Marca)', icon: Palette, section: 'CONFIGURACIÓN' },
-    { href: '/dashboard/account', label: 'Mi Cuenta', icon: UserSquare, section: 'CONFIGURACIÓN' },
-    { href: '/dashboard/settings', label: 'Integraciones', icon: Settings, section: 'CONFIGURACIÓN' },
-    { href: '/dashboard/billing', label: 'Mi Plan', icon: Sparkles, section: 'CONFIGURACIÓN' },
+    // Use strongly typed route to default settings page
+    { href: '/dashboard/settings/personal-info', label: 'Configuración', icon: Settings, section: 'CONFIGURACIÓN' },
 ];
 
 export default function FreelancerLayout({ children }: { children: React.ReactNode }) {

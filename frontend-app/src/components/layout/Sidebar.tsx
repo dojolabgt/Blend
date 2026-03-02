@@ -28,9 +28,9 @@ export function Sidebar({ navItems }: SidebarProps) {
 
     // Branding Logic
     const isProOrPremium = activeWorkspace?.plan === 'pro' || activeWorkspace?.plan === 'premium';
-    const businessName = activeWorkspace?.businessName || 'Mi Espacio';
+    const businessName = isProOrPremium ? (activeWorkspace?.businessName || 'Mi Espacio') : 'Blend';
     const displayLogo = isProOrPremium ? (activeWorkspace?.logo || undefined) : undefined;
-    const initials = businessName.substring(0, 2).toUpperCase();
+    const initials = isProOrPremium ? businessName.substring(0, 2).toUpperCase() : 'BL';
 
     // Optional style based on brandColor
     const brandColorStyle = (isProOrPremium && activeWorkspace?.brandColor) ? { color: activeWorkspace.brandColor } : {};
@@ -58,7 +58,7 @@ export function Sidebar({ navItems }: SidebarProps) {
 
             {/* Main Sidebar Desktop + Mobile Menu */}
             <div className={cn(
-                "fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-zinc-950 border-r border-zinc-100 dark:border-zinc-800/60 transform transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:flex md:flex-col",
+                "fixed inset-y-0 left-0 z-50 w-56 bg-white dark:bg-zinc-950 border-r border-zinc-100 dark:border-zinc-800/60 transform transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:flex md:flex-col",
                 mobileMenuOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"
             )}>
 
