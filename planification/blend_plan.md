@@ -11,7 +11,6 @@
 Blend cobra suscripción a los espacios de trabajo (Workspaces). Los usuarios cobran a sus clientes usando su propia cuenta Recurrente conectada a su Workspace en Blend. Los profesionales pueden invitar a colaboradores a sus espacios para trabajar juntos y repartir ganancias.
 
 ---
-## COMPLETADO
 ## Roles y Permisos
 
 ### Roles de Aplicación (Globales) 
@@ -33,8 +32,7 @@ Blend cobra suscripción a los espacios de trabajo (Workspaces). Los usuarios co
 
 ---
 
-## COMPLETADO
-## Fase 0 — Fundación: Arquitectura Multi-Tenant
+## Fase 0 — Fundación: Arquitectura Multi-Tenant ✅
 
 > ⚠️ No construyas ningún feature hasta que esto esté resuelto.
 
@@ -86,8 +84,7 @@ WorkspaceMember
 
 ---
 
-## COMPLETADO
-## Fase 1 — Servicios y Clientes
+## Fase 1 — Servicios y Clientes ✅
 
 ### Services
 
@@ -209,7 +206,7 @@ CollaborationSplit
 
 ---
 
-## Fase 5 — Billing (Blend cobra al SaaS)
+## Fase 5 — Billing (Blend cobra al SaaS) ✅
 
 > Blend usa sus propias keys maestras de Recurrente, no las del usuario.
 
@@ -266,7 +263,6 @@ BillingSubscription
 - `PATCH /admin/users/:id/suspend` — Banear usuarios problemáticos.
 
 ---
-## COMPLETADO
 ## Fase 0.5: Refactor Multi-Tenant ✅
 
 ### Backend
@@ -301,12 +297,12 @@ BillingSubscription
 
 | # | Fase | Descripción |
 |---|------|-------------|
-| 0 | Fundación | Refactor Multi-tenant, Auth, Workspaces, Guardias *(En progreso)* |
-| 1 | Servicios | CRUD |
+| 0 | Fundación | Refactor Multi-tenant, Auth, Workspaces, Guardias ✅ |
+| 1 | Servicios | CRUD ✅ |
 | 2 | Cotizaciones | Quotes + PDF + flujo de aprobación dual |
 | 3 | Pagos | RecurrenteModule + Payments + webhooks |
 | 4 | Colaboración | Invitaciones + CollaborationSplit |
-| 5 | Billing | Blend cobra suscripción al Workspace |
+| 5 | Billing | Blend cobra suscripción al Workspace ✅ |
 | 6 | Dashboard FR | Resumen del Workspace |
 | 7 | Dashboard Client | Vista del cliente |
 | 8 | Admin Panel | Métricas + gestión |
