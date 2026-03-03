@@ -27,13 +27,15 @@ async function bootstrap() {
     {
       email: adminEmail,
       password: adminPassword,
-      name: 'Blend Admin',
+      firstName: 'Blend',
+      lastName: 'Admin',
       role: UserRole.ADMIN,
     },
     {
       email: freelancerEmail,
       password: freelancerPassword,
-      name: 'Test Freelancer',
+      firstName: 'Test',
+      lastName: 'Freelancer',
       role: UserRole.FREELANCER,
     },
   ];

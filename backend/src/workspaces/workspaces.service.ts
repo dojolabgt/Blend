@@ -2,6 +2,7 @@ import {
   Injectable,
   BadRequestException,
   NotFoundException,
+  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -25,7 +26,7 @@ export class WorkspacesService {
     private workspaceMembersRepository: Repository<WorkspaceMember>,
     private readonly encryptionService: EncryptionService,
     private readonly storageService: StorageService,
-  ) {}
+  ) { }
 
   async createDefaultWorkspace(userId: string): Promise<Workspace> {
     const existingOwner = await this.workspaceMembersRepository.findOne({
@@ -66,10 +67,13 @@ export class WorkspacesService {
     return workspace;
   }
 
+  private readonly logger = new Logger(WorkspacesService.name);
+
   async updateWorkspace(
     id: string,
     data: Partial<Workspace>,
   ): Promise<Workspace> {
+    this.logger.log(`Updating workspace ${id} with data: ${JSON.stringify(data)}`);
     await this.workspacesRepository.update(id, data);
     return this.getWorkspaceById(id);
   }

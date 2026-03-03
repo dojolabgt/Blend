@@ -77,7 +77,7 @@ function UseCasePill({
 
 // ─── Main page ──────────────────────────────────────────────────────────────
 export default function OnboardingPage() {
-    const { activeWorkspaceId, activeWorkspace } = useAuth();
+    const { activeWorkspaceId, activeWorkspace, checkAuth } = useAuth();
     const router = useRouter();
 
     const [step, setStep] = useState(0);
@@ -93,7 +93,11 @@ export default function OnboardingPage() {
     // Step 2 — Ubicación & Moneda
     const [country, setCountry] = useState(activeWorkspace?.country || 'GT');
     const [stateValue, setStateValue] = useState(activeWorkspace?.state || '');
-    const [currency, setCurrency] = useState('GTQ');
+
+    // Default currency derived from selected country
+    const getDefaultCurrency = (countryCode: string) =>
+        (paisData as any)[countryCode]?.defaults?.currency || 'USD';
+    const [currency, setCurrency] = useState(() => getDefaultCurrency(activeWorkspace?.country || 'GT'));
 
     // Step 3 — Casos de uso
     const [selectedUseCases, setSelectedUseCases] = useState<string[]>([]);
@@ -105,7 +109,7 @@ export default function OnboardingPage() {
     const lvl1Options: string[] =
         country === 'GT'
             ? guatemalaData.map((d: any) => d.title)
-            : activeCountryData?.regions?.map((r: any) => r.name) || [];
+            : [];
 
     const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -126,10 +130,6 @@ export default function OnboardingPage() {
             setError('El nombre de tu negocio es requerido.');
             return;
         }
-        if (step === 1 && !stateValue) {
-            setError(`Por favor selecciona un ${lvl1Label}.`);
-            return;
-        }
         setStep((s) => s + 1);
     };
 
@@ -148,16 +148,21 @@ export default function OnboardingPage() {
                 });
             }
 
-            // Save workspace data
+            // Save workspace data — apply country defaults from pais.json
+            const countryDefaults = (paisData as any)[country]?.defaults || {};
             await api.patch('/workspaces/current', {
                 businessName,
                 country,
-                state: stateValue,
+                state: '',
+                // Spread defaults: timezone, dateFormat, language, etc.
+                ...countryDefaults,
+                // Override currency with the one the user selected
                 currencies: [{ code: currency, name: currency, symbol: currency, isDefault: true }],
                 useCases: skip ? [] : selectedUseCases,
                 onboardingCompleted: true,
             });
 
+            await checkAuth();
             router.push('/dashboard');
         } catch (err: any) {
             setError(err.response?.data?.message || 'Ocurrió un error. Intenta de nuevo.');
@@ -256,7 +261,11 @@ export default function OnboardingPage() {
                             {/* Country */}
                             <div>
                                 <label className="text-sm font-medium text-zinc-700 block mb-1.5">País</label>
-                                <Select value={country} onValueChange={(val) => { setCountry(val); setStateValue(''); }}>
+                                <Select value={country} onValueChange={(val) => {
+                                    setCountry(val);
+                                    setStateValue('');
+                                    setCurrency(getDefaultCurrency(val));
+                                }}>
                                     <SelectTrigger className="h-12 rounded-xl border-zinc-200 focus:ring-1 focus:ring-zinc-900">
                                         <div className="flex items-center gap-2 text-zinc-500">
                                             <MapPin className="h-4 w-4" />
@@ -271,20 +280,7 @@ export default function OnboardingPage() {
                                 </Select>
                             </div>
 
-                            {/* State / Region */}
-                            <div>
-                                <label className="text-sm font-medium text-zinc-700 block mb-1.5">{lvl1Label}</label>
-                                <Select value={stateValue} onValueChange={setStateValue}>
-                                    <SelectTrigger className="h-12 rounded-xl border-zinc-200 focus:ring-1 focus:ring-zinc-900">
-                                        <SelectValue placeholder={`Selecciona ${lvl1Label}`} />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {lvl1Options.map((opt) => (
-                                            <SelectItem key={opt} value={opt}>{opt}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
+                            {/* State / Region (Removed per user request) */}
 
                             {/* Main currency */}
                             <div>

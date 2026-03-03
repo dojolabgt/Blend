@@ -5,49 +5,101 @@
             "lvl1": "Departamento",
             "lvl2": "Municipio"
         },
-        "regions": [
-            {
-                "id": "01",
-                "name": "Guatemala",
-                "cities": [
-                    {
-                        "id": "0101",
-                        "name": "Guatemala"
-                    },
-                    {
-                        "id": "0108",
-                        "name": "Mixco"
-                    }
-                ]
-            }
-        ]
-    },
-    "MX": {
-        "name": "México",
-        "labels": {
-            "lvl1": "Estado",
-            "lvl2": "Municipio / Alcaldía"
+        "defaults": {
+            "language": "es-419",
+            "timezone": "America/Guatemala",
+            "dateFormat": "DD/MM/YYYY",
+            "timeFormat": "12h",
+            "numberFormat": "US",
+            "currencyFormat": "symbol-left",
+            "firstDayOfWeek": "sunday",
+            "currency": "GTQ"
         },
-        "regions": [
+        "taxIdentifiers": [
             {
-                "id": "CDMX",
-                "name": "Ciudad de México",
-                "cities": [
-                    {
-                        "id": "CUA",
-                        "name": "Cuauhtémoc"
-                    }
+                "key": "nit",
+                "label": "NIT",
+                "placeholder": "ej. 1234567-8",
+                "description": "Número de Identificación Tributaria emitido por la SAT",
+                "required": true
+            },
+            {
+                "key": "cui",
+                "label": "CUI / DPI",
+                "placeholder": "ej. 1234 56789 0101",
+                "description": "Código Único de Identificación (persona natural)",
+                "required": false
+            }
+        ],
+        "withholdings": [
+            {
+                "key": "iva",
+                "label": "IVA",
+                "rate": 0.12,
+                "description": "Impuesto al Valor Agregado (12%)",
+                "appliesTo": [
+                    "services",
+                    "products"
                 ]
             },
             {
-                "id": "JAL",
-                "name": "Jalisco",
-                "cities": [
-                    {
-                        "id": "GDL",
-                        "name": "Guadalajara"
-                    }
+                "key": "isr_retencion",
+                "label": "Retención ISR",
+                "rate": 0.05,
+                "description": "Retención ISR Pequeño Contribuyente (5%)",
+                "appliesTo": [
+                    "services"
                 ]
+            }
+        ],
+        "invoiceFields": [
+            {
+                "key": "regimen",
+                "label": "Régimen Fiscal",
+                "type": "select",
+                "options": [
+                    "General",
+                    "Pequeño Contribuyente",
+                    "Especial"
+                ],
+                "required": true
+            },
+            {
+                "key": "fel_serie",
+                "label": "Serie FEL",
+                "type": "text",
+                "placeholder": "ej. A",
+                "required": false
+            }
+        ],
+        "phoneFormat": {
+            "code": "+502",
+            "pattern": "XXXX-XXXX",
+            "digits": 8,
+            "example": "+502 5555-1234"
+        },
+        "addressFormat": [
+            "street",
+            "zona",
+            "municipio",
+            "departamento"
+        ],
+        "paymentMethods": [
+            {
+                "key": "bank_transfer",
+                "label": "Transferencia Bancaria"
+            },
+            {
+                "key": "deposit",
+                "label": "Depósito en efectivo"
+            },
+            {
+                "key": "cash",
+                "label": "Efectivo"
+            },
+            {
+                "key": "card",
+                "label": "Tarjeta (Visa/Mastercard)"
             }
         ]
     }

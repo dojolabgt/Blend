@@ -22,7 +22,7 @@ export class AuthService {
     private settingsService: SettingsService,
     private mailService: MailService,
     private workspacesService: WorkspacesService,
-  ) {}
+  ) { }
 
   async register(registerDto: RegisterDto) {
     const settings = await this.settingsService.getSettings();
@@ -48,7 +48,10 @@ export class AuthService {
 
     const userWithWorkspaces = await this.usersService.findOneById(newUser.id);
 
-    return this.login(this.mapToAuthenticatedUser(userWithWorkspaces!));
+    const userForToken = this.mapToAuthenticatedUser(userWithWorkspaces!);
+    const tokens = await this.login(userForToken);
+
+    return { ...tokens, user: userForToken };
   }
 
   async forgotPassword(email: string) {

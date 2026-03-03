@@ -9,7 +9,8 @@ import {
     Globe,
     FileDigit,
     MapPin,
-    Shield
+    Shield,
+    Puzzle
 } from 'lucide-react';
 
 const settingsNavItems = [
@@ -33,6 +34,7 @@ const settingsNavItems = [
     {
         title: 'Avanzado',
         items: [
+            { href: '/dashboard/settings/modules', label: 'Módulos', icon: Puzzle },
             { href: '/dashboard/settings/domains', label: 'Dominios', icon: Globe },
         ]
     }

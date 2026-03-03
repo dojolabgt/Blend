@@ -15,12 +15,16 @@ import {
     SheetTitle,
 } from '@/components/ui/sheet';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { Gt, Sv } from '@next-languages/flags';
 
 const recurrenteLogoSrc = '/integrations/recurrente-logo.png';
 
 export default function SettingsPage() {
     const { activeWorkspace } = useAuth();
     const isProOrPremium = activeWorkspace?.plan === 'pro' || activeWorkspace?.plan === 'premium';
+    const workspaceCountry = activeWorkspace?.country || 'GT';
+    const isRecurrenteSupported = workspaceCountry === 'GT' || workspaceCountry === 'SV';
+
     const [isConfigured, setIsConfigured] = useState<boolean | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [sheetOpen, setSheetOpen] = useState(false);
@@ -82,6 +86,15 @@ export default function SettingsPage() {
                                     onConfigure={() => setSheetOpen(true)}
                                     proOnly
                                     userIsPro={isProOrPremium}
+                                    badges={[
+                                        <div key="gt" className="w-[20px] rounded-[3px] overflow-hidden shadow-sm border border-zinc-200 dark:border-zinc-800 flex bg-white mix-blend-multiply dark:mix-blend-normal">
+                                            <Gt className="w-full h-auto" />
+                                        </div>,
+                                        <div key="sv" className="w-[20px] rounded-[3px] overflow-hidden shadow-sm border border-zinc-200 dark:border-zinc-800 flex bg-white mix-blend-multiply dark:mix-blend-normal">
+                                            <Sv className="w-full h-auto" />
+                                        </div>,
+                                    ]}
+                                    disabledReason={!isRecurrenteSupported ? 'No disponible en tu país' : undefined}
                                 />
                                 <IntegrationCard
                                     logo={
