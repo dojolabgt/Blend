@@ -5,7 +5,7 @@ import { useAuth } from '@/features/auth/hooks/useAuth';
 import { UserRole } from '@/types';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { NavItemConfig } from '@/components/layout/NavItem';
-import { LayoutDashboard, Users, Briefcase, FileText, CreditCard, UserSquare, Sparkles, Palette } from 'lucide-react';
+import { LayoutDashboard, Users, Briefcase, FileText, CreditCard } from 'lucide-react';
 
 import { TopHeader } from '@/components/layout/Header';
 import { Settings } from 'lucide-react';
@@ -22,7 +22,7 @@ const freelancerNavItems: NavItemConfig[] = [
 
 export default function FreelancerLayout({ children }: { children: React.ReactNode }) {
     const { isAuthorized, isLoading } = useRequireRole(UserRole.FREELANCER);
-    const { user, logout } = useAuth();
+    const { user } = useAuth();
 
     if (isLoading) return null; // Or a full-screen spinner
     if (!isAuthorized || !user) return null;

@@ -8,9 +8,6 @@ import { DashboardShell } from '@/components/layout/DashboardShell';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Separator } from '@/components/ui/separator';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import {
     Card,
     CardContent,

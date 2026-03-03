@@ -6,7 +6,6 @@ import {
   IsBoolean,
   IsInt,
   IsObject,
-  ValidateNested,
 } from 'class-validator';
 import {
   ServiceCurrency,

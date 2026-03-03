@@ -23,7 +23,7 @@ export class UsersService {
     private usersRepository: Repository<User>,
     private readonly storageService: StorageService,
     private readonly configService: ConfigService,
-  ) { }
+  ) {}
 
   async findOneByEmail(email: string): Promise<User | null> {
     return this.usersRepository.findOne({

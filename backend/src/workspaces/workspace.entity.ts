@@ -85,7 +85,12 @@ export class Workspace {
   firstDayOfWeek: string;
 
   @Column({ type: 'jsonb', nullable: true, default: '[]' })
-  currencies: { code: string; name: string; symbol: string; isDefault: boolean }[];
+  currencies: {
+    code: string;
+    name: string;
+    symbol: string;
+    isDefault: boolean;
+  }[];
 
   @OneToMany(() => WorkspaceMember, (member) => member.workspace)
   members: WorkspaceMember[];

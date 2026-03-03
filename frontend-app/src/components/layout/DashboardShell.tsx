@@ -1,7 +1,5 @@
 'use client';
 
-import { TopHeader } from './Header';
-
 /**
  * DashboardShell wraps the main content area for the internal dashboard views.
  * It provides the off-white background and comfortable padding as requested.

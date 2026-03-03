@@ -3,7 +3,7 @@
 import { DashboardShell, Surface } from "@/components/layout/DashboardShell";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { UserRole } from "@/lib/types/enums";
-import { LayoutDashboard, Users, Settings } from "lucide-react";
+import { LayoutDashboard, Users } from "lucide-react";
 
 // In a real app, you'd get the user from a server component or pass it down via React Context
 // For now, these are placeholders to demonstrate the layout.

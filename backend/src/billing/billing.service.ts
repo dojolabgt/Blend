@@ -304,7 +304,7 @@ export class BillingService {
             await this.recurrenteBlend.cancelSubscription(
               oldSub.recurrenteSubscriptionId,
             );
-          } catch (e) {
+          } catch (_e) {
             this.logger.error(
               `Could not cancel old Recurrente sub ${oldSub.recurrenteSubscriptionId}`,
             );

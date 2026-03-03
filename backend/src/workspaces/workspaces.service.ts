@@ -79,7 +79,7 @@ export class WorkspacesService {
     if (workspace.logo) {
       try {
         await this.storageService.delete(workspace.logo);
-      } catch (error) {
+      } catch (_error) {
         // Log error but continue
       }
     }

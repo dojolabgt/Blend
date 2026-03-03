@@ -100,4 +100,4 @@ import { ClientsModule } from './clients/clients.module';
     },
   ],
 })
-export class AppModule { }
+export class AppModule {}

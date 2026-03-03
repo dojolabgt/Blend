@@ -112,19 +112,13 @@ describe('AuthService', () => {
     usersService.findOneByEmailWithPassword.mockResolvedValue(user);
     (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
-    const result = await service.validateUser(
-      'test@test.com',
-      'wrongpassword',
-    );
+    const result = await service.validateUser('test@test.com', 'wrongpassword');
     expect(result).toBeNull();
   });
 
   it('should return null if user not found', async () => {
     usersService.findOneByEmailWithPassword.mockResolvedValue(null);
-    const result = await service.validateUser(
-      'notfound@test.com',
-      'password',
-    );
+    const result = await service.validateUser('notfound@test.com', 'password');
     expect(result).toBeNull();
   });
   describe('login', () => {

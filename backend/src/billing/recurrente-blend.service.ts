@@ -4,7 +4,6 @@ import {
   Logger,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { BillingInterval } from './billing-subscription.entity';
 
 const RECURRENTE_API = 'https://app.recurrente.com/api';
 

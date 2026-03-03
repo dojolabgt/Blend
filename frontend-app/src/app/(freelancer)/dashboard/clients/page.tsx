@@ -5,7 +5,7 @@ import { clientsApi } from '@/features/clients/api';
 import { Client } from '@/features/clients/types';
 import { DashboardShell } from '@/components/layout/DashboardShell';
 import { Button } from '@/components/ui/button';
-import { Plus, Users, UserPlus, Mail, Phone, MoreHorizontal, Edit2, Trash2 } from 'lucide-react';
+import { Users, UserPlus, Mail, Phone, MoreHorizontal, Edit2, Trash2 } from 'lucide-react';
 import {
     Table,
     TableBody,

@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getImageUrl } from '@/lib/utils';
 import { useAuth } from '@/features/auth/hooks/useAuth';

@@ -1,11 +1,6 @@
 'use client';
 
 import { DashboardShell } from '@/components/layout/DashboardShell';
-import { MapPin } from 'lucide-react';
-import {
-    Card,
-    CardContent,
-} from '@/components/ui/card';
 
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { LocalizationForm } from './_components/LocalizationForm';
