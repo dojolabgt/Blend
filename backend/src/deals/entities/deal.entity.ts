@@ -15,6 +15,7 @@ import { DealStatus } from '../enums/deal-status.enum';
 import { Brief } from './brief.entity';
 import { Quotation } from './quotation.entity';
 import { PaymentPlan } from './payment-plan.entity';
+import { DealCollaborator } from './deal-collaborator.entity';
 
 @Entity('deals')
 export class Deal {
@@ -107,6 +108,9 @@ export class Deal {
     nullable: true,
   })
   paymentPlan: PaymentPlan;
+
+  @OneToMany(() => DealCollaborator, (collaborator) => collaborator.deal, { cascade: true })
+  collaborators: DealCollaborator[];
 
   // TODO: Add Project relation once Execution module is built
   @Column({ name: 'project_id', nullable: true })

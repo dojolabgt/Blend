@@ -144,7 +144,7 @@ export default function LoginPage() {
 
                     {/* Footer con políticas */}
                     <div className="flex w-full justify-between items-center mt-auto pt-24 text-xs font-medium text-zinc-500 w-full px-2">
-                        <span>©2026 Blend LTD. Todos los derechos reservados.</span>
+                        <span>©2026 Nodally LTD. Todos los derechos reservados.</span>
                         <div className="flex gap-4">
                             <Link href="/privacy" className="hover:text-zinc-900 dark:hover:text-zinc-300">Política de privacidad</Link>
                             <span>•</span>
@@ -169,7 +169,7 @@ export default function LoginPage() {
                                         <path d="M13 3L4 14H12L11 21L20 10H12L13 3Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                     </svg>
                                 </div>
-                                <span className="font-semibold text-sm tracking-tight">Blend Studio</span>
+                                <span className="font-semibold text-sm tracking-tight">Nodally</span>
                             </div>
 
                             <div className="space-y-1">

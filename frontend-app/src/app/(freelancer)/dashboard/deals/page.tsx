@@ -129,16 +129,26 @@ export default function DealsPage() {
         {
             key: 'name',
             header: 'Propuesta',
-            render: (deal) => (
-                <div>
-                    <div className="font-semibold group-hover:text-primary transition-colors">
-                        {deal.name || '(sin nombre)'}
+            render: (deal) => {
+                const isShared = deal.workspace?.id !== activeWorkspace?.id;
+                return (
+                    <div>
+                        <div className="flex items-center gap-2">
+                            <div className="font-semibold group-hover:text-primary transition-colors">
+                                {deal.name || '(sin nombre)'}
+                            </div>
+                            {isShared && (
+                                <span className="px-1.5 py-0.5 rounded text-[10px] whitespace-nowrap font-medium bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400">
+                                    De: {deal.workspace?.businessName || deal.workspace?.name || 'Otro'}
+                                </span>
+                            )}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                            {getClientName(deal)}
+                        </div>
                     </div>
-                    <div className="text-xs text-muted-foreground">
-                        {getClientName(deal)}
-                    </div>
-                </div>
-            ),
+                );
+            },
         },
         {
             key: 'status',

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { CheckCircle2, Lock, Eye, Play, StickyNote } from 'lucide-react';
+import { CheckCircle2, Lock, Eye, Play, StickyNote, Users } from 'lucide-react';
 import { DealStep } from './DealBuilder';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -12,9 +12,10 @@ interface SidebarProps {
     activeStep: DealStep;
     onStepChange: (step: DealStep) => void;
     updateDeal?: (dealId: string, partial: any) => Promise<any>;
+    onOpenCollaborators?: () => void;
 }
 
-export function DealRoadmapSidebar({ deal, activeStep, onStepChange, updateDeal }: SidebarProps) {
+export function DealRoadmapSidebar({ deal, activeStep, onStepChange, updateDeal, onOpenCollaborators }: SidebarProps) {
     const { activeWorkspace } = useAuth();
     const isWon = deal?.status === 'WON';
     const currentStep = (deal?.currentStep as DealStep) || 'brief';
@@ -201,7 +202,22 @@ export function DealRoadmapSidebar({ deal, activeStep, onStepChange, updateDeal 
                 </div>
             )}
 
-            {/* Fix 2.8 — Internal Notes */}
+            {/* Add Collaborators Action */}
+            <div className={cn(
+                'mt-6 pt-5 border-t',
+                isWon ? 'border-emerald-200 dark:border-emerald-800/50' : 'border-zinc-200 dark:border-zinc-800'
+            )}>
+                <Button
+                    variant="outline"
+                    className="w-full justify-start text-zinc-600 dark:text-zinc-300"
+                    onClick={onOpenCollaborators}
+                >
+                    <Users className="w-4 h-4 mr-2" />
+                    Gestionar Colaboradores
+                </Button>
+            </div>
+
+            {/* Internal Notes */}
             <div className={cn(
                 'mt-6 pt-5 border-t',
                 isWon ? 'border-emerald-200 dark:border-emerald-800/50' : 'border-zinc-200 dark:border-zinc-800'

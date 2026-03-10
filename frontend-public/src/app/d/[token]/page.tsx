@@ -477,7 +477,7 @@ export default function PublicDealPage({ params }: { params: Promise<{ token: st
                     <div className="flex items-center gap-2 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
                         Powered by
                         <div className="w-5 h-5 bg-black text-white rounded flex items-center justify-center text-xs ml-1">B</div>
-                        <span className="text-black">Blend</span>
+                        <span className="text-black">Nodally</span>
                     </div>
                 </div>
             </footer>

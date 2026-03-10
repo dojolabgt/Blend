@@ -13,9 +13,10 @@ import { Quotation } from './entities/quotation.entity';
 import { QuotationItem } from './entities/quotation-item.entity';
 import { PaymentPlan } from './entities/payment-plan.entity';
 import { PaymentMilestone } from './entities/payment-milestone.entity';
-import { Workspace } from '../workspaces/workspace.entity';
 import { Client } from '../clients/client.entity';
 import { Service } from '../services/service.entity';
+import { Workspace } from '../workspaces/workspace.entity';
+import { DealCollaborator, CollaboratorRole } from './entities/deal-collaborator.entity';
 import { CreateDealDto } from './dto/create-deal.dto';
 import { CreateBriefTemplateDto } from './dto/create-brief-template.dto';
 import { UpdateDealDto } from './dto/update-deal.dto';
@@ -63,6 +64,8 @@ export class DealsService {
     private readonly paymentPlansRepository: Repository<PaymentPlan>,
     @InjectRepository(PaymentMilestone)
     private readonly paymentMilestonesRepository: Repository<PaymentMilestone>,
+    @InjectRepository(DealCollaborator)
+    private readonly dealCollaboratorsRepository: Repository<DealCollaborator>,
     @InjectRepository(Workspace)
     private readonly workspacesRepository: Repository<Workspace>,
     @InjectRepository(Client)
@@ -128,8 +131,11 @@ export class DealsService {
 
   async findAll(workspaceId: string): Promise<Deal[]> {
     return this.dealsRepository.find({
-      where: { workspace: { id: workspaceId } },
-      relations: ['client', 'brief', 'quotations', 'paymentPlan'],
+      where: [
+        { workspace: { id: workspaceId } },
+        { collaborators: { workspaceId } }
+      ],
+      relations: ['client', 'brief', 'quotations', 'paymentPlan', 'collaborators', 'collaborators.workspace'],
       order: { createdAt: 'DESC' },
     });
   }
@@ -246,6 +252,43 @@ export class DealsService {
     });
     if (!deal) throw new NotFoundException('Deal not found');
     await this.dealsRepository.remove(deal);
+  }
+
+  // ─── COLLABORATORS ───────────────────────────────────────────────────────
+
+  async addCollaborator(workspaceId: string, dealId: string, collaboratorWorkspaceId: string, role: CollaboratorRole = CollaboratorRole.VIEWER): Promise<DealCollaborator> {
+    const deal = await this.findOne(workspaceId, dealId);
+
+    // Check if the external workspace actually exists and is connected
+    // For simplicity, we just add the record here. In a real scenario we might verify the connection.
+    const exists = await this.dealCollaboratorsRepository.findOne({
+      where: { deal: { id: deal.id }, workspace: { id: collaboratorWorkspaceId } }
+    });
+
+    if (exists) {
+      throw new BadRequestException('This workspace is already a collaborator on this deal');
+    }
+
+    const collaborator = this.dealCollaboratorsRepository.create({
+      deal: { id: deal.id },
+      workspace: { id: collaboratorWorkspaceId },
+      role,
+    });
+
+    return await this.dealCollaboratorsRepository.save(collaborator);
+  }
+
+  async removeCollaborator(workspaceId: string, dealId: string, collaboratorId: string): Promise<void> {
+    const deal = await this.findOne(workspaceId, dealId);
+    const collaborator = await this.dealCollaboratorsRepository.findOne({
+      where: { id: collaboratorId, deal: { id: deal.id } }
+    });
+
+    if (!collaborator) {
+      throw new NotFoundException('Collaborator not found');
+    }
+
+    await this.dealCollaboratorsRepository.remove(collaborator);
   }
 
   // ─── QUOTATIONS ──────────────────────────────────────────────────────────

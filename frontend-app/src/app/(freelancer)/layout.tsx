@@ -5,7 +5,7 @@ import { useAuth } from '@/features/auth/hooks/useAuth';
 import { UserRole } from '@/types';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { NavItemConfig } from '@/components/layout/NavItem';
-import { LayoutDashboard, Users, Briefcase, FileText, CreditCard, LayoutTemplate } from 'lucide-react';
+import { LayoutDashboard, Users, Briefcase, FileText, CreditCard, LayoutTemplate, Network } from 'lucide-react';
 import { TopHeader } from '@/components/layout/Header';
 import { Settings } from 'lucide-react';
 import { useEffect } from 'react';
@@ -22,6 +22,7 @@ export default function FreelancerLayout({ children }: { children: React.ReactNo
     const freelancerNavItems: NavItemConfig[] = [
         { href: '/dashboard', label: t('sidebar.dashboard'), icon: LayoutDashboard, section: t('sidebar.mainSection') },
         { href: '/dashboard/clients', label: t('sidebar.clients'), icon: Users, section: t('sidebar.businessSection') },
+        { href: '/dashboard/network', label: 'Mi Red', icon: Network, section: t('sidebar.businessSection') },
         { href: '/dashboard/services', label: t('sidebar.services'), icon: Briefcase, section: t('sidebar.businessSection') },
         { href: '/dashboard/deals', label: t('sidebar.deals'), icon: FileText, section: t('sidebar.billingSection') },
         { href: '/dashboard/templates', label: t('sidebar.templates'), icon: LayoutTemplate, section: t('sidebar.billingSection') },

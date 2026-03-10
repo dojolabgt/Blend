@@ -63,7 +63,7 @@ export default function RegisterPage() {
                     {/* Encabezado */}
                     <div className="text-center mb-8 w-full">
                         <h1 className="text-3xl font-semibold tracking-tight text-zinc-900 dark:text-white mb-2">Crea tu cuenta</h1>
-                        <p className="text-zinc-500 dark:text-zinc-400 text-sm">Ingresa tus datos para comenzar tu viaje con Blend.</p>
+                        <p className="text-zinc-500 dark:text-zinc-400 text-sm">Ingresa tus datos para comenzar tu viaje con Nodally.</p>
                     </div>
 
                     <form onSubmit={handleRegister} className="w-full space-y-4">
@@ -184,7 +184,7 @@ export default function RegisterPage() {
 
                     {/* Footer con políticas */}
                     <div className="flex w-full justify-between items-center mt-auto pt-16 text-xs font-medium text-zinc-500 px-2 lg:px-4">
-                        <span>©2026 Blend LTD. Todos los derechos reservados.</span>
+                        <span>©2026 Nodally LTD. Todos los derechos reservados.</span>
                         <div className="flex gap-4">
                             <Link href="/privacy" className="hover:text-zinc-900 dark:hover:text-zinc-300">Privacidad</Link>
                             <span>•</span>

@@ -27,7 +27,7 @@ async function bootstrap() {
     {
       email: adminEmail,
       password: adminPassword,
-      firstName: 'Blend',
+      firstName: 'Nodally',
       lastName: 'Admin',
       role: UserRole.ADMIN,
     },
@@ -86,8 +86,8 @@ async function bootstrap() {
     const settingsRepository = settingsService['settingsRepository'];
     await settingsRepository.save({
       id: 1,
-      appName: 'Blend',
-      appLogo: '/public/branding/BlendLogo.png',
+      appName: 'Nodally',
+      appLogo: '/public/branding/NodallyLogo.png',
       appFavicon: '/public/branding/favicon.ico',
       primaryColor: '#6366f1',
       secondaryColor: '#1e1b4b',

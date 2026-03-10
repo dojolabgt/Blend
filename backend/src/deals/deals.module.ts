@@ -14,6 +14,7 @@ import { PaymentMilestone } from './entities/payment-milestone.entity';
 import { Workspace } from '../workspaces/workspace.entity';
 import { Client } from '../clients/client.entity';
 import { Service } from '../services/service.entity';
+import { DealCollaborator } from './entities/deal-collaborator.entity';
 
 @Module({
   imports: [
@@ -28,9 +29,10 @@ import { Service } from '../services/service.entity';
       Workspace,
       Client,
       Service,
+      DealCollaborator,
     ]),
   ],
   controllers: [DealsController, PublicBriefsController, PublicDealsController],
   providers: [DealsService],
 })
-export class DealsModule {}
+export class DealsModule { }

@@ -24,11 +24,12 @@ import {
   CreateMilestoneDto,
 } from './dto/payment-plan.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CollaboratorRole } from './entities/deal-collaborator.entity';
 
 @UseGuards(JwtAuthGuard)
 @Controller('workspaces/:workspaceId/deals')
 export class DealsController {
-  constructor(private readonly dealsService: DealsService) {}
+  constructor(private readonly dealsService: DealsService) { }
 
   // ─── DEALS ───────────────────────────────────────────────────────────────
 
@@ -100,6 +101,27 @@ export class DealsController {
     @Param('id') id: string,
   ) {
     return this.dealsService.deleteDeal(workspaceId, id);
+  }
+
+  // ─── COLLABORATORS ───────────────────────────────────────────────────────
+
+  @Post(':id/collaborators')
+  addCollaborator(
+    @Param('workspaceId') workspaceId: string,
+    @Param('id') dealId: string,
+    @Body() body: { collaboratorWorkspaceId: string, role?: CollaboratorRole },
+  ) {
+    return this.dealsService.addCollaborator(workspaceId, dealId, body.collaboratorWorkspaceId, body.role);
+  }
+
+  @Delete(':id/collaborators/:collaboratorId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  removeCollaborator(
+    @Param('workspaceId') workspaceId: string,
+    @Param('id') dealId: string,
+    @Param('collaboratorId') collaboratorId: string,
+  ) {
+    return this.dealsService.removeCollaborator(workspaceId, dealId, collaboratorId);
   }
 
   // ─── QUOTATIONS ───────────────────────────────────────────────────────────

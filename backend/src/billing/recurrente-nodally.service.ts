@@ -21,8 +21,8 @@ interface RecurrenteCheckoutResponse {
 }
 
 @Injectable()
-export class RecurrenteBlendService {
-  private readonly logger = new Logger(RecurrenteBlendService.name);
+export class RecurrenteNodallyService {
+  private readonly logger = new Logger(RecurrenteNodallyService.name);
   private readonly publicKey: string;
   private readonly secretKey: string;
   private readonly monthlyPriceCents: number;
@@ -30,16 +30,16 @@ export class RecurrenteBlendService {
 
   constructor(private readonly configService: ConfigService) {
     this.publicKey = this.configService.getOrThrow<string>(
-      'BLEND_RECURRENTE_PUBLIC_KEY',
+      'NODALLY_RECURRENTE_PUBLIC_KEY',
     );
     this.secretKey = this.configService.getOrThrow<string>(
-      'BLEND_RECURRENTE_SECRET_KEY',
+      'NODALLY_RECURRENTE_SECRET_KEY',
     );
     this.monthlyPriceCents =
-      this.configService.get<number>('BILLING_PRO_MONTHLY_CENTS') ??
+      this.configService.get<number>('NODALLY_PRO_MONTHLY_CENTS') ??
       DEFAULT_MONTHLY_CENTS;
     this.yearlyPriceCents =
-      this.configService.get<number>('BILLING_PRO_YEARLY_CENTS') ??
+      this.configService.get<number>('NODALLY_PRO_YEARLY_CENTS') ??
       DEFAULT_YEARLY_CENTS;
   }
 
@@ -52,8 +52,8 @@ export class RecurrenteBlendService {
   }
 
   /**
-   * Creates a Recurrente subscription checkout using Blend's own keys.
-   * All checkouts carry metadata { workspaceId, context: 'blend_billing' }
+   * Creates a Recurrente subscription checkout using Nodally's own keys.
+   * All checkouts carry metadata { workspaceId, context: 'nodally_billing' }
    * so the webhook handler can route the event correctly.
    */
   async createSubscriptionCheckout(
@@ -70,15 +70,15 @@ export class RecurrenteBlendService {
 
     const itemName =
       planType === 'premium'
-        ? `Blend Premium — ${isMonthly ? 'Mensual' : 'Anual'}`
-        : `Blend Pro — ${isMonthly ? 'Mensual' : 'Anual'}`;
+        ? `Nodally Premium — ${isMonthly ? 'Mensual' : 'Anual'}`
+        : `Nodally Pro — ${isMonthly ? 'Mensual' : 'Anual'}`;
 
     const payload = {
       items: [
         {
           name: itemName,
           description:
-            'Acceso completo a Blend: clientes ilimitados, cotizaciones ilimitadas y más.',
+            'Acceso completo a Nodally: clientes ilimitados, cotizaciones ilimitadas y más.',
           currency: 'GTQ',
           amount_in_cents: amountInCents,
           charge_type: 'recurring',
@@ -90,7 +90,7 @@ export class RecurrenteBlendService {
       cancel_url: cancelUrl,
       custom_info: {
         workspaceId,
-        context: 'blend_billing',
+        context: 'nodally_billing',
         plan: planType,
       },
     };

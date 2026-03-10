@@ -18,6 +18,11 @@ export interface UpdateDealPayload {
     currentStep?: string;
 }
 
+export interface AddCollaboratorPayload {
+    collaboratorWorkspaceId: string;
+    role?: 'viewer' | 'editor';
+}
+
 export function useDeals() {
     const { activeWorkspace } = useAuth();
     const [deals, setDeals] = useState<any[]>([]);
@@ -100,6 +105,36 @@ export function useDeals() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeWorkspace]);
 
+    const addCollaborator = useCallback(async (dealId: string, payload: AddCollaboratorPayload) => {
+        if (!activeWorkspace) return null;
+        setIsLoading(true);
+        try {
+            const res = await api.post(`${base()}/${dealId}/collaborators`, payload);
+            return res.data;
+        } catch (err: any) {
+            setError(err.response?.data?.message || err.message);
+            return null;
+        } finally {
+            setIsLoading(false);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeWorkspace]);
+
+    const removeCollaborator = useCallback(async (dealId: string, collaboratorId: string) => {
+        if (!activeWorkspace) return false;
+        setIsLoading(true);
+        try {
+            await api.delete(`${base()}/${dealId}/collaborators/${collaboratorId}`);
+            return true;
+        } catch (err: any) {
+            setError(err.response?.data?.message || err.message);
+            return false;
+        } finally {
+            setIsLoading(false);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeWorkspace]);
+
     return {
         deals,
         fetchDeals,
@@ -107,6 +142,8 @@ export function useDeals() {
         createDeal,
         updateDeal,
         deleteDeal,
+        addCollaborator,
+        removeCollaborator,
         isLoading,
         error,
     };

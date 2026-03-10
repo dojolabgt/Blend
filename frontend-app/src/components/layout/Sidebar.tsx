@@ -27,9 +27,9 @@ export function Sidebar({ navItems }: SidebarProps) {
 
     // Branding Logic
     const isProOrPremium = activeWorkspace?.plan === 'pro' || activeWorkspace?.plan === 'premium';
-    const businessName = isProOrPremium ? (activeWorkspace?.businessName || 'Mi Espacio') : 'Blend';
+    const businessName = isProOrPremium ? (activeWorkspace?.businessName || 'Mi Espacio') : 'Nodally';
     const displayLogo = isProOrPremium ? (activeWorkspace?.logo || undefined) : undefined;
-    const initials = isProOrPremium ? businessName.substring(0, 2).toUpperCase() : 'BL';
+    const initials = isProOrPremium ? businessName.substring(0, 2).toUpperCase() : 'NL';
 
     // Optional style based on brandColor
     const brandColorStyle = (isProOrPremium && activeWorkspace?.brandColor) ? { color: activeWorkspace.brandColor } : {};

@@ -45,8 +45,10 @@ api.interceptors.response.use(
     async (error: AxiosError) => {
         const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
+        const isAuthRoute = originalRequest.url?.includes('/auth/login') || originalRequest.url?.includes('/auth/refresh') || originalRequest.url?.includes('/auth/register') || originalRequest.url?.includes('/auth/me');
+
         // Handle 401 Unauthorized (Token Expired)
-        if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+        if (error.response?.status === 401 && originalRequest && !originalRequest._retry && !isAuthRoute) {
             originalRequest._retry = true;
 
             try {

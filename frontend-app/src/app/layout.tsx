@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Blend Studio",
-  description: "Plataforma de gestión para profesionales",
+  title: "Nodally",
+  description: "Plataforma de gestión para freelancers",
 };
 
 import { AuthProvider } from "@/features/auth/context/auth-context";

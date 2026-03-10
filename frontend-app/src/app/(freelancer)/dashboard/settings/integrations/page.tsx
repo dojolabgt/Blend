@@ -126,7 +126,7 @@ export default function SettingsPage() {
                                             className="object-contain dark:invert"
                                         />
                                     }
-                                    name="Blend API"
+                                    name="Nodally API"
                                     description={t('integrations.apiDesc')}
                                     isConfigured={false}
                                     onConfigure={() => { }}

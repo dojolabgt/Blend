@@ -18,6 +18,7 @@ import { WorkspacesModule } from './workspaces/workspaces.module';
 import { ServicesModule } from './services/services.module';
 import { ClientsModule } from './clients/clients.module';
 import { DealsModule } from './deals/deals.module';
+import { ConnectionsModule } from './connections/connections.module';
 
 @Module({
   imports: [
@@ -51,11 +52,11 @@ import { DealsModule } from './deals/deals.module';
         MAIL_USER: Joi.string().allow('').optional(),
         MAIL_PASSWORD: Joi.string().allow('').optional(),
         MAIL_FROM: Joi.string().required(),
-        // Blend encryption
+        // Nodally encryption
         ENCRYPTION_KEY: Joi.string().length(32).required(),
-        // Blend's own Recurrente keys (for billing freelancers)
-        BLEND_RECURRENTE_PUBLIC_KEY: Joi.string().required(),
-        BLEND_RECURRENTE_SECRET_KEY: Joi.string().required(),
+        // Nodally's own Recurrente keys (for billing freelancers)
+        NODALLY_RECURRENTE_PUBLIC_KEY: Joi.string().required(),
+        NODALLY_RECURRENTE_SECRET_KEY: Joi.string().required(),
       }),
     }),
     ThrottlerModule.forRoot([
@@ -92,6 +93,7 @@ import { DealsModule } from './deals/deals.module';
     ServicesModule,
     ClientsModule,
     DealsModule,
+    ConnectionsModule,
   ],
   controllers: [AppController],
   providers: [
@@ -102,4 +104,4 @@ import { DealsModule } from './deals/deals.module';
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }

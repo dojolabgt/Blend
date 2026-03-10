@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { DealRoadmapSidebar } from './DealRoadmapSidebar';
 import { DealCanvas } from './DealCanvas';
+import { DealCollaboratorsDrawer } from './DealCollaboratorsDrawer';
 import { useDeals } from '@/hooks/use-deals';
 import { toast } from 'sonner';
 import {
@@ -31,6 +32,7 @@ export function DealBuilder({ dealId }: DealBuilderProps) {
     const [activeStep, setActiveStep] = useState<DealStep>('brief');
     const [isLoading, setIsLoading] = useState(true);
     const [showWonDialog, setShowWonDialog] = useState(false);
+    const [isCollaboratorsDrawerOpen, setIsCollaboratorsDrawerOpen] = useState(false);
 
     const loadDeal = useCallback(async () => {
         setIsLoading(true);
@@ -116,6 +118,7 @@ export function DealBuilder({ dealId }: DealBuilderProps) {
                         activeStep={activeStep}
                         onStepChange={handleStepChange}
                         updateDeal={updateDeal}
+                        onOpenCollaborators={() => setIsCollaboratorsDrawerOpen(true)}
                     />
                 </div>
 
@@ -153,6 +156,14 @@ export function DealBuilder({ dealId }: DealBuilderProps) {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+
+            {/* Collaborators Drawer */}
+            <DealCollaboratorsDrawer
+                deal={deal}
+                isOpen={isCollaboratorsDrawerOpen}
+                onClose={() => setIsCollaboratorsDrawerOpen(false)}
+                onUpdate={refreshDeal}
+            />
         </>
     );
 }
