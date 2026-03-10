@@ -127,32 +127,49 @@ Client
 
 ---
 
-## Fase 2 — Cotizaciones y PDF
+## Fase 2 — Negociación: Deals, Briefs y Cotizaciones ✅
 
-### Quotes
+> **Evolución:** Lo que antes eran simples "Cotizaciones" evolucionó a un flujo de **Tratos (Deals)**. 
+> Ahora un Deal es el contenedor principal que guía al cliente por pasos: 
+> 1. **Brief:** Captura de requerimientos vía formulario dinámico (Brief Forms).
+> 2. **Servicios:** Selección de lo que se va a ofrecer.
+> 3. **Cotización:** Propuesta económica (con soporte para múltiples opciones A/B).
+> 4. **Plan de Pagos:** Definición de hitos (Anticipo, Finalización, etc).
 
-```
-Quote
+### Entidades de Negociación
+
+**Deal**
   - id, workspaceId, clientId
-  - status: draft | sent | accepted | rejected | expired
-  - validUntil, notes, internalNotes, currency
-  - subtotal, taxPercent, taxAmount, total
-  - publicToken (uso único, para aceptar sin login)
-  - sentAt, acceptedAt, rejectedAt
+  - status: `draft` | `sent` | `won` | `lost`
+  - name, slug, publicToken (para acceso del cliente)
+  - currentStep: `brief` | `services` | `quotation` | `payment_plan`
+  - proposalIntro, proposalTerms, validUntil
 
-QuoteItem
-  - id, quoteId, serviceId (nullable)
-  - description, quantity, unitPrice, total, order
-```
+**Brief** (Respuestas)
+  - id, dealId, templateId
+  - responses: JSON con las respuestas del cliente
+  - isCompleted: true/false
 
-- CRUD de Quotes asociado al `workspaceId`.
-- `POST /quotes/:id/send` — genera `publicToken`, envía email al cliente.
-- `POST /public/quotes/:token/accept` — cliente acepta sin login vía link.
-- `GET /quotes/:id/pdf` — Genera PDF con logo y `brandColor` del Workspace.
+**Quotation** (Opciones)
+  - id, dealId, optionName, description, currency
+  - subtotal, discount, taxTotal, total
+  - isApproved: Solo una por Deal (la que el cliente acepta)
+
+**PaymentPlan & Milestones**
+  - Hitos de pago vinculados a la cotización aprobada.
+  - Milestones: `name`, `percentage`, `amount`, `status`, `dueDate`.
+
+**Logros:**
+- [x] Motor de Briefs dinámicos y plantillas (Brief Builder).
+- [x] Flujo de creación de Deal tipo Wizard.
+- [x] Vista pública de Propuesta Comercial (Acceso vía Magic Token).
+- [x] Selección y Aceptación de cotización por parte del cliente.
 
 ---
 
-## Fase 3 — Pagos con Recurrente
+## Fase 3 — Pagos con Recurrente 🚧
+
+> **Estado:** Estructura de datos lista (PaymentPlan/Milestones). Pendiente integración final de checkout dinámico.
 
 ### RecurrenteModule (wrapper interno)
 
@@ -299,11 +316,12 @@ BillingSubscription
 |---|------|-------------|
 | 0 | Fundación | Refactor Multi-tenant, Auth, Workspaces, Guardias ✅ |
 | 1 | Servicios | CRUD ✅ |
-| 2 | Cotizaciones | Quotes + PDF + flujo de aprobación dual |
-| 3 | Pagos | RecurrenteModule + Payments + webhooks |
+| 2 | Negociación | Deals + Briefs + Propuestas + Estructura de Cobro ✅ |
+| 3 | Pagos | Checkout dinámico de hitos + integraciones Recurrente 🚧 |
 | 4 | Colaboración | Invitaciones + CollaborationSplit |
 | 5 | Billing | Blend cobra suscripción al Workspace ✅ |
 | 6 | Dashboard FR | Resumen del Workspace |
 | 7 | Dashboard Client | Vista del cliente |
 | 8 | Admin Panel | Métricas + gestión |
 | 9 | Automatizaciones | Emails + n8n webhooks + recordatorios |
+```
