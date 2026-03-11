@@ -36,10 +36,8 @@ export default function LoginPage() {
                 <div className="w-full max-w-[400px] flex flex-col items-center">
 
                     {/* Logo */}
-                    <div className="w-12 h-12 bg-black dark:bg-white rounded-xl flex items-center justify-center mb-8 shadow-sm">
-                        <svg className="w-6 h-6 text-white dark:text-black" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M13 3L4 14H12L11 21L20 10H12L13 3Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
+                    <div className="mb-8 flex justify-center">
+                        <img src="/NodallyLogo.png" alt="Nodally" className="h-10 w-auto object-contain" />
                     </div>
 
                     {/* Encabezado */}

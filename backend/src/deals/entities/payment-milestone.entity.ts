@@ -5,10 +5,12 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
+  OneToMany,
   JoinColumn,
 } from 'typeorm';
 import { PaymentPlan } from './payment-plan.entity';
 import { PaymentMilestoneStatus } from '../enums/deal-status.enum';
+import { MilestoneSplit } from './milestone-split.entity';
 
 @Entity('payment_milestones')
 export class PaymentMilestone {
@@ -45,6 +47,9 @@ export class PaymentMilestone {
     default: PaymentMilestoneStatus.PENDING,
   })
   status: PaymentMilestoneStatus;
+
+  @OneToMany(() => MilestoneSplit, (split) => split.paymentMilestone)
+  splits: MilestoneSplit[];
 
   @CreateDateColumn()
   createdAt: Date;

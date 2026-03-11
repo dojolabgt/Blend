@@ -312,14 +312,18 @@ export default function DealsPage() {
                     </Button>
                 }
                 onRowClick={(deal) => router.push(`/dashboard/deals/${deal.slug || deal.id}`)}
-                actions={(deal) => [
-                    {
-                        label: 'Eliminar',
-                        icon: <Trash2 className="h-4 w-4" />,
-                        onClick: () => setDealToDelete(deal),
-                        destructive: true,
-                    },
-                ]}
+                actions={(deal) => {
+                    const isShared = deal.workspace?.id !== activeWorkspace?.id;
+                    if (isShared) return [];
+                    return [
+                        {
+                            label: 'Eliminar',
+                            icon: <Trash2 className="h-4 w-4" />,
+                            onClick: () => setDealToDelete(deal),
+                            destructive: true,
+                        },
+                    ];
+                }}
             />
 
             {/* Delete confirmation (proper AlertDialog, not native confirm()) */}

@@ -51,13 +51,14 @@ export interface UpdateQuotationItemPayload {
     discount?: number;
 }
 
-export function useQuotations(dealId: string) {
+export function useQuotations(dealId: string, workspaceId?: string) {
     const { activeWorkspace } = useAuth();
     const [quotations, setQuotations] = useState<Quotation[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const base = () => `/workspaces/${activeWorkspace?.id}/deals/${dealId}/quotations`;
+    const targetWorkspaceId = workspaceId || activeWorkspace?.id;
+    const base = () => `/workspaces/${targetWorkspaceId}/deals/${dealId}/quotations`;
 
     const fetchQuotations = useCallback(async () => {
         if (!activeWorkspace || !dealId) return;
@@ -117,12 +118,12 @@ export function useQuotations(dealId: string) {
     }, [activeWorkspace, dealId]);
 
     const addItem = useCallback(async (quotationId: string, payload: Partial<AddQuotationItemPayload> & { serviceId?: string }) => {
-        if (!activeWorkspace || !dealId || !quotationId) return null;
+        if (!targetWorkspaceId || !dealId || !quotationId) return null;
         setIsLoading(true);
         setError(null);
         try {
             const res = await api.post(
-                `/workspaces/${activeWorkspace.id}/deals/${dealId}/quotations/${quotationId}/items`,
+                `/workspaces/${targetWorkspaceId}/deals/${dealId}/quotations/${quotationId}/items`,
                 payload,
             );
             // API returns updated Quotation
@@ -134,14 +135,14 @@ export function useQuotations(dealId: string) {
         } finally {
             setIsLoading(false);
         }
-    }, [activeWorkspace, dealId]);
+    }, [targetWorkspaceId, dealId]);
 
     const updateItem = useCallback(async (quotationId: string, itemId: string, payload: UpdateQuotationItemPayload) => {
-        if (!activeWorkspace || !dealId || !quotationId) return null;
+        if (!targetWorkspaceId || !dealId || !quotationId) return null;
         setIsLoading(true);
         try {
             const res = await api.patch(
-                `/workspaces/${activeWorkspace.id}/deals/${dealId}/quotations/${quotationId}/items/${itemId}`,
+                `/workspaces/${targetWorkspaceId}/deals/${dealId}/quotations/${quotationId}/items/${itemId}`,
                 payload,
             );
             setQuotations(prev => prev.map(q => q.id === quotationId ? res.data : q));
@@ -152,14 +153,14 @@ export function useQuotations(dealId: string) {
         } finally {
             setIsLoading(false);
         }
-    }, [activeWorkspace, dealId]);
+    }, [targetWorkspaceId, dealId]);
 
     const deleteItem = useCallback(async (quotationId: string, itemId: string) => {
-        if (!activeWorkspace || !dealId || !quotationId) return false;
+        if (!targetWorkspaceId || !dealId || !quotationId) return false;
         setIsLoading(true);
         try {
             await api.delete(
-                `/workspaces/${activeWorkspace.id}/deals/${dealId}/quotations/${quotationId}/items/${itemId}`,
+                `/workspaces/${targetWorkspaceId}/deals/${dealId}/quotations/${quotationId}/items/${itemId}`,
             );
             // Refetch to get updated totals
             await fetchQuotations();
@@ -170,7 +171,7 @@ export function useQuotations(dealId: string) {
         } finally {
             setIsLoading(false);
         }
-    }, [activeWorkspace, dealId, fetchQuotations]);
+    }, [targetWorkspaceId, dealId, fetchQuotations]);
 
     return {
         quotations,
@@ -188,15 +189,16 @@ export function useQuotations(dealId: string) {
     };
 }
 
-export function useQuotationItems(dealId: string, quotationId: string) {
+export function useQuotationItems(dealId: string, quotationId: string, workspaceId?: string) {
     const { activeWorkspace } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const base = () => `/workspaces/${activeWorkspace?.id}/deals/${dealId}/quotations/${quotationId}/items`;
+    const targetWorkspaceId = workspaceId || activeWorkspace?.id;
+    const base = () => `/workspaces/${targetWorkspaceId}/deals/${dealId}/quotations/${quotationId}/items`;
 
     const addItem = useCallback(async (payload: AddQuotationItemPayload) => {
-        if (!activeWorkspace || !dealId || !quotationId) return null;
+        if (!targetWorkspaceId || !dealId || !quotationId) return null;
         setIsLoading(true);
         setError(null);
         try {
@@ -209,10 +211,10 @@ export function useQuotationItems(dealId: string, quotationId: string) {
         } finally {
             setIsLoading(false);
         }
-    }, [activeWorkspace, dealId, quotationId]);
+    }, [targetWorkspaceId, dealId, quotationId]);
 
     const updateItem = useCallback(async (itemId: string, payload: UpdateQuotationItemPayload) => {
-        if (!activeWorkspace) return null;
+        if (!targetWorkspaceId) return null;
         setIsLoading(true);
         try {
             const res = await api.patch(`${base()}/${itemId}`, payload);
@@ -224,10 +226,10 @@ export function useQuotationItems(dealId: string, quotationId: string) {
         } finally {
             setIsLoading(false);
         }
-    }, [activeWorkspace, dealId, quotationId]);
+    }, [targetWorkspaceId, dealId, quotationId]);
 
     const deleteItem = useCallback(async (itemId: string) => {
-        if (!activeWorkspace) return false;
+        if (!targetWorkspaceId) return false;
         setIsLoading(true);
         try {
             await api.delete(`${base()}/${itemId}`);
@@ -238,7 +240,7 @@ export function useQuotationItems(dealId: string, quotationId: string) {
         } finally {
             setIsLoading(false);
         }
-    }, [activeWorkspace, dealId, quotationId]);
+    }, [targetWorkspaceId, dealId, quotationId]);
 
     return {
         addItem,

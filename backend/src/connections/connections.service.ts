@@ -132,18 +132,45 @@ export class ConnectionsService {
             throw new NotFoundException('Invitación inválida o expirada.');
         }
 
-        if (connection.inviteEmail !== userEmail) {
+        // If it's a specific email invite, verify the email matches
+        if (connection.inviteEmail && connection.inviteEmail !== userEmail) {
             throw new ForbiddenException('No tienes permiso para aceptar esta invitación.');
         }
 
         if (connection.inviterWorkspaceId === inviteeWorkspaceId) {
             throw new BadRequestException('No puedes conectarte con tu propio workspace.');
         }
+        
+        // Check if a connection already exists to prevent duplicate acceptances
+        const existingConnection = await this.connectionsRepository.findOne({
+            where: {
+                inviterWorkspaceId: connection.inviterWorkspaceId,
+                inviteeWorkspaceId: inviteeWorkspaceId,
+                status: ConnectionStatus.ACCEPTED
+            }
+        });
+        
+        if (existingConnection) {
+            throw new BadRequestException('Ya estás conectado con este workspace.');
+        }
 
-        connection.inviteeWorkspaceId = inviteeWorkspaceId;
-        connection.status = ConnectionStatus.ACCEPTED;
-
-        await this.connectionsRepository.save(connection);
+        if (connection.inviteEmail) {
+            // It's a direct email invite (single use). Update it directly.
+            connection.inviteeWorkspaceId = inviteeWorkspaceId;
+            connection.status = ConnectionStatus.ACCEPTED;
+            await this.connectionsRepository.save(connection);
+        } else {
+            // It's a public link (reusable). Leave the public token as PENDING and 
+            // create a NEW explicit ACCEPTED connection for this specific invitee.
+            const newConnection = this.connectionsRepository.create({
+                inviterWorkspaceId: connection.inviterWorkspaceId,
+                inviteeWorkspaceId: inviteeWorkspaceId,
+                inviteEmail: userEmail,
+                token: randomBytes(32).toString('hex'), // Accepted active connections need a unique token
+                status: ConnectionStatus.ACCEPTED,
+            });
+            await this.connectionsRepository.save(newConnection);
+        }
 
         return { message: 'Conexión aceptada exitosamente.' };
     }
@@ -157,7 +184,8 @@ export class ConnectionsService {
             throw new NotFoundException('Invitación inválida o expirada.');
         }
 
-        if (connection.inviteEmail !== userEmail) {
+        // If it's a specific email invite, verify the email matches
+        if (connection.inviteEmail && connection.inviteEmail !== userEmail) {
             throw new ForbiddenException('No tienes permiso para rechazar esta invitación.');
         }
 

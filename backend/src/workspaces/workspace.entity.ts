@@ -10,7 +10,7 @@ import { WorkspaceMember } from './workspace-member.entity';
 import { WorkspaceTax } from './workspace-tax.entity';
 import { BillingSubscription } from '../billing/billing-subscription.entity';
 import { WorkspaceConnection } from '../connections/entities/workspace-connection.entity';
-import { DealCollaborator } from '../deals/entities/deal-collaborator.entity';
+import { ProjectCollaborator } from '../projects/entities/project-collaborator.entity';
 
 export enum WorkspacePlan {
   FREE = 'free',
@@ -128,8 +128,8 @@ export class Workspace {
   @OneToMany(() => WorkspaceConnection, (connection) => connection.inviteeWorkspace)
   connectionsReceived: WorkspaceConnection[];
 
-  @OneToMany(() => DealCollaborator, (collaborator) => collaborator.workspace)
-  dealsCollaborating: DealCollaborator[];
+  @OneToMany(() => ProjectCollaborator, (collaborator) => collaborator.workspace)
+  projectsCollaborating: ProjectCollaborator[];
 
   @CreateDateColumn()
   createdAt: Date;

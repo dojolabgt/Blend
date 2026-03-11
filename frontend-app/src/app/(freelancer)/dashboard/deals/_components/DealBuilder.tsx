@@ -4,7 +4,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { DealRoadmapSidebar } from './DealRoadmapSidebar';
 import { DealCanvas } from './DealCanvas';
-import { DealCollaboratorsDrawer } from './DealCollaboratorsDrawer';
 import { useDeals } from '@/hooks/use-deals';
 import { toast } from 'sonner';
 import {
@@ -32,7 +31,6 @@ export function DealBuilder({ dealId }: DealBuilderProps) {
     const [activeStep, setActiveStep] = useState<DealStep>('brief');
     const [isLoading, setIsLoading] = useState(true);
     const [showWonDialog, setShowWonDialog] = useState(false);
-    const [isCollaboratorsDrawerOpen, setIsCollaboratorsDrawerOpen] = useState(false);
 
     const loadDeal = useCallback(async () => {
         setIsLoading(true);
@@ -50,9 +48,16 @@ export function DealBuilder({ dealId }: DealBuilderProps) {
 
     const handleStepChange = async (step: DealStep) => {
         setActiveStep(step);
-        await updateDeal(dealId, { currentStep: step });
-        // Keep local deal state in sync so the sidebar's isLocked logic reflects the new currentStep
-        setDeal((prev: any) => ({ ...prev, currentStep: step }));
+        
+        const indexMap: Record<DealStep, number> = { brief: 0, quotation: 1, payment_plan: 2, won: 3 };
+        const currentHighest = (deal?.currentStep as DealStep) || 'brief';
+
+        // Solo actualizar el backend si es que estamos avanzando a un paso más lejano
+        if (indexMap[step] > indexMap[currentHighest]) {
+            await updateDeal(dealId, { currentStep: step });
+            // Keep local deal state in sync so the sidebar's isLocked logic reflects the new currentStep
+            setDeal((prev: any) => ({ ...prev, currentStep: step }));
+        }
     };
 
     const handleUpdateBrief = async (templateId: string | null) => {
@@ -118,7 +123,6 @@ export function DealBuilder({ dealId }: DealBuilderProps) {
                         activeStep={activeStep}
                         onStepChange={handleStepChange}
                         updateDeal={updateDeal}
-                        onOpenCollaborators={() => setIsCollaboratorsDrawerOpen(true)}
                     />
                 </div>
 
@@ -157,13 +161,6 @@ export function DealBuilder({ dealId }: DealBuilderProps) {
                 </AlertDialogContent>
             </AlertDialog>
 
-            {/* Collaborators Drawer */}
-            <DealCollaboratorsDrawer
-                deal={deal}
-                isOpen={isCollaboratorsDrawerOpen}
-                onClose={() => setIsCollaboratorsDrawerOpen(false)}
-                onUpdate={refreshDeal}
-            />
         </>
     );
 }

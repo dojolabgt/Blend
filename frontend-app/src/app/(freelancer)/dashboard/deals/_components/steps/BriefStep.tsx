@@ -41,6 +41,8 @@ interface BriefStepProps {
     isCompleted?: boolean;
     responses?: Record<string, any>;
     onSelectTemplate?: (id: string | null) => void;
+    workspaceId?: string;
+    readonly?: boolean;
 }
 
 // ── Field type helpers ─────────────────────────────────────────────────────
@@ -132,18 +134,28 @@ function FieldMockPreview({ field }: { field: any }) {
     return config.mockPreview;
 }
 
-export function BriefStep({ initialSelectedTemplateId, publicToken, isCompleted, responses = {}, onSelectTemplate }: BriefStepProps) {
+export function BriefStep({
+    initialSelectedTemplateId,
+    publicToken,
+    isCompleted,
+    responses = {},
+    onSelectTemplate,
+    workspaceId,
+    readonly,
+}: BriefStepProps) {
     const router = useRouter();
-    const { templates, fetchTemplates, isLoading } = useBriefTemplates();
+    const { templates, fetchTemplates, isLoading } = useBriefTemplates(workspaceId);
     const [selectedTemplate, setSelectedTemplate] = useState<string | null>(initialSelectedTemplateId || null);
     // Fix 1.4 — gate for the "Cambiar" destructive confirmation
     const [showChangeBriefDialog, setShowChangeBriefDialog] = useState(false);
+    const [isCopied, setIsCopied] = useState(false);
 
     useEffect(() => {
         fetchTemplates();
     }, [fetchTemplates]);
 
     const handleSelect = (tpl: { id: string; isActive?: boolean }) => {
+        if (readonly) return;
         if (!tpl.isActive) return;
         setSelectedTemplate(tpl.id);
         if (onSelectTemplate) onSelectTemplate(tpl.id);
@@ -284,18 +296,21 @@ export function BriefStep({ initialSelectedTemplateId, publicToken, isCompleted,
 
                         return (
                             <div className="flex items-center gap-2 shrink-0">
-                                <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-xs text-zinc-500 px-3 py-2 rounded-lg truncate max-w-[200px] select-all hidden sm:block">
+                                <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-xs text-zinc-500 px-3 py-2 rounded-lg truncate max-w-[250px] select-all hidden sm:block">
                                     {fullPublicLink || `.../b/${publicToken}`}
                                 </div>
                                 <Button
+                                    variant="secondary"
                                     size="sm"
-                                    className="shrink-0 shadow-sm"
+                                    className="shrink-0 w-36"
                                     onClick={() => {
                                         if (fullPublicLink) navigator.clipboard.writeText(fullPublicLink);
                                         toast.success('¡Enlace copiado al portapapeles!');
+                                        setIsCopied(true);
+                                        setTimeout(() => setIsCopied(false), 2000);
                                     }}
                                 >
-                                    <Copy className="w-4 h-4 mr-2" /> Copiar enlace
+                                    {isCopied ? <><CheckCircle2 className="w-4 h-4 mr-2" /> Copiado</> : <><Copy className="w-4 h-4 mr-2" /> Copiar enlace</>}
                                 </Button>
                             </div>
                         );
@@ -318,47 +333,51 @@ export function BriefStep({ initialSelectedTemplateId, publicToken, isCompleted,
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0 ml-4">
                     {/* Fix 1.4 — AlertDialog confirmation */}
-                    <AlertDialog open={showChangeBriefDialog} onOpenChange={setShowChangeBriefDialog}>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>¿Cambiar la plantilla de Brief?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    {isCompleted
-                                        ? 'El cliente ya completó este brief. Cambiar la plantilla no eliminará las respuestas guardadas, pero desvincularás el cuestionario actual de esta propuesta.'
-                                        : 'Si cambias la plantilla, el enlace público actual del brief dejará de estar asociado a esta propuesta.'}
-                                    {' '}¿Deseas continuar?
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={confirmChangeBrief}>
-                                    Sí, cambiar plantilla
-                                </AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-xs text-zinc-500"
-                        onClick={handleBack}
-                    >
-                        Cambiar
-                    </Button>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-xs gap-1.5"
-                        onClick={() => router.push(`/dashboard/templates/briefs?edit=${selectedTemplate}`)}
-                    >
-                        <Pencil className="w-3.5 h-3.5" />
-                        Editar plantilla
-                    </Button>
+                    {!readonly && (
+                        <>
+                            <AlertDialog open={showChangeBriefDialog} onOpenChange={setShowChangeBriefDialog}>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>¿Cambiar la plantilla de Brief?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            {isCompleted
+                                                ? 'El cliente ya completó este brief. Cambiar la plantilla no eliminará las respuestas guardadas, pero desvincularás el cuestionario actual de esta propuesta.'
+                                                : 'Si cambias la plantilla, el enlace público actual del brief dejará de estar asociado a esta propuesta.'}
+                                            {' '}¿Deseas continuar?
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                        <AlertDialogAction onClick={confirmChangeBrief}>
+                                            Sí, cambiar plantilla
+                                        </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-xs text-zinc-500"
+                                onClick={handleBack}
+                            >
+                                Cambiar
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-xs gap-1.5"
+                                onClick={() => router.push(`/dashboard/templates/briefs?edit=${selectedTemplate}`)}
+                            >
+                                <Pencil className="w-3.5 h-3.5" />
+                                Editar plantilla
+                            </Button>
+                        </>
+                    )}
                 </div>
             </div>
 
             {/* UX Warning para cambios externos */}
-            {!isCompleted && (
+            {!isCompleted && !readonly && (
                 <div className="flex items-start gap-2 bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 rounded-lg p-3 text-xs text-blue-800 dark:text-blue-300">
                     <Info className="w-4 h-4 shrink-0 mt-0.5" />
                     <p>

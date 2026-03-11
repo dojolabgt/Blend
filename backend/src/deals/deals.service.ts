@@ -16,7 +16,8 @@ import { PaymentMilestone } from './entities/payment-milestone.entity';
 import { Client } from '../clients/client.entity';
 import { Service } from '../services/service.entity';
 import { Workspace } from '../workspaces/workspace.entity';
-import { DealCollaborator, CollaboratorRole } from './entities/deal-collaborator.entity';
+import { MilestoneSplit } from './entities/milestone-split.entity';
+import { ProjectsService } from '../projects/projects.service';
 import { CreateDealDto } from './dto/create-deal.dto';
 import { CreateBriefTemplateDto } from './dto/create-brief-template.dto';
 import { UpdateDealDto } from './dto/update-deal.dto';
@@ -31,6 +32,7 @@ import {
   UpdateMilestoneDto,
   CreateMilestoneDto,
 } from './dto/payment-plan.dto';
+import { CreateMilestoneSplitDto } from './dto/milestone-split.dto';
 
 // ─── Slug generator ────────────────────────────────────────────────────────
 function generateSlug(name: string): string {
@@ -64,14 +66,15 @@ export class DealsService {
     private readonly paymentPlansRepository: Repository<PaymentPlan>,
     @InjectRepository(PaymentMilestone)
     private readonly paymentMilestonesRepository: Repository<PaymentMilestone>,
-    @InjectRepository(DealCollaborator)
-    private readonly dealCollaboratorsRepository: Repository<DealCollaborator>,
     @InjectRepository(Workspace)
     private readonly workspacesRepository: Repository<Workspace>,
     @InjectRepository(Client)
     private readonly clientsRepository: Repository<Client>,
     @InjectRepository(Service)
     private readonly servicesRepository: Repository<Service>,
+    @InjectRepository(MilestoneSplit)
+    private readonly milestoneSplitsRepository: Repository<MilestoneSplit>,
+    private readonly projectsService: ProjectsService,
   ) { }
 
   // ─── DEALS ───────────────────────────────────────────────────────────────
@@ -130,14 +133,17 @@ export class DealsService {
   }
 
   async findAll(workspaceId: string): Promise<Deal[]> {
-    return this.dealsRepository.find({
-      where: [
-        { workspace: { id: workspaceId } },
-        { collaborators: { workspaceId } }
-      ],
-      relations: ['client', 'brief', 'quotations', 'paymentPlan', 'collaborators', 'collaborators.workspace'],
-      order: { createdAt: 'DESC' },
-    });
+    return this.dealsRepository
+      .createQueryBuilder('deal')
+      .leftJoinAndSelect('deal.client', 'client')
+      .leftJoinAndSelect('deal.brief', 'brief')
+      .leftJoinAndSelect('deal.quotations', 'quotations')
+      .leftJoinAndSelect('deal.paymentPlan', 'paymentPlan')
+      .leftJoinAndSelect('deal.workspace', 'workspace')
+      .leftJoinAndSelect('deal.project', 'project')
+      .where('deal.workspace_id = :workspaceId', { workspaceId })
+      .orderBy('deal.createdAt', 'DESC')
+      .getMany();
   }
 
   async findOne(workspaceId: string, dealId: string): Promise<Deal> {
@@ -151,31 +157,39 @@ export class DealsService {
 
     if (!isUuid) {
       // Slug lookup
-      deal = await this.dealsRepository.findOne({
-        where: { slug: dealId, workspace: { id: workspaceId } },
-        relations: [
-          'client',
-          'brief',
-          'brief.template',
-          'quotations',
-          'quotations.items',
-          'paymentPlan',
-          'paymentPlan.milestones',
-        ],
-      });
+      deal = await this.dealsRepository
+        .createQueryBuilder('deal')
+        .leftJoinAndSelect('deal.client', 'client')
+        .leftJoinAndSelect('deal.brief', 'brief')
+        .leftJoinAndSelect('brief.template', 'template')
+        .leftJoinAndSelect('deal.quotations', 'quotations')
+        .leftJoinAndSelect('quotations.items', 'items')
+        .leftJoinAndSelect('deal.paymentPlan', 'paymentPlan')
+        .leftJoinAndSelect('paymentPlan.milestones', 'milestones')
+        .leftJoinAndSelect('milestones.splits', 'splits')
+        .leftJoinAndSelect('splits.collaboratorWorkspace', 'splitWorkspace')
+        .leftJoinAndSelect('deal.project', 'project')
+        .leftJoinAndSelect('deal.workspace', 'workspace')
+        .where('deal.slug = :dealId', { dealId })
+        .andWhere('(deal.workspace_id = :workspaceId)', { workspaceId })
+        .getOne();
     } else {
-      deal = await this.dealsRepository.findOne({
-        where: { id: dealId, workspace: { id: workspaceId } },
-        relations: [
-          'client',
-          'brief',
-          'brief.template',
-          'quotations',
-          'quotations.items',
-          'paymentPlan',
-          'paymentPlan.milestones',
-        ],
-      });
+      deal = await this.dealsRepository
+        .createQueryBuilder('deal')
+        .leftJoinAndSelect('deal.client', 'client')
+        .leftJoinAndSelect('deal.brief', 'brief')
+        .leftJoinAndSelect('brief.template', 'template')
+        .leftJoinAndSelect('deal.quotations', 'quotations')
+        .leftJoinAndSelect('quotations.items', 'items')
+        .leftJoinAndSelect('deal.paymentPlan', 'paymentPlan')
+        .leftJoinAndSelect('paymentPlan.milestones', 'milestones')
+        .leftJoinAndSelect('milestones.splits', 'splits')
+        .leftJoinAndSelect('splits.collaboratorWorkspace', 'splitWorkspace')
+        .leftJoinAndSelect('deal.project', 'project')
+        .leftJoinAndSelect('deal.workspace', 'workspace')
+        .where('deal.id = :dealId', { dealId })
+        .andWhere('(deal.workspace_id = :workspaceId)', { workspaceId })
+        .getOne();
     }
 
     if (!deal) throw new NotFoundException('Deal not found');
@@ -194,7 +208,7 @@ export class DealsService {
     dealId: string,
     updateDealDto: UpdateDealDto,
   ): Promise<Deal> {
-    const deal = await this.findOne(workspaceId, dealId);
+    const deal = await this.findDealOrFail(workspaceId, dealId, true);
 
     if (updateDealDto.name !== undefined) deal.name = updateDealDto.name;
     if (updateDealDto.status !== undefined) deal.status = updateDealDto.status;
@@ -217,7 +231,7 @@ export class DealsService {
         // Validate template exists (optional if null, that means "no brief")
         brief = this.briefsRepository.create({
           dealId: deal.id,
-          deal: { id: deal.id } as any,
+          deal: deal,
           templateId: updateDealDto.briefTemplateId || undefined,
           publicToken: crypto.randomUUID(),
           responses: {},
@@ -231,6 +245,8 @@ export class DealsService {
 
     if (updateDealDto.status === DealStatus.WON) {
       deal.wonAt = new Date();
+      // Ensure we immediately create the project so it is present via the UI after the API call.
+      await this.projectsService.createFromDeal(deal.workspaceId, deal);
     }
     if (updateDealDto.status === DealStatus.SENT) {
       deal.sentAt = new Date();
@@ -240,55 +256,8 @@ export class DealsService {
   }
 
   async deleteDeal(workspaceId: string, dealId: string): Promise<void> {
-    const isUuid =
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-        dealId,
-      );
-
-    const deal = await this.dealsRepository.findOne({
-      where: isUuid
-        ? { id: dealId, workspace: { id: workspaceId } }
-        : { slug: dealId, workspace: { id: workspaceId } },
-    });
-    if (!deal) throw new NotFoundException('Deal not found');
+    const deal = await this.findDealOrFail(workspaceId, dealId, true);
     await this.dealsRepository.remove(deal);
-  }
-
-  // ─── COLLABORATORS ───────────────────────────────────────────────────────
-
-  async addCollaborator(workspaceId: string, dealId: string, collaboratorWorkspaceId: string, role: CollaboratorRole = CollaboratorRole.VIEWER): Promise<DealCollaborator> {
-    const deal = await this.findOne(workspaceId, dealId);
-
-    // Check if the external workspace actually exists and is connected
-    // For simplicity, we just add the record here. In a real scenario we might verify the connection.
-    const exists = await this.dealCollaboratorsRepository.findOne({
-      where: { deal: { id: deal.id }, workspace: { id: collaboratorWorkspaceId } }
-    });
-
-    if (exists) {
-      throw new BadRequestException('This workspace is already a collaborator on this deal');
-    }
-
-    const collaborator = this.dealCollaboratorsRepository.create({
-      deal: { id: deal.id },
-      workspace: { id: collaboratorWorkspaceId },
-      role,
-    });
-
-    return await this.dealCollaboratorsRepository.save(collaborator);
-  }
-
-  async removeCollaborator(workspaceId: string, dealId: string, collaboratorId: string): Promise<void> {
-    const deal = await this.findOne(workspaceId, dealId);
-    const collaborator = await this.dealCollaboratorsRepository.findOne({
-      where: { id: collaboratorId, deal: { id: deal.id } }
-    });
-
-    if (!collaborator) {
-      throw new NotFoundException('Collaborator not found');
-    }
-
-    await this.dealCollaboratorsRepository.remove(collaborator);
   }
 
   // ─── QUOTATIONS ──────────────────────────────────────────────────────────
@@ -296,6 +265,7 @@ export class DealsService {
   private async findDealOrFail(
     workspaceId: string,
     dealId: string,
+    requireEditor: boolean = false,
   ): Promise<Deal> {
     const isUuid =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
@@ -304,10 +274,21 @@ export class DealsService {
 
     const deal = await this.dealsRepository.findOne({
       where: isUuid
-        ? { id: dealId, workspace: { id: workspaceId } }
-        : { slug: dealId, workspace: { id: workspaceId } },
+        ? [
+            { id: dealId, workspace: { id: workspaceId } },
+          ]
+        : [
+            { slug: dealId, workspace: { id: workspaceId } },
+          ],
+      relations: ['workspace', 'project'],
     });
+
     if (!deal) throw new NotFoundException('Deal not found');
+
+    if (requireEditor && deal.workspace.id !== workspaceId) {
+       throw new BadRequestException('No tienes permisos de Editor para modificar este Deal');
+    }
+
     return deal;
   }
 
@@ -356,6 +337,8 @@ export class DealsService {
         'quotations.items',
         'paymentPlan',
         'paymentPlan.milestones',
+        'paymentPlan.milestones.splits',
+        'paymentPlan.milestones.splits.collaboratorWorkspace',
       ],
     });
 
@@ -399,6 +382,9 @@ export class DealsService {
     deal.currentStep = 'won';
     await this.dealsRepository.save(deal);
 
+    // 3) Create project
+    await this.projectsService.createFromDeal(deal.workspaceId, deal);
+
     return { success: true, dealId: deal.id, status: deal.status };
   }
 
@@ -409,7 +395,7 @@ export class DealsService {
     dealId: string,
     dto: CreateQuotationDto,
   ): Promise<Quotation> {
-    await this.findDealOrFail(workspaceId, dealId);
+    await this.findDealOrFail(workspaceId, dealId, true);
 
     const existing = await this.quotationsRepository.count({
       where: { deal: { id: dealId } },
@@ -444,7 +430,7 @@ export class DealsService {
     quotationId: string,
     dto: UpdateQuotationDto,
   ): Promise<Quotation> {
-    await this.findDealOrFail(workspaceId, dealId);
+    await this.findDealOrFail(workspaceId, dealId, true);
 
     const quotation = await this.quotationsRepository.findOne({
       where: { id: quotationId, deal: { id: dealId } },
@@ -476,7 +462,7 @@ export class DealsService {
     dealId: string,
     quotationId: string,
   ): Promise<void> {
-    await this.findDealOrFail(workspaceId, dealId);
+    await this.findDealOrFail(workspaceId, dealId, true);
     const quotation = await this.quotationsRepository.findOne({
       where: { id: quotationId, deal: { id: dealId } },
     });
@@ -504,7 +490,7 @@ export class DealsService {
     quotationId: string,
     dto: AddQuotationItemDto,
   ): Promise<Quotation> {
-    await this.findDealOrFail(workspaceId, dealId);
+    await this.findDealOrFail(workspaceId, dealId, true);
     const quotation = await this.findQuotationOrFail(dealId, quotationId);
 
     let itemData: Partial<QuotationItem> = {
@@ -557,7 +543,7 @@ export class DealsService {
     itemId: string,
     dto: UpdateQuotationItemDto,
   ): Promise<Quotation> {
-    await this.findDealOrFail(workspaceId, dealId);
+    await this.findDealOrFail(workspaceId, dealId, true);
     const quotation = await this.findQuotationOrFail(dealId, quotationId);
 
     const item = await this.quotationItemsRepository.findOne({
@@ -577,7 +563,7 @@ export class DealsService {
     quotationId: string,
     itemId: string,
   ): Promise<Quotation> {
-    await this.findDealOrFail(workspaceId, dealId);
+    await this.findDealOrFail(workspaceId, dealId, true);
     const quotation = await this.findQuotationOrFail(dealId, quotationId);
 
     const item = await this.quotationItemsRepository.findOne({
@@ -634,12 +620,12 @@ export class DealsService {
     dealId: string,
     dto: CreatePaymentPlanDto,
   ): Promise<PaymentPlan> {
-    await this.findDealOrFail(workspaceId, dealId);
+    await this.findDealOrFail(workspaceId, dealId, true);
 
     // Check if plan already exists, delete it (full replace pattern)
     const existing = await this.paymentPlansRepository.findOne({
       where: { deal: { id: dealId } },
-      relations: ['milestones'],
+      relations: ['milestones', 'milestones.splits'],
     });
     if (existing) {
       await this.paymentPlansRepository.remove(existing);
@@ -675,7 +661,7 @@ export class DealsService {
     await this.findDealOrFail(workspaceId, dealId);
     const plan = await this.paymentPlansRepository.findOne({
       where: { deal: { id: dealId } },
-      relations: ['milestones'],
+      relations: ['milestones', 'milestones.splits', 'milestones.splits.collaboratorWorkspace'],
       order: { createdAt: 'DESC' },
     });
     if (!plan) throw new NotFoundException('Payment plan not found');
@@ -687,7 +673,7 @@ export class DealsService {
     dealId: string,
     dto: CreateMilestoneDto,
   ): Promise<PaymentPlan> {
-    await this.findDealOrFail(workspaceId, dealId);
+    await this.findDealOrFail(workspaceId, dealId, true);
     const plan = await this.paymentPlansRepository.findOne({
       where: { deal: { id: dealId } },
       relations: ['milestones'],
@@ -717,7 +703,7 @@ export class DealsService {
     milestoneId: string,
     dto: UpdateMilestoneDto,
   ): Promise<PaymentMilestone> {
-    await this.findDealOrFail(workspaceId, dealId);
+    await this.findDealOrFail(workspaceId, dealId, true);
     const milestone = await this.paymentMilestonesRepository.findOne({
       where: { id: milestoneId },
       relations: ['paymentPlan'],
@@ -737,7 +723,7 @@ export class DealsService {
     dealId: string,
     milestoneId: string,
   ): Promise<void> {
-    await this.findDealOrFail(workspaceId, dealId);
+    await this.findDealOrFail(workspaceId, dealId, true);
     const milestone = await this.paymentMilestonesRepository.findOne({
       where: { id: milestoneId },
       relations: ['paymentPlan'],
@@ -746,6 +732,7 @@ export class DealsService {
       throw new NotFoundException('Milestone not found');
     await this.paymentMilestonesRepository.remove(milestone);
   }
+
 
   // ─── BRIEF TEMPLATES ─────────────────────────────────────────────────────
 

@@ -23,6 +23,7 @@ interface PaymentPlanStepProps {
     quotations: any[];
     currency?: { code: string; symbol: string };
     readonly?: boolean;
+    deal?: any;
 }
 
 const MILESTONE_STATUS_STYLES: Record<string, string> = {
@@ -60,8 +61,8 @@ interface FieldErrors {
     percentage?: string;
 }
 
-export function PaymentPlanStep({ dealId, quotations, currency, readonly }: PaymentPlanStepProps) {
-    const { paymentPlan, fetchPaymentPlan, createPaymentPlan, addMilestone, updateMilestone: updateMilestoneApi, deleteMilestone, isLoading } = usePaymentPlan(dealId);
+export function PaymentPlanStep({ dealId, quotations, currency, readonly, deal }: PaymentPlanStepProps) {
+    const { plan: paymentPlan, fetchPaymentPlan, createOrUpdatePlan: createPaymentPlan, addMilestone, updateMilestone: updateMilestoneApi, deleteMilestone, isLoading } = usePaymentPlan(dealId, deal?.workspace?.id || deal?.workspaceId);
     const [milestones, setMilestones] = useState<NewMilestone[]>([emptyMilestone()]);
     const [isSaving, setIsSaving] = useState(false);
     const [isAddingToExisting, setIsAddingToExisting] = useState(false);
@@ -74,6 +75,7 @@ export function PaymentPlanStep({ dealId, quotations, currency, readonly }: Paym
     // Fix 2.6 — mark as paid pending action
     const [markPaidId, setMarkPaidId] = useState<string | null>(null);
     const [isMarkingPaid, setIsMarkingPaid] = useState(false);
+    
 
     useEffect(() => {
         fetchPaymentPlan();
@@ -259,6 +261,7 @@ export function PaymentPlanStep({ dealId, quotations, currency, readonly }: Paym
         toast.success(newStatus === 'PAID' ? 'Hito marcado como pagado' : 'Hito regresado a pendiente');
     };
 
+
     // ── Summary calculations ─────────────────────────────────────────────────
 
     const planDraftTotal = milestones.reduce((s, m) => s + (Number(m.amount) || 0), 0);
@@ -300,10 +303,8 @@ export function PaymentPlanStep({ dealId, quotations, currency, readonly }: Paym
                         </div>
 
                         {paymentPlan.milestones?.map((milestone: any) => (
-                            <div
-                                key={milestone.id}
-                                className="grid grid-cols-12 gap-2 items-center px-4 py-3 border-b border-zinc-100 dark:border-zinc-800/50 group hover:bg-zinc-50/50 dark:hover:bg-zinc-900/20"
-                            >
+                            <div key={milestone.id} className="border-b border-zinc-100 dark:border-zinc-800/50">
+                                <div className="grid grid-cols-12 gap-2 items-center px-4 py-3 group hover:bg-zinc-50/50 dark:hover:bg-zinc-900/20">
                                 <div className="col-span-4">
                                     <div className="font-medium text-sm text-zinc-900 dark:text-white">{milestone.name}</div>
                                     {milestone.description && (
@@ -353,7 +354,10 @@ export function PaymentPlanStep({ dealId, quotations, currency, readonly }: Paym
                                     )}
                                 </div>
                             </div>
-                        ))}
+                            
+
+                        </div>
+                    ))}
 
                         {/* Add milestone form (existing plan) */}
                         {!readonly && (

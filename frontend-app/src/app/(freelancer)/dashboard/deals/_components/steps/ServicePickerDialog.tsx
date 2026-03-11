@@ -20,9 +20,10 @@ interface ServicePickerDialogProps {
     onSelect: (service: any) => void;
     currency?: string;
     currencySymbol?: string;
+    workspaceId?: string;
 }
 
-export function ServicePickerDialog({ open, onOpenChange, onSelect, currency = 'GTQ', currencySymbol = 'Q' }: ServicePickerDialogProps) {
+export function ServicePickerDialog({ open, onOpenChange, onSelect, currency = 'GTQ', currencySymbol = 'Q', workspaceId }: ServicePickerDialogProps) {
     const [services, setServices] = useState<any[]>([]);
     const [search, setSearch] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -30,12 +31,12 @@ export function ServicePickerDialog({ open, onOpenChange, onSelect, currency = '
     useEffect(() => {
         if (open) {
             setIsLoading(true);
-            servicesApi.getAll()
+            servicesApi.getAll(workspaceId)
                 .then(setServices)
                 .catch(console.error)
                 .finally(() => setIsLoading(false));
         }
-    }, [open]);
+    }, [open, workspaceId]);
 
     const filtered = services.filter(s =>
         s.name.toLowerCase().includes(search.toLowerCase()) ||

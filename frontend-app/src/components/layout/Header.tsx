@@ -26,10 +26,8 @@ export function TopHeader() {
     const isProOrPremium = activeWorkspace?.plan === 'pro' || activeWorkspace?.plan === 'premium';
     const userFullName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Usuario';
     const businessName = isProOrPremium ? (activeWorkspace?.businessName || userFullName || 'Mi Espacio') : (userFullName || 'Usuario');
-    const initials = isProOrPremium
-        ? businessName.substring(0, 2).toUpperCase()
-        : (user.firstName?.[0] || user.email[0]).toUpperCase();
-    const displayUserImage = isProOrPremium ? (activeWorkspace?.logo || user.profileImage) : user.profileImage;
+    const initials = (user.firstName?.[0] || user.email[0]).toUpperCase();
+    const displayUserImage = user.profileImage;
 
     return (
         <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-end px-6 bg-[#FFFFFF] dark:bg-[#0A0A0A] border-b border-zinc-100 dark:border-zinc-800/80">

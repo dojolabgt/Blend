@@ -28,7 +28,7 @@ export function Sidebar({ navItems }: SidebarProps) {
     // Branding Logic
     const isProOrPremium = activeWorkspace?.plan === 'pro' || activeWorkspace?.plan === 'premium';
     const businessName = isProOrPremium ? (activeWorkspace?.businessName || 'Mi Espacio') : 'Nodally';
-    const displayLogo = isProOrPremium ? (activeWorkspace?.logo || undefined) : undefined;
+    const displayLogo = isProOrPremium ? (activeWorkspace?.logo || undefined) : '/NodallyLogo.png';
     const initials = isProOrPremium ? businessName.substring(0, 2).toUpperCase() : 'NL';
 
     // Optional style based on brandColor

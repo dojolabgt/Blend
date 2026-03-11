@@ -2,8 +2,9 @@ import api from '@/lib/api';
 import { Service, CreateServiceDto, UpdateServiceDto } from './types';
 
 export const servicesApi = {
-    getAll: async (): Promise<Service[]> => {
-        return api.get('/services').then(res => res.data);
+    getAll: async (workspaceId?: string): Promise<Service[]> => {
+        const url = workspaceId ? `/services/workspace/${workspaceId}` : '/services';
+        return api.get(url).then(res => res.data);
     },
 
     getOne: async (id: string): Promise<Service> => {

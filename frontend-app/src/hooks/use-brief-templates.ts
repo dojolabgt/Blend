@@ -19,25 +19,28 @@ export interface CreateBriefTemplatePayload {
     isActive?: boolean;
 }
 
-export function useBriefTemplates() {
+export function useBriefTemplates(workspaceId?: string) {
     const { activeWorkspace } = useAuth();
     const [templates, setTemplates] = useState<BriefTemplate[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    // Derived ID: use provided workspaceId, fallback to activeWorkspace
+    const targetWorkspaceId = workspaceId || activeWorkspace?.id;
+
     const fetchTemplates = useCallback(async () => {
-        if (!activeWorkspace) return;
+        if (!targetWorkspaceId) return;
         setIsLoading(true);
         setError(null);
         try {
-            const res = await api.get(`/workspaces/${activeWorkspace.id}/deals/brief-templates`);
+            const res = await api.get(`/workspaces/${targetWorkspaceId}/deals/brief-templates`);
             setTemplates(res.data);
         } catch (err: any) {
             setError(err.response?.data?.message || err.message);
         } finally {
             setIsLoading(false);
         }
-    }, [activeWorkspace]);
+    }, [targetWorkspaceId]);
 
     const createTemplate = useCallback(async (payload: CreateBriefTemplatePayload) => {
         if (!activeWorkspace) return null;

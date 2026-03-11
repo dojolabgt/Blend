@@ -29,6 +29,12 @@ export class ServicesController {
     return this.servicesService.findAll(req.workspaceId);
   }
 
+  // Allow fetching any workspace's services (needed by collaborators in a deal)
+  @Get('workspace/:workspaceId')
+  findAllByWorkspace(@Param('workspaceId') workspaceId: string) {
+    return this.servicesService.findAll(workspaceId);
+  }
+
   @Get(':id')
   findOne(@Req() req: any, @Param('id') id: string) {
     return this.servicesService.findOne(req.workspaceId, id);

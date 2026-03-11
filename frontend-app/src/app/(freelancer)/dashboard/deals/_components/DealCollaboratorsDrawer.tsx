@@ -5,8 +5,10 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '
 import { Button } from '@/components/ui/button';
 import { useNetwork } from '@/hooks/use-network';
 import { useDeals } from '@/hooks/use-deals';
+import { useAuth } from '@/features/auth/hooks/useAuth';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2, Plus, Trash2, Users } from 'lucide-react';
+import { Loader2, Plus, Trash2, Users, Eye, Pencil } from 'lucide-react';
 
 interface CollaboratorsDrawerProps {
     deal: any;
@@ -16,9 +18,17 @@ interface CollaboratorsDrawerProps {
 }
 
 export function DealCollaboratorsDrawer({ deal, isOpen, onClose, onUpdate }: CollaboratorsDrawerProps) {
+    const { activeWorkspace } = useAuth();
     const { networkData, fetchConnections } = useNetwork();
     const { addCollaborator, removeCollaborator } = useDeals();
     const [isLoading, setIsLoading] = useState(false);
+    const [selectedRoles, setSelectedRoles] = useState<Record<string, 'viewer' | 'editor'>>({});
+
+    const isViewer = React.useMemo(() => {
+        if (!activeWorkspace || !deal?.collaborators) return false;
+        const collab = deal.collaborators.find((c: any) => c.workspace.id === activeWorkspace.id);
+        return collab?.role === 'viewer';
+    }, [activeWorkspace, deal]);
 
     useEffect(() => {
         if (isOpen) {
@@ -30,8 +40,16 @@ export function DealCollaboratorsDrawer({ deal, isOpen, onClose, onUpdate }: Col
 
     const handleAdd = async (workspaceId: string) => {
         setIsLoading(true);
-        const added = await addCollaborator(deal.id, { collaboratorWorkspaceId: workspaceId, role: 'editor' });
-        if (added) onUpdate();
+        const role = selectedRoles[workspaceId] || 'editor';
+        const added = await addCollaborator(deal.id, { collaboratorWorkspaceId: workspaceId, role });
+        if (added) {
+            setSelectedRoles(prev => {
+                const newState = { ...prev };
+                delete newState[workspaceId];
+                return newState;
+            });
+            onUpdate();
+        }
         setIsLoading(false);
     };
 
@@ -44,8 +62,8 @@ export function DealCollaboratorsDrawer({ deal, isOpen, onClose, onUpdate }: Col
 
     return (
         <Sheet open={isOpen} onOpenChange={onClose}>
-            <SheetContent className="w-full sm:max-w-md overflow-y-auto">
-                <SheetHeader className="mb-6">
+            <SheetContent className="w-full sm:max-w-md overflow-y-auto px-6">
+                <SheetHeader className="mb-6 mt-2">
                     <SheetTitle className="flex items-center gap-2">
                         <Users className="w-5 h-5 text-primary" /> Colaboradores
                     </SheetTitle>
@@ -54,7 +72,7 @@ export function DealCollaboratorsDrawer({ deal, isOpen, onClose, onUpdate }: Col
                     </SheetDescription>
                 </SheetHeader>
 
-                <div className="space-y-6">
+                <div className="space-y-6 pb-6">
                     {/* Current Collaborators */}
                     <div>
                         <h3 className="text-sm font-semibold mb-3 tracking-tight">Colaboradores Actuales</h3>
@@ -71,18 +89,29 @@ export function DealCollaboratorsDrawer({ deal, isOpen, onClose, onUpdate }: Col
                                             </Avatar>
                                             <div>
                                                 <p className="text-sm font-medium leading-none">{collaborator.workspace.businessName}</p>
-                                                <p className="text-xs text-zinc-500 mt-0.5">Rol: Editor</p>
+                                                <div className="flex items-center gap-1 mt-1">
+                                                    {collaborator.role === 'editor' ? (
+                                                        <Pencil className="w-3 h-3 text-emerald-500" />
+                                                    ) : (
+                                                        <Eye className="w-3 h-3 text-indigo-500" />
+                                                    )}
+                                                    <p className="text-xs text-zinc-500">
+                                                        Rol: <span className="capitalize font-medium">{collaborator.role === 'editor' ? 'Editor' : 'Lector'}</span>
+                                                    </p>
+                                                </div>
                                             </div>
                                         </div>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30 px-2 h-7"
-                                            onClick={() => handleRemove(collaborator.id)}
-                                            disabled={isLoading}
-                                        >
-                                            <Trash2 className="w-3.5 h-3.5" />
-                                        </Button>
+                                        {!isViewer && (
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30 px-2 h-7"
+                                                onClick={() => handleRemove(collaborator.id)}
+                                                disabled={isLoading}
+                                            >
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                            </Button>
+                                        )}
                                     </div>
                                 ))}
                             </div>
@@ -90,8 +119,9 @@ export function DealCollaboratorsDrawer({ deal, isOpen, onClose, onUpdate }: Col
                     </div>
 
                     {/* Add from Network */}
-                    <div className="pt-4 border-t">
-                        <h3 className="text-sm font-semibold mb-3 tracking-tight">Tu Red</h3>
+                    {!isViewer && (
+                        <div className="pt-4 border-t">
+                            <h3 className="text-sm font-semibold mb-3 tracking-tight">Tu Red</h3>
                         {!networkData.active || networkData.active.length === 0 ? (
                             <p className="text-sm text-zinc-500 italic">
                                 Aún no tienes conexiones. Ve a "Mi Red" para invitar colaboradores.
@@ -99,7 +129,9 @@ export function DealCollaboratorsDrawer({ deal, isOpen, onClose, onUpdate }: Col
                         ) : (
                             <div className="space-y-3">
                                 {networkData.active.map((conn) => {
-                                    const partner = conn.inviterWorkspace || conn.inviteeWorkspace;
+                                    const partner = conn.inviterWorkspace?.id === activeWorkspace?.id 
+                                        ? conn.inviteeWorkspace 
+                                        : conn.inviterWorkspace;
                                     if (!partner) return null;
 
                                     const isAdded = existingCollaboratorsIds.includes(partner.id);
@@ -113,17 +145,36 @@ export function DealCollaboratorsDrawer({ deal, isOpen, onClose, onUpdate }: Col
                                                 </Avatar>
                                                 <p className="text-sm font-medium">{partner.businessName}</p>
                                             </div>
-                                            <Button
-                                                variant={isAdded ? "secondary" : "default"}
-                                                size="sm"
-                                                className="h-7 text-xs"
-                                                disabled={isAdded || isLoading}
-                                                onClick={() => handleAdd(partner.id)}
-                                            >
-                                                {isAdded ? 'Agregado' : (
-                                                    <><Plus className="w-3.5 h-3.5 mr-1" /> Añadir</>
+                                            <div className="flex items-center gap-2">
+                                                {!isAdded && (
+                                                    <Select
+                                                        value={selectedRoles[partner.id] || 'editor'}
+                                                        onValueChange={(val: 'viewer' | 'editor') => 
+                                                            setSelectedRoles(prev => ({ ...prev, [partner.id]: val }))
+                                                        }
+                                                        disabled={isLoading}
+                                                    >
+                                                        <SelectTrigger className="h-7 w-[100px] text-xs">
+                                                            <SelectValue placeholder="Rol" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="editor" className="text-xs">Editor</SelectItem>
+                                                            <SelectItem value="viewer" className="text-xs">Lector</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
                                                 )}
-                                            </Button>
+                                                <Button
+                                                    variant={isAdded ? "secondary" : "default"}
+                                                    size="sm"
+                                                    className="h-7 text-xs"
+                                                    disabled={isAdded || isLoading}
+                                                    onClick={() => handleAdd(partner.id)}
+                                                >
+                                                    {isAdded ? 'Agregado' : (
+                                                        <><Plus className="w-3.5 h-3.5 mr-1" /> Añadir</>
+                                                    )}
+                                                </Button>
+                                            </div>
                                         </div>
                                     );
                                 })}
@@ -135,6 +186,7 @@ export function DealCollaboratorsDrawer({ deal, isOpen, onClose, onUpdate }: Col
                             </div>
                         )}
                     </div>
+                    )}
                 </div>
             </SheetContent>
         </Sheet>

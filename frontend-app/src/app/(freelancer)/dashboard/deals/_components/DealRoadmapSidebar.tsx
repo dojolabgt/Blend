@@ -12,11 +12,11 @@ interface SidebarProps {
     activeStep: DealStep;
     onStepChange: (step: DealStep) => void;
     updateDeal?: (dealId: string, partial: any) => Promise<any>;
-    onOpenCollaborators?: () => void;
 }
 
-export function DealRoadmapSidebar({ deal, activeStep, onStepChange, updateDeal, onOpenCollaborators }: SidebarProps) {
+export function DealRoadmapSidebar({ deal, activeStep, onStepChange, updateDeal }: SidebarProps) {
     const { activeWorkspace } = useAuth();
+
     const isWon = deal?.status === 'WON';
     const currentStep = (deal?.currentStep as DealStep) || 'brief';
     const [notes, setNotes] = useState(deal?.notes || '');
@@ -202,20 +202,7 @@ export function DealRoadmapSidebar({ deal, activeStep, onStepChange, updateDeal,
                 </div>
             )}
 
-            {/* Add Collaborators Action */}
-            <div className={cn(
-                'mt-6 pt-5 border-t',
-                isWon ? 'border-emerald-200 dark:border-emerald-800/50' : 'border-zinc-200 dark:border-zinc-800'
-            )}>
-                <Button
-                    variant="outline"
-                    className="w-full justify-start text-zinc-600 dark:text-zinc-300"
-                    onClick={onOpenCollaborators}
-                >
-                    <Users className="w-4 h-4 mr-2" />
-                    Gestionar Colaboradores
-                </Button>
-            </div>
+
 
             {/* Internal Notes */}
             <div className={cn(
@@ -226,7 +213,9 @@ export function DealRoadmapSidebar({ deal, activeStep, onStepChange, updateDeal,
                     <StickyNote className="w-3.5 h-3.5" /> Notas internas
                 </label>
                 <textarea
-                    className="w-full text-xs p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/40 resize-none focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-zinc-400 dark:text-zinc-300"
+                    className={cn(
+                        "w-full text-xs p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/40 resize-none focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-zinc-400 dark:text-zinc-300"
+                    )}
                     rows={3}
                     placeholder="Apuntes privados, contexto del cliente..."
                     value={notes}

@@ -199,27 +199,30 @@ Payment
 
 ---
 
-## Fase 4 — Colaboración y Equipos (El Magic Token)
+## Fase 4 — Conexiones entre Workspaces y Colaboración (Red / Network) ✅
 
-### Invitaciones a Workspaces
+Blend permite que múltiples agencias y freelancers (Workspaces) operen bajo un esquema de invitaciones. En lugar de usuarios "invitados" per se, el sistema une Workspaces enteros a través de `WorkspaceConnection`.
 
-- `POST /workspaces/:id/invites` — (Solo Premium/Pro). Invita a un correo. Crea token.
-- `POST /invites/accept/:token` — El usuario (nuevo o existente) acepta y se inserta en `WorkspaceMember` como `COLLABORATOR` o `GUEST`.
+### Reglas de Colaboración y Permisos en Proposals (Deals)
+Para mantener un SaaS escalable y justo, la propiedad de los Deals funciona bajo el siguiente modelo:
 
-### CollaborationSplit (Reparto de ganancias)
+1. **Dueño del Deal (Owner Workspace):**
+   - El Deal le pertenece siempre al Workspace que generó la cotización.
+   - **Marca y Catálogo:** Todos los correos enviados, el logo de la propuesta, términos y condiciones, y la lista de "Servicios" provienen del Workspace Dueño.
+   - **Límites de Cuota:** Invitar colaboradores a tu Deal no consume tus cuotas (Si eres Pro, es ilimitado). Si el dueño es Free, se restringe a las cuotas del Free.
 
-```
-CollaborationSplit
-  - id, workspaceId, paymentId
-  - collaboratorUserId
-  - revenuePercent
-  - ownerAmount, collaboratorAmount (calculados al pagar)
-  - status: assigned | completed
-```
+2. **Roles de Colaboradores (Invitados Externos):**
+   - **Viewer:** El colaborador solo puede ver la cotización y el estado de pagos/hitos. No puede editar.
+   - **Editor:** Puede agregar etapas al Brief y modificar opciones de cotización, trabajando "a nombre de" la agencia dueña.
+   - **Transfer (Futuro):** Permite ceder la propiedad de un Deal por completo a otro Workspace.
 
-- `POST /payments/:id/assign-split` — El Owner asigna una parte del pago a un Guest/Collaborator.
-- El cobro principal va al Recurrente del Owner. Blend solo lleva el tracking financiero de quién le debe a quién.
-  > _Ejemplo: De Q1,000 → Agencia recibe Q700, Freelancer Externo Q300_
+3. **Restricciones del Plan Free en la Red:**
+   - Un usuario Free **no puede** enviar correos masivos de invitación ni generar Links QR públicos.
+   - Sin embargo, un usuario Free **SÍ PUEDE** aceptar invitaciones entrantes e invitar a sus Conexiones Activas existentes a colaborar en sus propios Deals. Esto fomenta el "Word of mouth" sin otorgarles herramientas de red masivas.
+
+### Milestones Splits (Reparto de Ingresos)
+- `MilestoneSplit`: Cuando un hito del PaymentPlan es pagado, el dueño puede definir un sub-porcentaje o monto fijo de ese hito para que vaya directamente al Workspace Colaborador.
+- **Flujo:** El pago principal entra a la tarjeta del Dueño, pero la UI muestra de forma transparente la retención o deuda hacia el Colaborador.
 
 ---
 
@@ -318,7 +321,7 @@ BillingSubscription
 | 1 | Servicios | CRUD ✅ |
 | 2 | Negociación | Deals + Briefs + Propuestas + Estructura de Cobro ✅ |
 | 3 | Pagos | Checkout dinámico de hitos + integraciones Recurrente 🚧 |
-| 4 | Colaboración | Invitaciones + CollaborationSplit |
+| 4 | Colaboración | Invitaciones + CollaborationSplit ✅ |
 | 5 | Billing | Blend cobra suscripción al Workspace ✅ |
 | 6 | Dashboard FR | Resumen del Workspace |
 | 7 | Dashboard Client | Vista del cliente |

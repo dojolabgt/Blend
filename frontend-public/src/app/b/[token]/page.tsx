@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { FileText, ArrowRight, Loader2, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { getImageUrl } from '@/lib/image-utils';
 
 // Reusing base URL from environment
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
@@ -127,6 +128,9 @@ export default function PublicBriefPage({ params }: { params: Promise<{ token: s
         );
     }
 
+    const workspace = deal?.workspace;
+    const isProOrPremium = workspace?.plan === 'pro' || workspace?.plan === 'premium';
+
     // Shared label component for Native HTML
     const Label = ({ children, required, className = '' }: { children: React.ReactNode, required?: boolean, className?: string }) => (
         <label className={`text-base font-semibold flex mb-1.5 ${className}`}>
@@ -138,7 +142,33 @@ export default function PublicBriefPage({ params }: { params: Promise<{ token: s
     const inputClasses = "flex h-9 w-full rounded-md border border-zinc-200 bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-zinc-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-800 dark:placeholder:text-zinc-400 dark:focus-visible:ring-zinc-300";
 
     return (
-        <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 selection:bg-black selection:text-white font-sans flex flex-col">
+            {/* Header */}
+            <header className="sticky top-0 z-50 bg-zinc-50/80 dark:bg-zinc-950/80 backdrop-blur-xl border-b border-zinc-200/80 dark:border-zinc-800/80">
+                <div className="max-w-5xl mx-auto px-6 h-20 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        {isProOrPremium ? (
+                            workspace?.logo ? (
+                                <img src={getImageUrl(workspace.logo)} alt={workspace.name || "Workspace"} className="h-10 w-auto rounded object-contain dark:invert-0" />
+                            ) : (
+                                <div className="w-10 h-10 bg-black dark:bg-white text-white dark:text-black rounded-lg flex items-center justify-center font-bold text-lg">
+                                    {workspace?.name?.charAt(0) || 'B'}
+                                </div>
+                            )
+                        ) : (
+                            <img src="/NodallyLogo.png" alt="Nodally" className="h-8 w-auto object-contain dark:invert" />
+                        )}
+                        <div>
+                            <span className="font-semibold text-base text-black dark:text-white block leading-none mb-1">
+                                {isProOrPremium ? workspace?.name : 'Nodally'}
+                            </span>
+                            <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Cuestionario de Proyecto</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <main className="flex-1 py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto">
                 <div className="mb-10 flex flex-col items-center text-center">
                     <div className="w-16 h-16 bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-zinc-200 dark:border-zinc-800 flex items-center justify-center mb-6">
@@ -362,6 +392,20 @@ export default function PublicBriefPage({ params }: { params: Promise<{ token: s
                     </form>
                 </div>
             </div>
+            </main>
+
+            {/* Footer */}
+            <footer className="border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 py-12 text-center mt-10">
+                <div className="px-6 flex flex-col items-center gap-4">
+                    <p className="text-sm font-medium text-zinc-500">
+                        Cuestionario enviado por <strong className="text-black dark:text-white">{isProOrPremium ? workspace?.name : 'Nodally'}</strong>.
+                    </p>
+                    <div className="flex items-center gap-2 text-[10px] font-bold text-zinc-400 uppercase tracking-widest bg-zinc-50 dark:bg-zinc-900 px-3 py-1.5 rounded-full border border-zinc-100 dark:border-zinc-800">
+                        Powered by
+                        <img src="/NodallyLogo.png" alt="Nodally" className="h-4 object-contain ml-1 grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-all dark:invert" />
+                    </div>
+                </div>
+            </footer>
         </div>
     );
 }

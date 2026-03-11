@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./assets/logo.png" alt="NexStack Logo" width="200" height="auto" />
+  <img src="./assets/NodallyLogo.png" alt="Nodally Logo" width="200" height="auto" />
   <h1>NexStack Starter 🚀</h1>
   <p>
     <b>Enterprise-grade fullstack starter for rapid SaaS development</b>

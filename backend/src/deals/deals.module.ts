@@ -14,7 +14,8 @@ import { PaymentMilestone } from './entities/payment-milestone.entity';
 import { Workspace } from '../workspaces/workspace.entity';
 import { Client } from '../clients/client.entity';
 import { Service } from '../services/service.entity';
-import { DealCollaborator } from './entities/deal-collaborator.entity';
+import { MilestoneSplit } from './entities/milestone-split.entity';
+import { ProjectsModule } from '../projects/projects.module';
 
 @Module({
   imports: [
@@ -29,8 +30,9 @@ import { DealCollaborator } from './entities/deal-collaborator.entity';
       Workspace,
       Client,
       Service,
-      DealCollaborator,
+      MilestoneSplit,
     ]),
+    ProjectsModule,
   ],
   controllers: [DealsController, PublicBriefsController, PublicDealsController],
   providers: [DealsService],

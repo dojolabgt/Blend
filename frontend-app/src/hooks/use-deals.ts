@@ -35,7 +35,7 @@ export function useDeals() {
         if (!activeWorkspace) return;
         setIsLoading(true);
         try {
-            const res = await api.get(base());
+            const res = await api.get(`${base()}?t=${Date.now()}`);
             setDeals(res.data);
         } catch (err: any) {
             setError(err.response?.data?.message || err.message);
@@ -48,7 +48,7 @@ export function useDeals() {
     const fetchDeal = useCallback(async (dealId: string) => {
         if (!activeWorkspace) return null;
         try {
-            const res = await api.get(`${base()}/${dealId}`);
+            const res = await api.get(`${base()}/${dealId}?t=${Date.now()}`);
             return res.data;
         } catch (err: any) {
             setError(err.response?.data?.message || err.message);

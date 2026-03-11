@@ -7,25 +7,25 @@ import {
     ManyToOne,
     JoinColumn,
 } from 'typeorm';
-import { Deal } from './deal.entity';
 import { Workspace } from '../../workspaces/workspace.entity';
+import { Project } from './project.entity';
 
-export enum CollaboratorRole {
+export enum ProjectRole {
     VIEWER = 'viewer',
     EDITOR = 'editor',
 }
 
-@Entity('deal_collaborators')
-export class DealCollaborator {
+@Entity('project_collaborators')
+export class ProjectCollaborator {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ name: 'deal_id' })
-    dealId: string;
+    @Column({ name: 'project_id' })
+    projectId: string;
 
-    @ManyToOne(() => Deal, (deal) => deal.collaborators, { onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'deal_id' })
-    deal: Deal;
+    @ManyToOne(() => Project, (project) => project.collaborators, { onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'project_id' })
+    project: Project;
 
     @Column({ name: 'workspace_id' })
     workspaceId: string;
@@ -36,10 +36,10 @@ export class DealCollaborator {
 
     @Column({
         type: 'enum',
-        enum: CollaboratorRole,
-        default: CollaboratorRole.VIEWER,
+        enum: ProjectRole,
+        default: ProjectRole.VIEWER,
     })
-    role: CollaboratorRole;
+    role: ProjectRole;
 
     @CreateDateColumn({ name: 'created_at' })
     createdAt: Date;

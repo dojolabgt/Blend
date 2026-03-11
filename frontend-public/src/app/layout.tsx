@@ -40,11 +40,11 @@ export default function RootLayout({
         // Update page title
         document.title = settings.appName || "Dashboard App";
 
-        // Update favicon (this logic is fine here, or could be moved to a separate component/hook)
+        /* 
+        El favicon ahora siempre es el de Nodally
         if (settings.appFavicon) {
             const faviconUrl = getImageUrl(settings.appFavicon);
 
-            // Find existing favicon or create new one
             let favicon = document.querySelector("link[rel='icon']") as HTMLLinkElement;
 
             if (!favicon) {
@@ -53,17 +53,17 @@ export default function RootLayout({
                 document.head.appendChild(favicon);
             }
 
-            // Update href with cache busting
             if (faviconUrl) {
                 favicon.href = `${faviconUrl}?t=${Date.now()}`;
             }
         }
+        */
     }, [settings]);
 
     return (
         <html lang="en" className="scroll-smooth">
             <head>
-                <link rel="icon" href="/favicon.ico" sizes="any" id="favicon" />
+                <link rel="icon" href="/NodallyLogo.png" sizes="any" id="favicon" />
             </head>
             <body
                 className={`${inter.variable} ${generalSans.variable} ${geistMono.variable} font-body antialiased`}

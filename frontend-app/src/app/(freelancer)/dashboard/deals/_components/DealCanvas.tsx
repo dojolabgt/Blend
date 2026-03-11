@@ -9,6 +9,7 @@ import { QuotationStep } from './steps/QuotationStep';
 import { PaymentPlanStep } from './steps/PaymentPlanStep';
 import { toast } from 'sonner';
 import { useDeals } from '@/hooks/use-deals';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 
 interface CanvasProps {
     deal: any;
@@ -22,13 +23,22 @@ interface CanvasProps {
 
 export function DealCanvas({ deal, activeStep, onNextStep, onUpdateBrief, onWon, onDealUpdate, onRefreshDeal }: CanvasProps) {
     const { updateDeal } = useDeals();
+    const { activeWorkspace } = useAuth();
     const [pendingBriefId, setPendingBriefId] = React.useState<string | null>(deal?.brief?.template?.id || null);
     const isWon = deal?.status === 'WON';
 
     const indexMap: Record<DealStep, number> = { brief: 0, quotation: 1, payment_plan: 2, won: 3 };
     const currentIndex = indexMap[activeStep];
     const dealStepIndex = indexMap[(deal?.currentStep as DealStep) || 'brief'];
+    
+    const isViewer = React.useMemo(() => {
+        if (!activeWorkspace || !deal?.collaborators) return false;
+        const collab = deal.collaborators.find((c: any) => c.workspace.id === activeWorkspace.id);
+        return collab?.role === 'viewer';
+    }, [activeWorkspace, deal]);
+
     const isSnapshot = isWon && activeStep !== 'won';
+    const isReadonly = isSnapshot || isViewer;
 
     const handleSaveDraft = async () => {
         await updateDeal(deal.id, { currentStep: activeStep });
@@ -60,7 +70,7 @@ export function DealCanvas({ deal, activeStep, onNextStep, onUpdateBrief, onWon,
                     )}
                 </div>
 
-                {isSnapshot && (
+                {isReadonly && (
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-xs font-semibold rounded-full border border-amber-200 dark:border-amber-800/50">
                         <ShieldAlert className="w-3.5 h-3.5" /> Sólo Lectura
                     </span>
@@ -70,7 +80,7 @@ export function DealCanvas({ deal, activeStep, onNextStep, onUpdateBrief, onWon,
     };
 
     const renderFooter = () => {
-        if (activeStep === 'won' || isSnapshot) return null;
+        if (activeStep === 'won' || isReadonly) return null;
 
         return (
             <div className="flex items-center justify-end p-6 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 mt-auto">
@@ -128,12 +138,15 @@ export function DealCanvas({ deal, activeStep, onNextStep, onUpdateBrief, onWon,
                             isCompleted={deal?.brief?.isCompleted}
                             responses={deal?.brief?.responses}
                             onSelectTemplate={(id) => {
+                                if (isReadonly) return;
                                 setPendingBriefId(id);
                                 // Auto-save selection to db immediately so the link generates and steps lock properly
                                 updateDeal(deal.id, { briefTemplateId: id || undefined }).then(() => {
                                     onRefreshDeal();
                                 });
                             }}
+                            workspaceId={deal?.workspace?.id || deal?.workspaceId}
+                            readonly={isReadonly}
                         />
                     )}
 
@@ -144,7 +157,7 @@ export function DealCanvas({ deal, activeStep, onNextStep, onUpdateBrief, onWon,
                             publicToken={deal.publicToken}
                             currency={deal.currency}
                             taxes={deal.taxes}
-                            readonly={isSnapshot}
+                            readonly={isReadonly}
                             onUpdate={onRefreshDeal}
                             updateDeal={updateDeal}
                         />
@@ -155,7 +168,8 @@ export function DealCanvas({ deal, activeStep, onNextStep, onUpdateBrief, onWon,
                             dealId={deal.id}
                             quotations={deal.quotations || []}
                             currency={deal.currency}
-                            readonly={isSnapshot}
+                            readonly={isReadonly}
+                            deal={deal}
                         />
                     )}
 
