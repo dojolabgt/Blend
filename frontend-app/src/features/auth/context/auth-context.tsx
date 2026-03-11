@@ -79,7 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
 
             setError(null);
-        } catch (err) {
+        } catch {
             setUser(null);
             setActiveWorkspace(null);
             setActiveWorkspaceId(null);
@@ -125,8 +125,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
 
             router.push(getDashboardRoute(response.data.user.role));
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Error occurred during login');
+        } catch (err: unknown) {
+            const apiErr = err as { response?: { data?: { message?: string } }; message?: string };
+            setError(apiErr.response?.data?.message || 'Error occurred during login');
             throw err;
         } finally {
             setIsLoading(false);
@@ -146,8 +147,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             // Always send new registrations to onboarding
             router.push('/onboarding');
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Error occurred during registration');
+        } catch (err: unknown) {
+            const apiErr = err as { response?: { data?: { message?: string } }; message?: string };
+            setError(apiErr.response?.data?.message || 'Error occurred during registration');
             throw err;
         } finally {
             setIsLoading(false);

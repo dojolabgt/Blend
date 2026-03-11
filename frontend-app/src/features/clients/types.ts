@@ -35,4 +35,4 @@ export interface CreateClientDto {
     address?: Record<string, string>;
 }
 
-export interface UpdateClientDto extends Partial<CreateClientDto> { }
+export type UpdateClientDto = Partial<CreateClientDto>;

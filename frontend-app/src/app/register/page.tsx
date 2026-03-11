@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { AuthInput } from '@/components/common/AuthInput';
 import { PrimaryButton } from '@/components/common/PrimaryButton';
@@ -15,7 +15,6 @@ import { UserRole } from '@/types';
 
 export default function RegisterPage() {
     const { register, isLoading, error } = useAuth();
-    const router = useRouter();
 
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
@@ -42,7 +41,7 @@ export default function RegisterPage() {
                 lastName,
                 role: UserRole.FREELANCER,
             });
-        } catch (err: any) {
+        } catch (err) {
             console.error('Error al registrarse', err);
         }
     };
@@ -55,7 +54,7 @@ export default function RegisterPage() {
 
                     {/* Logo */}
                     <div className="mb-6 flex justify-center">
-                        <img src="/NodallyLogo.png" alt="Nodally" className="h-10 w-auto object-contain" />
+                        <Image src="/NodallyLogo.png" alt="Nodally" width={160} height={40} className="h-10 w-auto object-contain" />
                     </div>
 
                     {/* Encabezado */}

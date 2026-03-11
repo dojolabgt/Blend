@@ -73,6 +73,7 @@ export default function BillingPage() {
         } else if (searchParams?.get('cancelled')) {
             toast.info(t('billing.toastCancelled'));
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchParams]);
 
     const handleSubscribe = async (plan: 'pro' | 'premium', interval: 'month' | 'year') => {
@@ -131,7 +132,7 @@ export default function BillingPage() {
             ]);
             setStatus(s);
             setHistory(h);
-        } catch (e) {
+        } catch {
             toast.error('Error forzando suscripción');
         } finally {
             setIsSubscribing(false);
@@ -494,7 +495,7 @@ export default function BillingPage() {
                                         <div key={sub.id} className="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-colors">
                                             <div>
                                                 <p className="text-sm font-semibold capitalize flex items-center gap-2">
-                                                    Nodally {(sub as any).plan || 'Pro'}
+                                                    Nodally {(sub as unknown as { plan?: string }).plan || 'Pro'}
                                                     <span className="text-muted-foreground font-normal text-xs uppercase tracking-wider">
                                                         ({sub.interval === 'month' ? t('billing.monthly') : t('billing.yearly')})
                                                     </span>

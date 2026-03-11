@@ -224,7 +224,7 @@ export function LocalizationForm({ initialData, onUpdate }: LocalizationFormProp
     const watchCurr = form.watch('currencyFormat');
 
     const countryOptions: SelectOption[] = Object.entries(paisData).map(
-        ([code, data]: [string, any]) => ({ value: code, label: data.name })
+        ([code, data]: [string, { name: string }]) => ({ value: code, label: data.name })
     );
 
     const availableCurrencyOptions: SelectOption[] = ALL_CURRENCIES

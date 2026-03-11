@@ -69,11 +69,12 @@ export function SecurityForm() {
             });
             form.reset();
             toast.success(hasPassword ? t('security.successUpdate') : t('security.successAssign'));
-        } catch (error: any) {
+        } catch (error) {
             console.error('Error changing password', error);
-            const msg = error?.response?.data?.message === 'Invalid current password'
+            const err = error as { response?: { data?: { message?: string } } };
+            const msg = err?.response?.data?.message === 'Invalid current password'
                 ? t('security.errorCurrent')
-                : (error?.response?.data?.message || t('security.errorUpdate'));
+                : (err?.response?.data?.message || t('security.errorUpdate'));
             toast.error(msg);
         } finally {
             setIsSaving(false);

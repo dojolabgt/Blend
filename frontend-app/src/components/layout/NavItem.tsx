@@ -16,7 +16,7 @@ interface NavItemProps {
     onClick?: () => void;
 }
 
-export function NavItem({ item, isMobile, onClick }: NavItemProps) {
+export function NavItem({ item, onClick }: NavItemProps) {
     const pathname = usePathname();
     // Consider it active if paths match or we are deep inside the path (except exact home)
     const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));

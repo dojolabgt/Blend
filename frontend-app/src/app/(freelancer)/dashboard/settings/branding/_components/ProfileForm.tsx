@@ -105,11 +105,12 @@ export function ProfileForm({ initialData, onUpdate }: ProfileFormProps) {
             form.setValue('logo', updatedProfile.logo ?? '');
             toast.success(t('branding.photoSuccess'));
             onUpdate(updatedProfile);
-        } catch (error: any) {
+        } catch (error) {
             console.error('Error uploading logo', error);
-            const backendMsg = error?.response?.data?.message;
+            const err = error as { response?: { data?: { message?: string }, status?: number } };
+            const backendMsg = err?.response?.data?.message;
             const msg = typeof backendMsg === 'string' ? backendMsg :
-                (error?.response?.status === 413 ? t('branding.photoErrorLarge') : t('branding.photoError'));
+                (err?.response?.status === 413 ? t('branding.photoErrorLarge') : t('branding.photoError'));
             toast.error(msg);
         } finally {
             setIsUploadingLogo(false);

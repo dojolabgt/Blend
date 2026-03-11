@@ -8,6 +8,7 @@ import {
   OneToOne,
   JoinColumn,
   OneToMany,
+  Index,
 } from 'typeorm';
 import { Workspace } from '../../workspaces/workspace.entity';
 import { Deal } from '../../deals/entities/deal.entity';
@@ -19,6 +20,7 @@ export class Project {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Index()
   @Column({ name: 'workspace_id' })
   workspaceId: string;
 
@@ -26,6 +28,7 @@ export class Project {
   @JoinColumn({ name: 'workspace_id' })
   workspace: Workspace;
 
+  @Index()
   @Column({ name: 'deal_id' })
   dealId: string;
 

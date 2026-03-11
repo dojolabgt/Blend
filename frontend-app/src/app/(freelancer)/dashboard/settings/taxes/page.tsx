@@ -115,8 +115,9 @@ function TaxModal({ open, onClose, onSave, initial }: {
         try {
             await onSave({ ...form, rate: String(rateNum / 100) });
             onClose();
-        } catch (err: any) {
-            setError(err?.response?.data?.message ?? t('taxes.errSaving'));
+        } catch (err: unknown) {
+            const apiErr = err as { response?: { data?: { message?: string } } };
+            setError(apiErr?.response?.data?.message ?? t('taxes.errSaving'));
         } finally { setSaving(false); }
     };
 
@@ -224,7 +225,7 @@ export default function TaxesPage() {
     // Hydrate prefs from activeWorkspace
     useEffect(() => {
         if (activeWorkspace) {
-            const ws = activeWorkspace as any;
+            const ws = activeWorkspace as { taxInclusivePricing?: boolean; taxReporting?: boolean; taxId?: string; taxType?: string; country?: string };
             setPrefs({
                 taxInclusivePricing: ws.taxInclusivePricing ?? false,
                 taxReporting: ws.taxReporting ?? false,
@@ -283,7 +284,7 @@ export default function TaxesPage() {
     };
 
     // Get tax identifiers for current country from pais.json
-    const countryData = (paisData as any)[prefs.country ?? 'GT'];
+    const countryData = (paisData as Record<string, { taxIdentifiers?: Array<{ key: string; label: string; placeholder: string; description: string; required: boolean }> }>)[prefs.country ?? 'GT'];
     const taxIdentifiers: Array<{ key: string; label: string; placeholder: string; description: string; required: boolean }> =
         countryData?.taxIdentifiers ?? [];
 

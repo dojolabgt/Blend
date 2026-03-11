@@ -16,7 +16,6 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import paisData from '@/data/localization/pais.json';
-import guatemalaData from '@/data/localization/guatemala.json';
 
 // ─── Use-case categories ───────────────────────────────────────────────────
 const USE_CASES = [
@@ -92,24 +91,18 @@ export default function OnboardingPage() {
 
     // Step 2 — Ubicación & Moneda
     const [country, setCountry] = useState(activeWorkspace?.country || 'GT');
-    const [stateValue, setStateValue] = useState(activeWorkspace?.state || '');
 
     // Default currency derived from selected country
-    const getDefaultCurrency = (countryCode: string) =>
-        (paisData as any)[countryCode]?.defaults?.currency || 'USD';
+    const getDefaultCurrency = (countryCode: string) => {
+        const countryData = (paisData as Record<string, { defaults?: { currency?: string } }>)[countryCode];
+        return countryData?.defaults?.currency || 'USD';
+    };
     const [currency, setCurrency] = useState(() => getDefaultCurrency(activeWorkspace?.country || 'GT'));
 
     // Step 3 — Casos de uso
     const [selectedUseCases, setSelectedUseCases] = useState<string[]>([]);
 
     const TOTAL_STEPS = 3;
-
-    const activeCountryData = (paisData as any)[country];
-    const lvl1Label = activeCountryData?.labels?.lvl1 || 'Región';
-    const lvl1Options: string[] =
-        country === 'GT'
-            ? guatemalaData.map((d: any) => d.title)
-            : [];
 
     const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -148,9 +141,9 @@ export default function OnboardingPage() {
                 });
             }
 
-            // Save workspace data — apply country defaults from pais.json
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { currency: _defaultCurrency, ...countryDefaults } = (paisData as any)[country]?.defaults || {};
+            const { currency: _defaultCurrency, ...countryDefaults } =
+                (paisData as Record<string, { defaults?: Record<string, unknown> }>)[country]?.defaults || {};
 
             const currencyMap: Record<string, { name: string, symbol: string }> = {
                 'GTQ': { name: 'Quetzal guatemalteco', symbol: 'Q' },
@@ -180,15 +173,17 @@ export default function OnboardingPage() {
             });
 
             // Seed taxes from pais.json for the selected country (idempotent — safe to call multiple times)
-            const countryTaxes = (paisData as any)[country]?.taxes ?? [];
+            const countryData = (paisData as Record<string, { taxes?: unknown[] }>)[country];
+            const countryTaxes = countryData?.taxes ?? [];
             if (countryTaxes.length > 0) {
                 await api.post('/workspaces/current/taxes/seed', { taxes: countryTaxes });
             }
 
             await checkAuth();
             router.push('/dashboard');
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Ocurrió un error. Intenta de nuevo.');
+        } catch (err: unknown) {
+            const apiErr = err as { response?: { data?: { message?: string } } };
+            setError(apiErr.response?.data?.message || 'Ocurrió un error. Intenta de nuevo.');
             setIsSubmitting(false);
         }
     };
@@ -287,7 +282,6 @@ export default function OnboardingPage() {
                                 <label className="text-sm font-medium text-zinc-700 block mb-1.5">País</label>
                                 <Select value={country} onValueChange={(val) => {
                                     setCountry(val);
-                                    setStateValue('');
                                     setCurrency(getDefaultCurrency(val));
                                 }}>
                                     <SelectTrigger className="h-12 rounded-xl border-zinc-200 focus:ring-1 focus:ring-zinc-900">
@@ -297,7 +291,7 @@ export default function OnboardingPage() {
                                         </div>
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {Object.entries(paisData).map(([code, data]: [string, any]) => (
+                                        {Object.entries(paisData as Record<string, { name: string }>).map(([code, data]) => (
                                             <SelectItem key={code} value={code}>{data.name}</SelectItem>
                                         ))}
                                     </SelectContent>

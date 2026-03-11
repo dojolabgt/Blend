@@ -1,3 +1,12 @@
+export interface WorkspaceTax {
+    id: string;
+    name: string;
+    rate: number;
+    isActive: boolean;
+    isDefault: boolean;
+    [key: string]: unknown;
+}
+
 export interface Workspace {
     id: string;
     businessName: string;
@@ -23,7 +32,7 @@ export interface Workspace {
     currencies?: { code: string; name: string; symbol: string; isDefault: boolean }[] | null;
     useCases?: string[] | null;
     onboardingCompleted?: boolean;
-    taxes?: any[];
+    taxes?: WorkspaceTax[] | null;
 }
 
 export interface WorkspaceMember {

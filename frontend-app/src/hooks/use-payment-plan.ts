@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import api from '@/lib/api';
 
@@ -63,6 +63,20 @@ export interface CreateMilestoneSplitPayload {
     amount: number;
 }
 
+interface ApiError {
+    response?: { status?: number; data?: { message?: string } };
+    message: string;
+}
+
+function getErrorMessage(err: unknown): string {
+    const apiErr = err as ApiError;
+    return apiErr.response?.data?.message || apiErr.message;
+}
+
+function getErrorStatus(err: unknown): number | undefined {
+    return (err as ApiError).response?.status;
+}
+
 export function usePaymentPlan(dealId: string, workspaceId?: string) {
     const { activeWorkspace } = useAuth();
     const [plan, setPlan] = useState<PaymentPlan | null>(null);
@@ -70,93 +84,94 @@ export function usePaymentPlan(dealId: string, workspaceId?: string) {
     const [error, setError] = useState<string | null>(null);
 
     const targetWorkspaceId = workspaceId || activeWorkspace?.id;
-    const base = () => `/workspaces/${targetWorkspaceId}/deals/${dealId}/payment-plan`;
+
+    const base = useMemo(
+        () => `/workspaces/${targetWorkspaceId}/deals/${dealId}/payment-plan`,
+        [targetWorkspaceId, dealId],
+    );
 
     const fetchPaymentPlan = useCallback(async () => {
         if (!targetWorkspaceId || !dealId) return;
         setIsLoading(true);
         setError(null);
         try {
-            const res = await api.get(base());
+            const res = await api.get(base);
             setPlan(res.data);
             return res.data;
-        } catch (err: any) {
-            if (err.response?.status !== 404) {
-                setError(err.response?.data?.message || err.message);
+        } catch (err: unknown) {
+            if (getErrorStatus(err) !== 404) {
+                setError(getErrorMessage(err));
             }
-            // If 404, it just means no plan exists yet, which is fine
             setPlan(null);
             return null;
         } finally {
             setIsLoading(false);
         }
-    }, [targetWorkspaceId, dealId]);
+    }, [targetWorkspaceId, dealId, base]);
 
     const createOrUpdatePlan = useCallback(async (payload: CreatePaymentPlanPayload) => {
         if (!targetWorkspaceId) return null;
         setIsLoading(true);
         try {
-            const res = await api.post(base(), payload);
+            const res = await api.post(base, payload);
             setPlan(res.data);
             return res.data;
-        } catch (err: any) {
-            setError(err.response?.data?.message || err.message);
+        } catch (err: unknown) {
+            setError(getErrorMessage(err));
             return null;
         } finally {
             setIsLoading(false);
         }
-    }, [targetWorkspaceId, dealId]);
+    }, [targetWorkspaceId, base]);
 
     const addMilestone = useCallback(async (payload: CreateMilestonePayload) => {
         if (!targetWorkspaceId) return null;
         setIsLoading(true);
         try {
-            const res = await api.post(`${base()}/milestones`, payload);
+            const res = await api.post(`${base}/milestones`, payload);
             setPlan(res.data);
             return res.data;
-        } catch (err: any) {
-            setError(err.response?.data?.message || err.message);
+        } catch (err: unknown) {
+            setError(getErrorMessage(err));
             return null;
         } finally {
             setIsLoading(false);
         }
-    }, [targetWorkspaceId, dealId]);
+    }, [targetWorkspaceId, base]);
 
     const updateMilestone = useCallback(async (milestoneId: string, payload: UpdateMilestonePayload) => {
         if (!targetWorkspaceId) return null;
         setIsLoading(true);
         try {
-            const res = await api.patch(`${base()}/milestones/${milestoneId}`, payload);
+            const res = await api.patch(`${base}/milestones/${milestoneId}`, payload);
             return res.data;
-        } catch (err: any) {
-            setError(err.response?.data?.message || err.message);
+        } catch (err: unknown) {
+            setError(getErrorMessage(err));
             return null;
         } finally {
             setIsLoading(false);
         }
-    }, [targetWorkspaceId, dealId]);
+    }, [targetWorkspaceId, base]);
 
     const deleteMilestone = useCallback(async (milestoneId: string) => {
         if (!targetWorkspaceId) return false;
         setIsLoading(true);
         try {
-            await api.delete(`${base()}/milestones/${milestoneId}`);
+            await api.delete(`${base}/milestones/${milestoneId}`);
             return true;
-        } catch (err: any) {
-            setError(err.response?.data?.message || err.message);
+        } catch (err: unknown) {
+            setError(getErrorMessage(err));
             return false;
         } finally {
             setIsLoading(false);
         }
-    }, [targetWorkspaceId, dealId]);
+    }, [targetWorkspaceId, base]);
 
     const addMilestoneSplit = useCallback(async (milestoneId: string, payload: CreateMilestoneSplitPayload) => {
         if (!targetWorkspaceId) return null;
         setIsLoading(true);
         try {
-            const res = await api.post(`${base()}/milestones/${milestoneId}/splits`, payload);
-            // Returns updated milestone
-            // Let's just update the local plan by replacing that milestone
+            const res = await api.post(`${base}/milestones/${milestoneId}/splits`, payload);
             setPlan(prev => {
                 if (!prev) return prev;
                 return {
@@ -165,20 +180,19 @@ export function usePaymentPlan(dealId: string, workspaceId?: string) {
                 };
             });
             return res.data;
-        } catch (err: any) {
-            setError(err.response?.data?.message || err.message);
+        } catch (err: unknown) {
+            setError(getErrorMessage(err));
             return null;
         } finally {
             setIsLoading(false);
         }
-    }, [targetWorkspaceId, dealId]);
+    }, [targetWorkspaceId, base]);
 
     const deleteMilestoneSplit = useCallback(async (milestoneId: string, splitId: string) => {
         if (!targetWorkspaceId) return false;
         setIsLoading(true);
         try {
-            const res = await api.delete(`${base()}/milestones/${milestoneId}/splits/${splitId}`);
-            // Let's update the local plan by replacing that milestone
+            const res = await api.delete(`${base}/milestones/${milestoneId}/splits/${splitId}`);
             setPlan(prev => {
                 if (!prev) return prev;
                 return {
@@ -187,21 +201,21 @@ export function usePaymentPlan(dealId: string, workspaceId?: string) {
                 };
             });
             return true;
-        } catch (err: any) {
-            setError(err.response?.data?.message || err.message);
+        } catch (err: unknown) {
+            setError(getErrorMessage(err));
             return false;
         } finally {
             setIsLoading(false);
         }
-    }, [targetWorkspaceId, dealId]);
+    }, [targetWorkspaceId, base]);
 
     return {
         plan,
-        paymentPlan: plan,         // alias used by PaymentPlanStep
+        paymentPlan: plan,
         setPlan,
         fetchPaymentPlan,
         createOrUpdatePlan,
-        createPaymentPlan: createOrUpdatePlan, // alias used by PaymentPlanStep
+        createPaymentPlan: createOrUpdatePlan,
         addMilestone,
         updateMilestone,
         deleteMilestone,

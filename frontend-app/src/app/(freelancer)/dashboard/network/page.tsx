@@ -4,23 +4,21 @@ import React, { useEffect, useState } from 'react';
 import { useNetwork } from '@/hooks/use-network';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { DashboardShell } from '@/components/layout/DashboardShell';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import { QRCodeSVG } from 'qrcode.react';
-import { Sparkles, Loader2, UserPlus, Check, Copy } from 'lucide-react';
+import { Loader2, UserPlus, Check, Copy, Network } from 'lucide-react';
 import { toast } from 'sonner';
 import {
     Dialog,
     DialogContent,
     DialogDescription,
-    DialogFooter,
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { DataTable, ColumnDef } from '@/components/common/DataTable';
+import { WorkspaceConnection } from '@/features/network/types';
 
 export default function NetworkPage() {
     const { activeWorkspace } = useAuth();
@@ -60,6 +58,57 @@ export default function NetworkPage() {
         setGeneratedLinkToken(null);
     };
 
+    const columns: ColumnDef<WorkspaceConnection>[] = [
+        {
+            key: 'conexion',
+            header: 'Conexión',
+            render: (conn) => {
+                const partner = conn.inviterWorkspace?.id === activeWorkspace?.id
+                    ? conn.inviteeWorkspace
+                    : conn.inviterWorkspace;
+
+                return (
+                    <div className="flex items-center gap-3">
+                        <Avatar className="h-9 w-9 border-2 border-background shadow-sm shrink-0">
+                            <AvatarImage src={partner?.logo || undefined} alt={partner?.businessName} className="object-cover" />
+                            <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
+                                {partner?.businessName?.substring(0, 2).toUpperCase() || 'NA'}
+                            </AvatarFallback>
+                        </Avatar>
+                        <div>
+                            <div className="font-semibold group-hover:text-primary transition-colors">
+                                {partner?.businessName || 'Desconocido'}
+                            </div>
+                            <div className="flex items-center gap-1 mt-0.5">
+                                <span className="text-xs text-muted-foreground">
+                                    Miembro de la Red
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                );
+            },
+        },
+        {
+            key: 'status',
+            header: 'Estado',
+            render: () => (
+                <span className="px-2.5 py-0.5 rounded-md text-xs font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-400">
+                    Conectado
+                </span>
+            ),
+        },
+        {
+            key: 'createdAt',
+            header: 'Fecha de Conexión',
+            render: (conn) => (
+                <span className="text-sm text-muted-foreground">
+                    {new Date(conn.createdAt).toLocaleDateString('es-GT')}
+                </span>
+            ),
+        },
+    ];
+
     return (
         <DashboardShell>
             <div className="flex items-center justify-between mb-8">
@@ -67,70 +116,29 @@ export default function NetworkPage() {
                     <h1 className="text-2xl font-bold tracking-tight">Tus Conexiones</h1>
                     <p className="text-muted-foreground">Colabora con otros freelancers, agencias y clientes.</p>
                 </div>
-                <Button onClick={() => setIsInviteModalOpen(true)} className="rounded-full px-6 shadow-lg shadow-primary/20">
+                <Button
+                    onClick={() => setIsInviteModalOpen(true)}
+                    className="relative z-10 rounded-full px-6 shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                >
                     <UserPlus className="mr-2 h-4 w-4" />
                     Conectar
                 </Button>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {/* Active Connections */}
-                <Card className="col-span-full border border-zinc-200/50 dark:border-zinc-800/50 shadow-sm bg-white/50 dark:bg-zinc-950/50 backdrop-blur-sm">
-                    <CardHeader className="pb-4">
-                        <CardTitle className="flex items-center gap-2">
-                            <Sparkles className="h-5 w-5 text-indigo-500" />
-                            Red Activa
-                        </CardTitle>
-                        <CardDescription>
-                            Workspaces con los que tienes una conexión establecida para colaborar en proyectos compartidos.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        {isLoading && !networkData.active.length ? (
-                            <div className="flex justify-center py-8">
-                                <Loader2 className="h-6 w-6 animate-spin text-zinc-400" />
-                            </div>
-                        ) : networkData.active.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center py-10 px-4 text-center bg-zinc-50 dark:bg-zinc-900/30 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800">
-                                <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-900/30 rounded-full flex items-center justify-center mb-4">
-                                    <UserPlus className="h-6 w-6 text-indigo-500" />
-                                </div>
-                                <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">Sin conexiones aún</h3>
-                                <p className="text-sm text-zinc-500 max-w-sm mt-1">Comparte tu enlace de invitación para empezar a colaborar.</p>
-                            </div>
-                        ) : (
-                            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                                {networkData.active.map((conn) => {
-                                    const partner = conn.inviterWorkspace?.id === activeWorkspace?.id 
-                                        ? conn.inviteeWorkspace 
-                                        : conn.inviterWorkspace;
-                                    return (
-                                        <div key={conn.id} className="group relative flex flex-col p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:shadow-md hover:border-indigo-200 dark:hover:border-indigo-900/50 transition-all duration-300">
-                                            <div className="flex items-start justify-between mb-4">
-                                                <Avatar className="h-12 w-12 rounded-xl ring-2 ring-white dark:ring-zinc-900 shadow-sm">
-                                                    <AvatarImage src={partner?.logo || undefined} alt={partner?.businessName} className="object-cover" />
-                                                    <AvatarFallback className="rounded-xl bg-gradient-to-br from-indigo-100 to-indigo-50 dark:from-indigo-900/40 dark:to-indigo-800/40 text-indigo-700 dark:text-indigo-300 font-semibold">
-                                                        {partner?.businessName?.substring(0, 2).toUpperCase()}
-                                                    </AvatarFallback>
-                                                </Avatar>
-                                                <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-none shadow-none text-[10px] uppercase font-bold tracking-wider px-2 py-0.5">
-                                                    Conectado
-                                                </Badge>
-                                            </div>
-                                            <div>
-                                                <h3 className="text-base font-semibold text-zinc-900 dark:text-white line-clamp-1">{partner?.businessName}</h3>
-                                                <p className="text-xs text-zinc-500 mt-1">Miembro de la Red</p>
-                                            </div>
-                                            <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-black/0 group-hover:ring-indigo-500/10 pointer-events-none transition-all" />
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
-
-            </div>
+            <DataTable
+                data={networkData.active}
+                columns={columns}
+                isLoading={isLoading}
+                emptyIcon={<Network className="w-8 h-8" />}
+                emptyTitle="Sin conexiones aún"
+                emptyDescription="Comparte tu enlace de invitación para empezar a colaborar con otros workspaces."
+                emptyAction={
+                    <Button variant="outline" className="rounded-full" onClick={() => setIsInviteModalOpen(true)}>
+                        <UserPlus className="mr-2 h-4 w-4" />
+                        Invitar Conexión
+                    </Button>
+                }
+            />
 
             <Dialog open={isInviteModalOpen} onOpenChange={handleCloseModal}>
                 <DialogContent className="sm:max-w-[425px]">
@@ -170,7 +178,7 @@ export default function NetworkPage() {
                                         className="font-mono text-xs text-muted-foreground"
                                     />
                                     <Button variant="secondary" onClick={handleCopyLink} className="w-28 shrink-0">
-                                        {isCopied ? <><Check className="w-4 h-4 mr-1.5"/> Copiado</> : <><Copy className="w-4 h-4 mr-1.5"/> Copiar</>}
+                                        {isCopied ? <><Check className="w-4 h-4 mr-1.5" /> Copiado</> : <><Copy className="w-4 h-4 mr-1.5" /> Copiar</>}
                                     </Button>
                                 </div>
                                 <p className="text-xs text-muted-foreground text-center">
@@ -184,3 +192,4 @@ export default function NetworkPage() {
         </DashboardShell>
     );
 }
+

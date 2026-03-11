@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useBriefTemplates, BriefTemplate } from '@/hooks/use-brief-templates';
 import { Button } from '@/components/ui/button';
-import { Plus, FileText, Settings2, Trash2, ArrowLeft } from 'lucide-react';
+import { Plus, FileText, Settings2, ArrowLeft } from 'lucide-react';
 import { DataTable, ColumnDef } from '@/components/common/DataTable';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -58,8 +58,9 @@ export default function BriefTemplatesPage() {
                 setIsDialogOpen(false);
                 setEditingTemplate(res); // Go straight to edit mode
             }
-        } catch (err: any) {
-            toast.error(err.message || 'Error al crear plantilla');
+        } catch (err: unknown) {
+            const error = err as Error;
+            toast.error(error.message || 'Error al crear plantilla');
         } finally {
             setIsCreating(false);
         }
@@ -81,7 +82,7 @@ export default function BriefTemplatesPage() {
         );
     }
 
-    const columns: ColumnDef<any>[] = [
+    const columns: ColumnDef<BriefTemplate>[] = [
         {
             key: 'name',
             header: 'Nombre de Plantilla',

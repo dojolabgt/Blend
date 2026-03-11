@@ -17,12 +17,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 export function TopHeader() {
-    const { user, logout } = useAuth();
+    const { user, logout, activeWorkspace } = useAuth();
     const router = useRouter();
 
     if (!user) return null;
-
-    const { activeWorkspace } = useAuth();
     const isProOrPremium = activeWorkspace?.plan === 'pro' || activeWorkspace?.plan === 'premium';
     const userFullName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Usuario';
     const businessName = isProOrPremium ? (activeWorkspace?.businessName || userFullName || 'Mi Espacio') : (userFullName || 'Usuario');

@@ -24,7 +24,7 @@ export interface User {
 /**
  * Standard API response envelope (matches NestJS backend interceptor)
  */
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
     success: boolean;
     data: T;
 }

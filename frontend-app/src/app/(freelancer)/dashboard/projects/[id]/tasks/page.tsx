@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { useProject } from '../layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -51,7 +50,7 @@ export default function ProjectTasksPage() {
                                     </span>
                                 </h3>
                             </div>
-                            
+
                             <div className="flex-1 bg-zinc-50/50 dark:bg-zinc-900/20 rounded-xl border border-zinc-200 dark:border-zinc-800 p-2 space-y-2 opacity-60 pointer-events-none">
                                 {dummyTasks.filter(t => t.column === col.id).map(task => (
                                     <Card key={task.id} className="shadow-sm border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-950">

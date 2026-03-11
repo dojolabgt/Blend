@@ -75,7 +75,7 @@ export function ModuleCard({
 
     const isLocked = !hasRequiredPlan || proLimitReached;
 
-    let ctaLabel = t('modules.activateModule');
+    const ctaLabel = t('modules.activateModule');
     let lockReason = '';
     if (!hasRequiredPlan) {
         lockReason = requiredPlan === 'premium' ? t('modules.requiresPremium') : t('modules.requiresPro');

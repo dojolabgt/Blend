@@ -8,6 +8,7 @@ import {
   OneToMany,
   JoinColumn,
   OneToOne,
+  Index,
 } from 'typeorm';
 import { Deal } from './deal.entity';
 import { QuotationItem } from './quotation-item.entity';
@@ -18,6 +19,7 @@ export class Quotation {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Index()
   @Column({ name: 'deal_id' })
   dealId: string;
 

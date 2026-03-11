@@ -5,7 +5,6 @@ import { DashboardShell } from '@/components/layout/DashboardShell';
 import { ModuleCard, WorkspacePlan } from './_components/ModuleCard';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { Puzzle, Crown } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import { useWorkspaceSettings } from '@/hooks/use-workspace-settings';
 
 // ─── Component ────────────────────────────────────────────────────────────────

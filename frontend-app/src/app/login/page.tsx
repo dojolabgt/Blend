@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { AuthInput } from '@/components/common/AuthInput';
 import { PrimaryButton } from '@/components/common/PrimaryButton';
@@ -14,7 +14,6 @@ import Link from 'next/link';
 
 export default function LoginPage() {
     const { login, isLoading, error } = useAuth();
-    const router = useRouter();
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -37,7 +36,7 @@ export default function LoginPage() {
 
                     {/* Logo */}
                     <div className="mb-8 flex justify-center">
-                        <img src="/NodallyLogo.png" alt="Nodally" className="h-10 w-auto object-contain" />
+                        <Image src="/NodallyLogo.png" alt="Nodally" width={160} height={40} className="h-10 w-auto object-contain" />
                     </div>
 
                     {/* Encabezado */}

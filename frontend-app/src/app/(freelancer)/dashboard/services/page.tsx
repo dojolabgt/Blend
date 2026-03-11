@@ -138,7 +138,7 @@ export default function ServicesPage() {
                 if (!service.basePrice || Object.keys(service.basePrice).length === 0) return <span className="font-mono font-medium text-muted-foreground">-</span>
 
                 const prices = Object.entries(service.basePrice)
-                    .filter(([_, value]) => value !== null && value !== undefined && value > 0)
+                    .filter(([, value]) => value !== null && value !== undefined && value > 0)
                     .map(([currency, value]) => formatCurrency(value, currency));
 
                 return (

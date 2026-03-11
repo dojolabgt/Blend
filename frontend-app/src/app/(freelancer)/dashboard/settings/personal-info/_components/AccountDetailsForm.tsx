@@ -73,11 +73,12 @@ export function AccountDetailsForm() {
             await usersApi.uploadProfileImage(file);
             toast.success(t('personalInfo.photoSuccess'));
             await checkAuth();
-        } catch (error: any) {
+        } catch (error) {
             console.error('Error uploading profile image', error);
-            const backendMsg = error?.response?.data?.message;
+            const err = error as { response?: { data?: { message?: string }, status?: number } };
+            const backendMsg = err?.response?.data?.message;
             const msg = typeof backendMsg === 'string' ? backendMsg :
-                (error?.response?.status === 413 ? t('personalInfo.photoErrorLarge') : t('personalInfo.photoError'));
+                (err?.response?.status === 413 ? t('personalInfo.photoErrorLarge') : t('personalInfo.photoError'));
             toast.error(msg);
         } finally {
             setIsUploadingImage(false);
@@ -95,9 +96,10 @@ export function AccountDetailsForm() {
             });
             toast.success(t('personalInfo.successSave'));
             await checkAuth();
-        } catch (error: any) {
+        } catch (error) {
             console.error('Error updating profile', error);
-            toast.error(error?.response?.data?.message || t('personalInfo.errorSave'));
+            const err = error as { response?: { data?: { message?: string } } };
+            toast.error(err?.response?.data?.message || t('personalInfo.errorSave'));
         } finally {
             setIsSaving(false);
         }

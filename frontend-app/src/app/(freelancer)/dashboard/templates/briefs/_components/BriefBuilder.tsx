@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { Settings2, Plus, Trash2, GripVertical, Save } from 'lucide-react';
 import { useBriefTemplates, BriefTemplate } from '@/hooks/use-brief-templates';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Settings2, Plus, Trash2, GripVertical, Save, Check } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface BriefBuilderProps {
@@ -13,9 +13,10 @@ interface BriefBuilderProps {
     onClose: () => void;
 }
 
-export function BriefBuilder({ template: initialTemplate, onClose }: BriefBuilderProps) {
+export function BriefBuilder({ template: initialTemplate }: BriefBuilderProps) {
     const { updateTemplate } = useBriefTemplates();
     const [template, setTemplate] = useState<BriefTemplate>(initialTemplate);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [fields, setFields] = useState<any[]>(initialTemplate.schema || []);
     const [isSaving, setIsSaving] = useState(false);
 
@@ -33,12 +34,15 @@ export function BriefBuilder({ template: initialTemplate, onClose }: BriefBuilde
         }]);
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updateField = (id: string, updates: any) => {
-        setFields(fields.map(f => f.id === id ? { ...f, ...updates } : f));
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        setFields(fields.map((f: any) => f.id === id ? { ...f, ...updates } : f));
     };
 
     const removeField = (id: string) => {
-        setFields(fields.filter(f => f.id !== id));
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        setFields(fields.filter((f: any) => f.id !== id));
     };
 
     const handleSave = async () => {
@@ -56,7 +60,7 @@ export function BriefBuilder({ template: initialTemplate, onClose }: BriefBuilde
             } else {
                 toast.error('Error al guardar la plantilla');
             }
-        } catch (error) {
+        } catch {
             toast.error('Error al guardar la plantilla');
         } finally {
             setIsSaving(false);
@@ -105,7 +109,8 @@ export function BriefBuilder({ template: initialTemplate, onClose }: BriefBuilde
                             </Button>
                         </div>
                     ) : (
-                        fields.map((field, index) => (
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        fields.map((field: any, index: number) => (
                             <div key={field.id} className="group relative bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-5 shadow-sm hover:shadow-md transition-all">
 
                                 {/* Drag handle & Number */}
@@ -119,7 +124,7 @@ export function BriefBuilder({ template: initialTemplate, onClose }: BriefBuilde
                                             {index + 1}
                                         </span>
                                         <Input
-                                            value={field.label}
+                                            value={field.label || ''}
                                             onChange={(e) => updateField(field.id, { label: e.target.value })}
                                             placeholder="Ej. ¿Cuál es el objetivo principal del proyecto?"
                                             className="font-medium text-base border-transparent hover:border-zinc-200 focus-visible:ring-1 flex-1 shadow-none"
@@ -202,7 +207,7 @@ export function BriefBuilder({ template: initialTemplate, onClose }: BriefBuilde
                                                     onChange={(e) => updateField(field.id, { allowOther: e.target.checked })}
                                                     className="rounded border-zinc-300 text-primary focus:ring-primary w-4 h-4"
                                                 />
-                                                Incluir opción "Otro" (con campo de texto)
+                                                Incluir opción &quot;Otro&quot; (con campo de texto)
                                             </label>
                                         )}
                                     </div>
@@ -212,31 +217,34 @@ export function BriefBuilder({ template: initialTemplate, onClose }: BriefBuilde
                                         <div className="mt-4 p-4 bg-zinc-50 dark:bg-zinc-950/50 rounded-lg border border-zinc-100 dark:border-zinc-800/60">
                                             <Label className="text-xs text-zinc-500 mb-2 block">Opciones</Label>
                                             <div className="space-y-2">
-                                                {(field.options || []).map((opt: any, optIdx: number) => (
-                                                    <div key={optIdx} className="flex items-center gap-2">
-                                                        <Input
-                                                            value={opt.label}
-                                                            onChange={(e) => {
-                                                                const newOpts = [...(field.options || [])];
-                                                                newOpts[optIdx] = { label: e.target.value, value: e.target.value };
-                                                                updateField(field.id, { options: newOpts });
-                                                            }}
-                                                            placeholder={`Opción ${optIdx + 1}`}
-                                                            className="h-8 shadow-none"
-                                                        />
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-8 w-8 text-zinc-400 hover:text-red-500"
-                                                            onClick={() => {
-                                                                const newOpts = field.options.filter((_: any, i: number) => i !== optIdx);
-                                                                updateField(field.id, { options: newOpts });
-                                                            }}
-                                                        >
-                                                            <X className="w-3 h-3" />
-                                                        </Button>
-                                                    </div>
-                                                ))}
+                                                {((field.options as unknown[]) || []).map((opt: unknown, optIdx: number) => {
+                                                    const option = opt as { label: string; value: string };
+                                                    return (
+                                                        <div key={optIdx} className="flex items-center gap-2">
+                                                            <Input
+                                                                value={option.label}
+                                                                onChange={(e) => {
+                                                                    const newOpts = [...(field.options || [])];
+                                                                    newOpts[optIdx] = { label: e.target.value, value: e.target.value };
+                                                                    updateField(field.id, { options: newOpts });
+                                                                }}
+                                                                placeholder={`Opción ${optIdx + 1}`}
+                                                                className="h-8 shadow-none"
+                                                            />
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="h-8 w-8 text-zinc-400 hover:text-red-500"
+                                                                onClick={() => {
+                                                                    const newOpts = field.options.filter((_: unknown, i: number) => i !== optIdx);
+                                                                    updateField(field.id, { options: newOpts });
+                                                                }}
+                                                            >
+                                                                <X className="w-3 h-3" />
+                                                            </Button>
+                                                        </div>
+                                                    )
+                                                })}
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
@@ -264,17 +272,20 @@ export function BriefBuilder({ template: initialTemplate, onClose }: BriefBuilde
                                                     onChange={(e) => {
                                                         const val = e.target.value;
                                                         if (!val) {
+                                                            // eslint-disable-next-line @typescript-eslint/no-unused-vars
                                                             const { dependsOn, ...rest } = field;
                                                             updateField(field.id, rest);
                                                         } else {
-                                                            updateField(field.id, { dependsOn: { fieldId: val, value: field.dependsOn?.value || '' } });
+                                                            updateField(field.id, { dependsOn: { fieldId: val, value: (field.dependsOn as { value?: string })?.value || '' } });
                                                         }
                                                     }}
                                                 >
                                                     <option value="">-- Siempre visible --</option>
                                                     {fields.slice(0, index)
-                                                        .filter(f => ['select', 'radio', 'checkbox'].includes(f.type))
-                                                        .map(prevF => (
+                                                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                                        .filter((f: any) => ['select', 'radio', 'checkbox'].includes(f.type))
+                                                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                                        .map((prevF: any) => (
                                                             <option key={prevF.id} value={prevF.id}>{prevF.label || 'Pregunta sin nombre'}</option>
                                                         ))
                                                     }
@@ -286,15 +297,20 @@ export function BriefBuilder({ template: initialTemplate, onClose }: BriefBuilde
                                                         <select
                                                             className="text-xs border border-zinc-200 dark:border-zinc-800 rounded-md px-2 py-1.5 bg-zinc-50 dark:bg-zinc-950 focus:outline-none focus:ring-1 focus:ring-primary flex-1 max-w-[200px]"
                                                             value={field.dependsOn?.value || ''}
-                                                            onChange={(e) => updateField(field.id, { dependsOn: { ...field.dependsOn, value: e.target.value } })}
+                                                            onChange={(e) => updateField(field.id, { dependsOn: { ...(field.dependsOn as object), value: e.target.value } })}
                                                         >
                                                             <option value="">Selecciona opción...</option>
-                                                            {(fields.find(f => f.id === field.dependsOn?.fieldId)?.options || []).map((opt: any, idx: number) => (
-                                                                <option key={idx} value={opt.value}>{opt.label}</option>
-                                                            ))}
+                                                            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                                                            {((fields.find((f: any) => f.id === (field.dependsOn as any)?.fieldId)?.options as unknown[]) || []).map((opt: unknown, idx: number) => {
+                                                                const option = opt as { label: string; value: string };
+                                                                return (
+                                                                    <option key={idx} value={option.value}>{option.label}</option>
+                                                                )
+                                                            })}
                                                             {/* Allow depending on 'Otro' if enabled */}
-                                                            {fields.find(f => f.id === field.dependsOn?.fieldId)?.allowOther && (
-                                                                <option value="__other__">La opción "Otro"</option>
+                                                            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                                                            {fields.find((f: any) => f.id === (field.dependsOn as any)?.fieldId)?.allowOther && (
+                                                                <option value="__other__">La opción &quot;Otro&quot;</option>
                                                             )}
                                                         </select>
                                                     </>

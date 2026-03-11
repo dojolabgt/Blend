@@ -2,7 +2,16 @@ import { useState, useCallback } from 'react';
 import { networkApi } from '@/features/network/api/network';
 import { WorkspaceConnection, NetworkData } from '@/features/network/types';
 import { toast } from 'sonner';
-import { AxiosError } from 'axios';
+
+interface ApiError {
+    response?: { data?: { message?: string } };
+    message: string;
+}
+
+function getErrorMessage(err: unknown): string {
+    const apiErr = err as ApiError;
+    return apiErr.response?.data?.message || apiErr.message;
+}
 
 export const useNetwork = () => {
     const [networkData, setNetworkData] = useState<NetworkData>({ active: [], pendingSent: [] });
@@ -14,8 +23,8 @@ export const useNetwork = () => {
         try {
             const data = await networkApi.getConnections();
             setNetworkData(data);
-        } catch (err: any) {
-            toast.error(err.response?.data?.message || err.message);
+        } catch (err: unknown) {
+            toast.error(getErrorMessage(err));
         } finally {
             setIsLoading(false);
         }
@@ -25,8 +34,8 @@ export const useNetwork = () => {
         try {
             const data = await networkApi.getReceivedInvites();
             setReceivedInvites(data);
-        } catch (err: any) {
-            // Silently fail or minimal error, not as critical as main connections
+        } catch {
+            // Silently fail — not as critical as main connections
         }
     }, []);
 
@@ -37,8 +46,8 @@ export const useNetwork = () => {
             toast.success(`Se ha enviado una invitación a ${email}`);
             await fetchConnections();
             return true;
-        } catch (err: any) {
-            toast.error(err.response?.data?.message || err.message);
+        } catch (err: unknown) {
+            toast.error(getErrorMessage(err));
             return false;
         } finally {
             setIsLoading(false);
@@ -51,9 +60,8 @@ export const useNetwork = () => {
             const data = await networkApi.generateLink();
             toast.success('Enlace de invitación generado');
             return data.token;
-        } catch (err: any) {
-            const msg = err?.response?.data?.message || 'Error al generar enlace';
-            toast.error(msg);
+        } catch (err: unknown) {
+            toast.error(getErrorMessage(err) || 'Error al generar enlace');
             return null;
         } finally {
             setIsLoading(false);
@@ -68,8 +76,8 @@ export const useNetwork = () => {
             await fetchReceivedInvites();
             await fetchConnections();
             return true;
-        } catch (err: any) {
-            toast.error(err.response?.data?.message || err.message);
+        } catch (err: unknown) {
+            toast.error(getErrorMessage(err));
             return false;
         } finally {
             setIsLoading(false);
@@ -83,8 +91,8 @@ export const useNetwork = () => {
             toast.success('Has rechazado la invitación correctamente.');
             await fetchReceivedInvites();
             return true;
-        } catch (err: any) {
-            toast.error(err.response?.data?.message || err.message);
+        } catch (err: unknown) {
+            toast.error(getErrorMessage(err));
             return false;
         } finally {
             setIsLoading(false);

@@ -28,7 +28,7 @@ export interface Service {
     imageUrl?: string;
     estimatedDeliveryDays?: number;
     specificTerms?: string;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
     category?: string;
     isActive: boolean;
     createdAt: string;
@@ -48,7 +48,7 @@ export interface CreateServiceDto {
     imageUrl?: string;
     estimatedDeliveryDays?: number;
     specificTerms?: string;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
     category?: string;
 }
 

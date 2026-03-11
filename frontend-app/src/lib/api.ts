@@ -1,5 +1,4 @@
 import axios, { AxiosError, InternalAxiosRequestConfig, AxiosResponse } from 'axios';
-import { ApiResponse } from './types/api.types';
 
 // Use PUBLIC_URL if available (for standard web requests), fallback to internal URL or localhost
 const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
@@ -33,11 +32,8 @@ api.interceptors.request.use(
 
 // Response Interceptor: Unwrap ApiResponse<T> and handle 401s for silent refresh
 api.interceptors.response.use(
-    (response: AxiosResponse<ApiResponse<any>>) => {
-        // Backend always returns { success: true, data: T }
-        // We unwrap it here so frontend services only deal with T directly.
+    (response: AxiosResponse) => {
         if (response.data && 'success' in response.data && 'data' in response.data) {
-            // Replace the full response data with just the payload T
             response.data = response.data.data;
         }
         return response;

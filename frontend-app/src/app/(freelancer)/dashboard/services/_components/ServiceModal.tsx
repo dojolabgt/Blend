@@ -26,7 +26,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ServiceUnitType, ServiceChargeType } from '@/features/services/types';
+import { Service, ServiceUnitType, ServiceChargeType } from '@/features/services/types';
 import { useWorkspaceSettings } from '@/hooks/use-workspace-settings';
 import { servicesApi } from '@/features/services/api';
 import { toast } from 'sonner';
@@ -52,21 +52,21 @@ interface ServiceModalProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onSuccess: () => void;
-    initialData?: any;
+    initialData?: Partial<Service> & { id?: string; specificTerms?: string };
 }
 
 export function ServiceModal({ open, onOpenChange, onSuccess, initialData }: ServiceModalProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const { workspace, defaultCurrencyCode, t } = useWorkspaceSettings();
+    const { workspace, t } = useWorkspaceSettings();
     const currencies = workspace?.currencies || [{ code: 'GTQ', name: 'Quetzales', symbol: 'Q', isDefault: true }];
 
-    const form = useForm<ServiceFormInput, any, ServiceFormValues>({
+    const form = useForm<ServiceFormValues>({
         resolver: zodResolver(serviceSchema),
         defaultValues: {
             name: '',
             sku: '',
             description: '',
-            basePrice: currencies.reduce((acc: any, curr: any) => {
+            basePrice: currencies.reduce((acc: Record<string, number>, curr: { code: string }) => {
                 acc[curr.code] = 0;
                 return acc;
             }, {} as Record<string, number>),
@@ -87,7 +87,7 @@ export function ServiceModal({ open, onOpenChange, onSuccess, initialData }: Ser
                 name: initialData.name,
                 sku: initialData.sku || '',
                 description: initialData.description || '',
-                basePrice: initialData.basePrice || currencies.reduce((acc: any, curr: any) => { acc[curr.code] = 0; return acc; }, {} as Record<string, number>),
+                basePrice: initialData.basePrice || currencies.reduce((acc: Record<string, number>, curr: { code: string }) => { acc[curr.code] = 0; return acc; }, {} as Record<string, number>),
                 unitType: initialData.unitType || ServiceUnitType.UNIT,
                 chargeType: initialData.chargeType || ServiceChargeType.ONE_TIME,
                 internalCost: Number(initialData.internalCost || 0),
@@ -101,7 +101,7 @@ export function ServiceModal({ open, onOpenChange, onSuccess, initialData }: Ser
                 name: '',
                 sku: '',
                 description: '',
-                basePrice: currencies.reduce((acc: any, curr: any) => { acc[curr.code] = 0; return acc; }, {} as Record<string, number>),
+                basePrice: currencies.reduce((acc: Record<string, number>, curr: { code: string }) => { acc[curr.code] = 0; return acc; }, {} as Record<string, number>),
                 unitType: ServiceUnitType.UNIT,
                 chargeType: ServiceChargeType.ONE_TIME,
                 internalCost: 0,
@@ -111,16 +111,17 @@ export function ServiceModal({ open, onOpenChange, onSuccess, initialData }: Ser
                 specificTerms: '',
             });
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialData, form, open]);
 
     const onSubmit = async (values: ServiceFormValues) => {
         setIsSubmitting(true);
         try {
             if (initialData?.id) {
-                await servicesApi.update(initialData.id, values as any);
+                await servicesApi.update(initialData.id, values as unknown as Parameters<typeof servicesApi.update>[1]);
                 toast.success('Servicio actualizado correctamente');
             } else {
-                await servicesApi.create(values as any);
+                await servicesApi.create(values as unknown as Parameters<typeof servicesApi.create>[0]);
                 toast.success('Servicio creado correctamente');
             }
             onSuccess();

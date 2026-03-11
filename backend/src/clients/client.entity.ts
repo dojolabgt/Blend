@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
+  Index,
 } from 'typeorm';
 import { Workspace } from '../workspaces/workspace.entity';
 
@@ -18,6 +19,7 @@ export class Client {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Index()
   @Column()
   workspaceId: string;
 
@@ -32,6 +34,7 @@ export class Client {
   @Column()
   name: string;
 
+  @Index()
   @Column()
   email: string;
 

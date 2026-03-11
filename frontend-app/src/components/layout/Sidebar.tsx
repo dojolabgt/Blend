@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { usePathname } from 'next/navigation';
 import { Menu, X } from 'lucide-react';
 import { NavItem, NavItemConfig } from './NavItem';
 import { cn, getImageUrl } from '@/lib/utils';
@@ -14,7 +13,6 @@ interface SidebarProps {
 
 export function Sidebar({ navItems }: SidebarProps) {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const pathname = usePathname();
     const { user, activeWorkspace, activeWorkspaceId, switchWorkspace } = useAuth();
 
     // Group items by section

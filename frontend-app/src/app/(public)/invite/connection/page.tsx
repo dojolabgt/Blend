@@ -30,8 +30,9 @@ function ConnectionInviteContent() {
             try {
                 const data = await networkApi.getPublicInvite(token);
                 setInvite(data);
-            } catch (err: any) {
-                setError(err.response?.data?.message || 'Invitación inválida o expirada.');
+            } catch (err: unknown) {
+                const apiErr = err as { response?: { data?: { message?: string } } };
+                setError(apiErr.response?.data?.message || 'Invitación inválida o expirada.');
             } finally {
                 setIsLoading(false);
             }
@@ -54,8 +55,9 @@ function ConnectionInviteContent() {
             setIsLoading(true);
             await networkApi.acceptInvite(token);
             router.push('/dashboard/network');
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Error al aceptar la invitación.');
+        } catch (err: unknown) {
+            const apiErr = err as { response?: { data?: { message?: string } } };
+            setError(apiErr.response?.data?.message || 'Error al aceptar la invitación.');
             setIsLoading(false);
         }
     };
