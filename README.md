@@ -1,24 +1,19 @@
 <div align="center">
   <img src="./assets/NodallyLogo.png" alt="Nodally Logo" width="200" height="auto" />
-  <h1>NexStack Starter 🚀</h1>
+  <h1>Nodally 🚀</h1>
   <p>
-    <b>Enterprise-grade fullstack starter for rapid SaaS development</b>
+    <b>The All-in-One Operating System for Freelancers & Agencies</b>
   </p>
   <p>
-    Un boilerplate moderno y production-ready que combina Next.js 16.1.6 y NestJS con autenticación completa, RBAC, y arquitectura escalable. Diseñado para ser <b>la base sólida de tu próximo proyecto</b>.
+    Nodally es una plataforma SaaS diseñada para revolucionar cómo los creativos y profesionales independientes gestionan sus negocios. Desde la prospección de clientes y envío de cotizaciones, hasta la facturación y colaboración B2B en proyectos compartidos.
   </p>
-  
-  <p>
-    <a href="https://github.com/dojolabgt/NexStack-Starter.git">
-      <img src="https://img.shields.io/badge/GITHUB-REPO-181717?style=for-the-badge&logo=github&logoColor=white" alt="Repo">
-    </a>
-  </p>
-
 </div>
 
 ---
 
 ## 🛠 Tech Stack
+
+El proyecto está construido sobre una arquitectura moderna, escalable y robusta, separando el cliente y la API para garantizar un alto rendimiento.
 
 <div align="center">
   
@@ -39,96 +34,59 @@
 
 ---
 
-## 🚀 Instalación y Puesta en Marcha
+## ✨ Módulos Principales (Core Features)
 
-Sigue estos pasos para levantar el proyecto en tu entorno local.
+La arquitectura de Nodally está dividida en módulos de dominio altamente cohesionados para reflejar el ciclo de vida real de un proyecto freelance:
 
-### 1. Clonar el Repositorio
+### 🏢 Workspaces (Multitenancy)
+El corazón de la plataforma. Cada usuario opera dentro de un `Workspace` aislado que maneja su propia configuración regional:
+- Formatos de moneda y zonas horarias personalizadas.
+- Gestión de impuestos (tax inclusive/exclusive pricing).
+- Suscripciones (Integración nativa con **Recurrente** para planes Nodally Pro/Premium).
 
-```bash
-git clone https://github.com/dojolabgt/NexStack-Starter.git
-cd NexStack-Starter
-```
+### 💼 Deals Pipeline
+Un flujo de ventas completo y profesional para cerrar más clientes:
+- **Briefs:** Plantillas personalizables para levantar requerimientos.
+- **Quotations:** Creación de cotizaciones dinámicas con opciones A/B para el cliente.
+- **Payment Plans:** Definición de hitos de pago (Milestones) una vez que se aprueba la propuesta.
+- **Enlaces Públicos:** URLs seguras (vía public tokens) para que los clientes revisen y aprueben las propuestas sin necesidad de crear una cuenta.
 
-### 2. Configuración de Variables de Entorno
+### 🚀 Projects
+Conversión automática de un `Deal` ganado a un proyecto activo.
+- Gestión de entregables y seguimiento de estado.
+- Sincronización con el plan de pagos previamente aprobado.
 
-Copia el archivo de ejemplo para crear tu configuración local:
-
-```bash
-cp .env.example .env
-```
-
-**Nota**: El archivo `.env.example` ya viene con una configuración funcional para desarrollo local con Docker.
-
-### 3. Iniciar con Docker Compose
-
-Levanta todos los servicios (Frontend, Backend, Base de Datos) con un solo comando:
-
-```bash
-# Iniciar en modo desarrollo (con hot-reload)
-docker compose -f docker-compose.dev.yml up --build
-```
-
-**Servicios disponibles:**
-- 🎨 **Dashboard**: [http://localhost:3000](http://localhost:3000)
-- 🌐 **Sitio Público**: [http://localhost:3001](http://localhost:3001)
-- ⚙️ **Backend API**: [http://localhost:4000](http://localhost:4000) (Swagger en `/api/docs`)
-- 🗄️ **Base de Datos**: `localhost:5432`
-
-### 4. Inicializar Base de Datos (Core)
-
-Es **fundamental** correr las migraciones antes de usar la app, para crear las tablas necesarias:
-
-```bash
-docker compose -f docker-compose.dev.yml exec backend npm run migration:run
-```
-
-### 5. Cargar Datos Iniciales (Seeds)
-
-Una vez aplicadas las migraciones, ejecuta el seed para crear los usuarios por defecto:
-
-```bash
-docker compose -f docker-compose.dev.yml exec backend npm run seed
-```
+### 🤝 B2B Connections (La Red Freelance)
+Nodally no es solo un CRM, es una red profesional:
+- Los Workspaces en planes Pro pueden generar enlaces de invitación o enviar correos a otros profesionales.
+- Al aceptar una conexión, los Workspaces pueden colaborar e invitarse mutuamente a sus `Projects` (subcontratación o trabajo en equipo).
 
 ---
 
-## 🔑 Credenciales por Defecto
+## 🏛 Arquitectura del Monorepo
 
-Estos son los usuarios creados por el script de seed. ¡Cámbialos en producción!
+El repositorio está estructurado para mantener una separación limpia de responsabilidades:
 
-| Rol | Email | Contraseña |
-| :--- | :--- | :--- |
-| **Admin** | `admin@admin.com` | `admin123` |
-| **Team** | `team@team.com` | `team123` |
-| **Client** | `client@client.com` | `client123` |
-
----
-
-## 🛠 Comandos Útiles
-
-#### Generar una nueva migración
-Si haces cambios en las entidades (`.entity.ts`), genera una migración automática:
 ```bash
-docker compose -f docker-compose.dev.yml exec backend npm run migration:generate src/migrations/NombreDelCambio
-```
+Nodally/
+├── backend/                # API RESTful en NestJS
+│   ├── src/
+│   │   ├── auth/           # Autenticación JWT y Guards
+│   │   ├── billing/        # Webhooks e integración con Recurrente
+│   │   ├── connections/    # Lógica de invitaciones B2B
+│   │   ├── deals/          # Pipeline de ventas y propuestas
+│   │   ├── projects/       # Gestión de proyectos y colaboradores
+│   │   └── workspaces/     # Multitenancy y configuraciones
+│   └── ...
+├── frontend-app/           # Aplicación principal SaaS (Dashboard) en Next.js
+│   ├── src/app/
+│   │   ├── (freelancer)/   # Vistas protegidas del usuario
+│   │   ├── (client)/       # Vistas públicas de propuestas para clientes
+│   └── ...
+└── frontend-public/        # Landing page y web promocional
 
-#### Ver logs del backend
-```bash
-docker compose -f docker-compose.dev.yml logs -f backend
-```
+----
 
-#### Detener los servicios y limpiar volúmenes
-```bash
-docker compose -f docker-compose.dev.yml down -v
-```
+<center>Diseñado y construido con ❤️ por Eklista</center>
 
----
-
-## 📄 Licencia
-
-Este proyecto está bajo la licencia MIT. Siéntete libre de usarlo como base para tus proyectos personales o comerciales.
-
----
-
-<center>Made with ❤️ by Eklista</center>
+----
