@@ -201,7 +201,7 @@ export default function ServicesPage() {
                 open={modalOpen}
                 onOpenChange={setModalOpen}
                 onSuccess={loadServices}
-                initialData={editingService}
+                initialData={editingService ?? undefined}
             />
         </DashboardShell>
     );

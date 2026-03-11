@@ -183,7 +183,7 @@ export default function ClientsPage() {
                 open={modalOpen}
                 onOpenChange={setModalOpen}
                 onSuccess={loadClients}
-                initialData={editingClient}
+                initialData={editingClient ?? undefined}
             />
         </DashboardShell>
     );

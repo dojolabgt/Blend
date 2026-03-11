@@ -6,7 +6,7 @@ import { Plus, ArrowRight, Handshake, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DashboardShell } from '@/components/layout/DashboardShell';
 import { useWorkspaceSettings } from '@/hooks/use-workspace-settings';
-import { useDeals } from '@/hooks/use-deals';
+import { useDeals, Deal } from '@/hooks/use-deals';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { clientsApi } from '@/features/clients/api';
 import { Client } from '@/features/clients/types';
@@ -65,18 +65,6 @@ function StatusBadge({ status }: { status: string }) {
     );
 }
 
-interface DealItem {
-    id: string;
-    slug?: string;
-    name?: string;
-    status?: string;
-    client?: { name: string };
-    workspace?: { id: string; businessName?: string; name?: string };
-    quotations?: { isApproved?: boolean; total?: number | string; currency?: string }[];
-    currency?: { code: string; symbol: string };
-    createdAt: string;
-}
-
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function DealsPage() {
@@ -90,7 +78,7 @@ export default function DealsPage() {
     const [clientId, setClientId] = useState('');
     const [clients, setClients] = useState<Client[]>([]);
     const [statusFilter, setStatusFilter] = useState<string>('ALL');
-    const [dealToDelete, setDealToDelete] = useState<DealItem | null>(null);
+    const [dealToDelete, setDealToDelete] = useState<Deal | null>(null);
 
     useEffect(() => {
         if (activeWorkspace) {
@@ -122,11 +110,11 @@ export default function DealsPage() {
         setDealToDelete(null);
     };
 
-    const getClientName = (deal: DealItem) => deal.client?.name ?? '—';
+    const getClientName = (deal: Deal) => deal.client?.name ?? '—';
 
-    const getDealTotal = (deal: DealItem) => {
-        const approved = deal.quotations?.find((q) => q.isApproved);
-        const any = deal.quotations?.[0];
+    const getDealTotal = (deal: Deal) => {
+        const approved = deal.quotations?.find((q: any) => q.isApproved);
+        const any = deal.quotations?.[0] as any;
         const total = approved?.total ?? any?.total ?? null;
         if (total === null) return null;
         return Number(total);
@@ -135,9 +123,9 @@ export default function DealsPage() {
     // Filter by status
     const filteredDeals = statusFilter === 'ALL'
         ? deals
-        : deals.filter(d => d.status?.toUpperCase() === statusFilter);
+        : deals.filter(d => d.status?.toString().toUpperCase() === statusFilter);
 
-    const columns: ColumnDef<DealItem>[] = [
+    const columns: ColumnDef<Deal>[] = [
         {
             key: 'name',
             header: 'Propuesta',
@@ -165,21 +153,21 @@ export default function DealsPage() {
         {
             key: 'status',
             header: 'Estado',
-            render: (deal) => <StatusBadge status={deal.status ?? 'DRAFT'} />,
+            render: (deal) => <StatusBadge status={deal.status as string ?? 'DRAFT'} />,
         },
         {
             key: 'total',
             header: 'Total',
             render: (deal) => {
                 const total = getDealTotal(deal);
-                let symbol = deal.currency?.symbol || '$';
+                let symbol = deal.currency || '$'; // `Deal.currency` is a string now, based on use-deals payload
 
                 // Si el deal no tiene el currency populado, pero sí el string, podríamos buscarlo 
                 // en activeWorkspace.currencies si estuviera disponible en el contexto. 
                 // Sin embargo, getDealTotal saca el total de approvedQuotation o la primera, 
                 // así que usemos el currency de la quotation si coincide.
-                const approved = deal.quotations?.find((q) => q.isApproved);
-                const any = deal.quotations?.[0];
+                const approved = deal.quotations?.find((q: any) => q.isApproved) as any;
+                const any = deal.quotations?.[0] as any;
                 const q = approved || any;
 
                 if (q?.currency) {
@@ -213,7 +201,7 @@ export default function DealsPage() {
             header: 'Creado',
             render: (deal) => (
                 <span className="text-sm text-muted-foreground">
-                    {new Date(deal.createdAt).toLocaleDateString('es-GT')}
+                    {new Date(deal.createdAt as string).toLocaleDateString('es-GT')}
                 </span>
             ),
         },

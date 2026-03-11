@@ -25,6 +25,7 @@ import { ProjectData } from '../layout';
 interface ProjectPaymentsTabProps {
     project: ProjectData;
     isOwner: boolean;
+    isViewer?: boolean;
     onUpdate: () => void;
 }
 
@@ -41,7 +42,7 @@ const MILESTONE_STATUS_LABELS: Record<string, string> = {
     CANCELLED: 'Cancelado',
 };
 
-export function ProjectPaymentsTab({ project, isOwner, onUpdate }: ProjectPaymentsTabProps) {
+export function ProjectPaymentsTab({ project, isOwner, isViewer, onUpdate }: ProjectPaymentsTabProps) {
     const { activeWorkspace } = useAuth();
     const dealId = project?.deal?.id;
     const { plan: paymentPlan, updateMilestone: updateMilestoneApi, fetchPaymentPlan } = usePaymentPlan(dealId || '', project.workspaceId);

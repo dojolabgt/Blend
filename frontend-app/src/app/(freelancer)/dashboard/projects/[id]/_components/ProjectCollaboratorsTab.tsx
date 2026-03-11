@@ -13,11 +13,12 @@ import { ProjectData } from '../layout';
 
 interface ProjectCollaboratorsTabProps {
     project: ProjectData;
+    isOwner: boolean;
     isViewer: boolean;
     onUpdate: () => void;
 }
 
-export function ProjectCollaboratorsTab({ project, isViewer, onUpdate }: ProjectCollaboratorsTabProps) {
+export function ProjectCollaboratorsTab({ project, isOwner, isViewer, onUpdate }: ProjectCollaboratorsTabProps) {
     const { activeWorkspace } = useAuth();
     const { networkData, fetchConnections } = useNetwork();
     const { addCollaborator, removeCollaborator } = useProjects();

@@ -60,8 +60,8 @@ export function ServiceModal({ open, onOpenChange, onSuccess, initialData }: Ser
     const currencies = workspace?.currencies || [{ code: 'GTQ', name: 'Quetzales', symbol: 'Q', isDefault: true }];
 
     const form = useForm<ServiceFormValues>({
-        // @ts-expect-error Zod resolver typing mismatch
-        resolver: zodResolver(serviceSchema),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        resolver: zodResolver(serviceSchema) as any,
         defaultValues: {
             name: '',
             sku: '',
@@ -87,7 +87,9 @@ export function ServiceModal({ open, onOpenChange, onSuccess, initialData }: Ser
                 name: initialData.name,
                 sku: initialData.sku || '',
                 description: initialData.description || '',
-                basePrice: initialData.basePrice || currencies.reduce((acc: Record<string, number>, curr: { code: string }) => { acc[curr.code] = 0; return acc; }, {} as Record<string, number>),
+                basePrice: typeof initialData.basePrice === 'number' 
+                    ? { [currencies[0]?.code || 'GTQ']: initialData.basePrice }
+                    : (initialData.basePrice as unknown as Record<string, number> || currencies.reduce((acc: Record<string, number>, curr: { code: string }) => { acc[curr.code] = 0; return acc; }, {} as Record<string, number>)),
                 unitType: initialData.unitType || ServiceUnitType.UNIT,
                 chargeType: initialData.chargeType || ServiceChargeType.ONE_TIME,
                 internalCost: Number(initialData.internalCost || 0),
