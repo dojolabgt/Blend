@@ -209,9 +209,9 @@ export default function PublicDealPage({ params }: { params: Promise<{ token: st
 
                 {/* Proposal Intro Markdown */}
                 {dealData.proposalIntro && (
-                    <div className="bg-zinc-100/50 rounded-[30px] p-6 mb-16 border border-zinc-200 shadow-sm">
-                        <div className="bg-white rounded-[20px] p-8 md:p-12 border border-zinc-100 shadow-sm">
-                            <div className="prose prose-zinc max-w-none text-zinc-700 leading-relaxed whitespace-pre-wrap text-base md:text-lg">
+                    <div className="bg-zinc-100/50 rounded-[24px] md:rounded-[30px] p-5 md:p-6 mb-12 border border-zinc-200 shadow-sm">
+                        <div className="bg-white rounded-[16px] md:rounded-[20px] p-6 md:p-10 border border-zinc-100 shadow-sm">
+                            <div className="prose prose-sm md:prose-base prose-zinc max-w-none text-zinc-700 leading-relaxed whitespace-pre-wrap">
                                 {dealData.proposalIntro}
                             </div>
                         </div>
@@ -251,41 +251,24 @@ export default function PublicDealPage({ params }: { params: Promise<{ token: st
                                             Desglose de la propuesta
                                         </h3>
                                         <div className="space-y-4">
-                                            <div className="hidden md:grid grid-cols-12 gap-4 pb-3 border-b border-zinc-200 text-xs font-bold text-zinc-400 uppercase tracking-widest">
-                                                <div className="col-span-6">Servicio</div>
-                                                <div className="col-span-2 text-center">Cant.</div>
-                                                <div className="col-span-2 text-right">Precio</div>
-                                                <div className="col-span-2 text-right">Subtotal</div>
-                                            </div>
-                                            <div className="space-y-4 md:space-y-0 md:divide-y md:divide-zinc-100">
+                                            <div className="flex flex-col">
                                                 {quotations[0].items?.map((item: any) => {
                                                     const qty = Number(item.quantity || 1);
                                                     const price = Number(item.unitPrice || item.price || 0);
                                                     const disc = Number(item.discount || 0);
                                                     const lineTotal = qty * price * (1 - disc / 100);
                                                     return (
-                                                        <div key={item.id} className="grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 md:items-center py-4 bg-zinc-50 md:bg-transparent rounded-[20px] md:rounded-none px-4 md:px-0 border border-zinc-100 md:border-none">
-                                                            <div className="col-span-1 md:col-span-6">
-                                                                <div className="font-semibold text-black text-sm flex items-start gap-2">
-                                                                    <div className="w-4 h-4 rounded-full bg-zinc-100 border border-zinc-200 flex items-center justify-center shrink-0 mt-0.5">
-                                                                        <CheckCircle2 className="w-3 h-3 text-black" />
-                                                                    </div>
-                                                                    <span>{item.name}</span>
+                                                        <div key={item.id} className="flex flex-col md:flex-row md:items-center justify-between py-4 border-b border-zinc-100 last:border-0 gap-3">
+                                                            <div className="md:flex-1">
+                                                                <div className="font-semibold text-black text-sm">{item.name}</div>
+                                                                {item.description && <div className="text-zinc-500 text-sm mt-1 leading-relaxed">{item.description}</div>}
+                                                            </div>
+                                                            <div className="flex flex-row items-center justify-between md:justify-end gap-6 md:min-w-[300px]">
+                                                                <div className="text-sm text-zinc-500">
+                                                                    {qty} x {fmtFor(price, quotations[0])}
+                                                                    {disc > 0 && <span className="ml-2 text-[10px] font-bold text-zinc-500 bg-zinc-100 px-1.5 py-0.5 rounded">-{disc}%</span>}
                                                                 </div>
-                                                                {item.description && <div className="text-zinc-500 text-sm mt-1 ml-6 leading-relaxed">{item.description}</div>}
-                                                                {disc > 0 && <span className="text-xs font-medium text-black mt-1 ml-6 inline-block bg-zinc-200 px-2 py-0.5 rounded">Descuento {disc}%</span>}
-                                                            </div>
-                                                            <div className="col-span-1 md:col-span-2 md:text-center text-sm">
-                                                                <span className="text-zinc-500 md:hidden ml-6">Cantidad: </span>
-                                                                <span className="font-medium text-black">{qty}</span>
-                                                            </div>
-                                                            <div className="col-span-1 md:col-span-2 md:text-right text-sm">
-                                                                <span className="text-zinc-500 md:hidden ml-6">Precio: </span>
-                                                                <span className="text-zinc-600">{fmtFor(price, quotations[0])}</span>
-                                                            </div>
-                                                            <div className="col-span-1 md:col-span-2 md:text-right text-sm">
-                                                                <span className="text-zinc-500 md:hidden ml-6">Subtotal: </span>
-                                                                <span className="font-bold text-black">{fmtFor(lineTotal, quotations[0])}</span>
+                                                                <div className="font-bold text-black text-sm md:text-right w-24">{fmtFor(lineTotal, quotations[0])}</div>
                                                             </div>
                                                         </div>
                                                     );
@@ -398,41 +381,24 @@ export default function PublicDealPage({ params }: { params: Promise<{ token: st
                                                     Desglose de la propuesta
                                                 </h3>
                                                 <div className="space-y-4">
-                                                    <div className="hidden md:grid grid-cols-12 gap-4 pb-3 border-b border-zinc-200 text-xs font-bold text-zinc-400 uppercase tracking-widest">
-                                                        <div className="col-span-6">Servicio</div>
-                                                        <div className="col-span-2 text-center">Cant.</div>
-                                                        <div className="col-span-2 text-right">Precio</div>
-                                                        <div className="col-span-2 text-right">Subtotal</div>
-                                                    </div>
-                                                    <div className="space-y-4 md:space-y-0 md:divide-y md:divide-zinc-100">
+                                                    <div className="flex flex-col">
                                                         {activeTabQuotation.items?.map((item: any) => {
                                                             const qty = Number(item.quantity || 1);
                                                             const price = Number(item.unitPrice || item.price || 0);
                                                             const disc = Number(item.discount || 0);
                                                             const lineTotal = qty * price * (1 - disc / 100);
                                                             return (
-                                                                <div key={item.id} className="grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 md:items-center py-4 bg-zinc-50 md:bg-transparent rounded-[20px] md:rounded-none px-4 md:px-0 border border-zinc-100 md:border-none">
-                                                                    <div className="col-span-1 md:col-span-6">
-                                                                        <div className="font-semibold text-black text-sm flex items-start gap-2">
-                                                                            <div className="w-4 h-4 rounded-full bg-zinc-100 border border-zinc-200 flex items-center justify-center shrink-0 mt-0.5">
-                                                                                <CheckCircle2 className="w-3 h-3 text-black" />
-                                                                            </div>
-                                                                            <span>{item.name}</span>
+                                                                <div key={item.id} className="flex flex-col md:flex-row md:items-center justify-between py-4 border-b border-zinc-100 last:border-0 gap-3">
+                                                                    <div className="md:flex-1">
+                                                                        <div className="font-semibold text-black text-sm">{item.name}</div>
+                                                                        {item.description && <div className="text-zinc-500 text-sm mt-1 leading-relaxed">{item.description}</div>}
+                                                                    </div>
+                                                                    <div className="flex flex-row items-center justify-between md:justify-end gap-6 md:min-w-[300px]">
+                                                                        <div className="text-sm text-zinc-500">
+                                                                            {qty} x {fmtFor(price, activeTabQuotation)}
+                                                                            {disc > 0 && <span className="ml-2 text-[10px] font-bold text-zinc-500 bg-zinc-100 px-1.5 py-0.5 rounded">-{disc}%</span>}
                                                                         </div>
-                                                                        {item.description && <div className="text-zinc-500 text-sm mt-1 ml-6 leading-relaxed">{item.description}</div>}
-                                                                        {disc > 0 && <span className="text-xs font-medium text-black mt-1 inline-block bg-zinc-200 px-2 py-0.5 ml-6 rounded">Descuento {disc}%</span>}
-                                                                    </div>
-                                                                    <div className="col-span-1 md:col-span-2 md:text-center text-sm">
-                                                                        <span className="text-zinc-500 md:hidden ml-6">Cantidad: </span>
-                                                                        <span className="font-medium text-black">{qty}</span>
-                                                                    </div>
-                                                                    <div className="col-span-1 md:col-span-2 md:text-right text-sm">
-                                                                        <span className="text-zinc-500 md:hidden ml-6">Precio: </span>
-                                                                        <span className="text-zinc-600">{fmtFor(price, activeTabQuotation)}</span>
-                                                                    </div>
-                                                                    <div className="col-span-1 md:col-span-2 md:text-right text-sm">
-                                                                        <span className="text-zinc-500 md:hidden ml-6">Subtotal: </span>
-                                                                        <span className="font-bold text-black">{fmtFor(lineTotal, activeTabQuotation)}</span>
+                                                                        <div className="font-bold text-black text-sm md:text-right w-24">{fmtFor(lineTotal, activeTabQuotation)}</div>
                                                                     </div>
                                                                 </div>
                                                             );
