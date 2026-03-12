@@ -100,7 +100,10 @@ export default function ProjectAssetsPage() {
                                 </div>
 
                                 <div className="flex gap-2 pt-2">
-                                    <Button variant="outline" size="sm" className="flex-1" onClick={() => window.open(`${process.env.NEXT_PUBLIC_FRONTEND_PUBLIC_URL || 'http://localhost:3001'}/d/${deal?.publicToken}`, '_blank')}>
+                                    <Button variant="outline" size="sm" className="flex-1" onClick={() => {
+                                        const baseUrl = process.env.NEXT_PUBLIC_FRONTEND_PUBLIC_URL || (typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname.replace('app.', 'client.')}${window.location.port === '3000' ? ':3001' : ''}` : '');
+                                        window.open(`${baseUrl}/d/${deal?.publicToken}`, '_blank');
+                                    }}>
                                         <Share2 className="w-4 h-4 mr-2" /> Ver Pública
                                     </Button>
                                 </div>

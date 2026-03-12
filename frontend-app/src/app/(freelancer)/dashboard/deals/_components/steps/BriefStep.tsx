@@ -291,7 +291,9 @@ export function BriefStep({
                     </div>
                     {!isCompleted && (() => {
                         const baseUrl = process.env.NEXT_PUBLIC_FRONTEND_PUBLIC_URL
-                            || (typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:3001` : '');
+                            || (typeof window !== 'undefined' 
+                                ? `${window.location.protocol}//${window.location.hostname.replace('app.', 'client.')}${window.location.port === '3000' ? ':3001' : ''}` 
+                                : '');
                         const fullPublicLink = `${baseUrl}/b/${publicToken}`;
 
                         return (

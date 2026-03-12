@@ -289,7 +289,7 @@ export function QuotationStep({ deal, dealId, publicToken, currency, readonly, o
     };
 
     const baseUrl = process.env.NEXT_PUBLIC_FRONTEND_PUBLIC_URL
-        || (typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:3001` : '');
+        || (typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname.replace('app.', 'client.')}${window.location.port === '3000' ? ':3001' : ''}` : '');
     const publicLink = publicToken ? `${baseUrl}/d/${publicToken}` : '';
 
     const handleCopyLink = () => {
@@ -304,10 +304,10 @@ export function QuotationStep({ deal, dealId, publicToken, currency, readonly, o
         <div className="space-y-6">
             {/* Public Link Banner */}
             {publicToken && (
-                <div className="p-4 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4 border bg-primary/5 border-primary/20">
+                <div className="p-3 md:p-4 rounded-lg flex flex-col md:flex-row md:items-center justify-between gap-3 border bg-primary/5 border-primary/20">
                     <div>
-                        <h4 className="text-sm font-semibold flex items-center gap-2 text-primary">
-                            <Info className="w-5 h-5" />
+                        <h4 className="text-[13px] font-semibold flex items-center gap-1.5 text-primary">
+                            <Info className="w-4 h-4" />
                             Enlace de la Propuesta
                         </h4>
                         <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1 max-w-xl">
@@ -335,7 +335,7 @@ export function QuotationStep({ deal, dealId, publicToken, currency, readonly, o
                             <div className="flex items-center gap-1">
                                 <Input
                                     autoFocus
-                                    className="h-8 w-36 text-sm rounded-xl px-2"
+                                    className="h-7 w-36 text-xs rounded-lg px-2"
                                     value={renameValue}
                                     onChange={e => setRenameValue(e.target.value)}
                                     onKeyDown={e => { if (e.key === 'Enter') commitRename(); if (e.key === 'Escape') setRenamingQuotationId(null); }}
@@ -349,10 +349,10 @@ export function QuotationStep({ deal, dealId, publicToken, currency, readonly, o
                                     onDoubleClick={() => !readonly && startRename(q)}
                                     title={readonly ? undefined : 'Doble clic para renombrar'}
                                     className={cn(
-                                        'flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium border transition-all pr-8',
+                                        'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-medium border transition-all pr-8',
                                         q.id === activeQuotationId
-                                            ? 'bg-primary text-white border-primary shadow-md shadow-primary/20'
-                                            : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:border-primary/50'
+                                            ? 'bg-zinc-900 text-white border-zinc-900 dark:bg-white dark:text-black dark:border-white shadow-sm'
+                                            : 'bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-zinc-300 dark:hover:border-zinc-700'
                                     )}
                                 >
                                     {q.isApproved && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />}
@@ -376,7 +376,7 @@ export function QuotationStep({ deal, dealId, publicToken, currency, readonly, o
                     <Button
                         variant="outline"
                         size="sm"
-                        className="rounded-xl border-dashed"
+                        className="rounded-lg border-dashed h-8 text-xs text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
                         onClick={() => createQuotation({})}
                         disabled={isLoading}
                     >
@@ -387,21 +387,20 @@ export function QuotationStep({ deal, dealId, publicToken, currency, readonly, o
 
             {/* Empty state */}
             {quotations.length === 0 && !isLoading && (
-                <div className="h-48 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl flex flex-col items-center justify-center text-zinc-400 gap-3">
-                    <Package className="w-8 h-8" />
-                    <div className="text-center">
-                        <p className="font-medium text-sm">Sin cotizaciones aún</p>
-                        <p className="text-xs mt-0.5">Crea tu primera opción de cotización</p>
+                <div className="h-32 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-lg flex flex-col items-center justify-center text-zinc-400 gap-2 bg-zinc-50/50 dark:bg-zinc-900/20">
+                    <div className="flex items-center gap-2">
+                        <Package className="w-4 h-4" />
+                        <p className="font-medium text-[13px] text-zinc-600 dark:text-zinc-300">Sin cotizaciones aún</p>
                     </div>
-                    <Button size="sm" onClick={() => createQuotation({})}>
-                        <Plus className="w-4 h-4 mr-1.5" /> Crear Opción A
+                    <Button size="sm" variant="secondary" className="h-7 text-xs rounded-lg mt-1" onClick={() => createQuotation({})}>
+                        <Plus className="w-3.5 h-3.5 mr-1.5" /> Crear Opción A
                     </Button>
                 </div>
             )}
 
             {/* Active Quotation Canvas */}
             {activeQuotation && (
-                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+                <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-950 shadow-sm">
                     {/* Currency selector for this quotation - Moved to top */}
                     {!readonly && workspaceCurrencies.length > 0 && (
                         <div className="flex items-center justify-between px-4 py-3 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800">
@@ -450,32 +449,31 @@ export function QuotationStep({ deal, dealId, publicToken, currency, readonly, o
                         (activeQuotation.items || []).map((item: Record<string, any>) => {
                             const lineTotal = Number(item.price) * Number(item.quantity) - Number(item.discount || 0);
                             return (
-                                <div key={item.id} className="grid grid-cols-12 gap-2 items-center px-4 py-3 border-b border-zinc-100 dark:border-zinc-800/50 group hover:bg-zinc-50 dark:hover:bg-zinc-900/30 transition-colors">
+                                <div key={item.id} className="grid grid-cols-12 gap-2 items-center px-4 py-2 border-b border-zinc-100 dark:border-zinc-800/50 group hover:bg-zinc-50/80 dark:hover:bg-zinc-900/30 transition-colors">
                                     <div className="col-span-5">
-                                        <div className="font-medium text-sm text-zinc-900 dark:text-white">{item.name}</div>
-                                        {item.description && <div className="text-xs text-zinc-500 truncate max-w-[220px]">{item.description}</div>}
-                                        {item.serviceId && <div className="text-[10px] text-primary/70 mt-0.5">📦 Del catálogo</div>}
+                                        <div className="font-medium text-[13px] text-zinc-900 dark:text-zinc-100">{item.name}</div>
+                                        {item.description && <div className="text-[11px] text-zinc-500 truncate max-w-[240px] mt-0.5">{item.description}</div>}
                                     </div>
                                     <div className="col-span-2">
-                                        <span className="text-xs bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 px-2 py-0.5 rounded-full">
+                                        <span className="text-[10px] text-zinc-500 dark:text-zinc-400">
                                             {CHARGE_LABELS[item.chargeType] || item.chargeType}
                                         </span>
                                     </div>
-                                    <div className="col-span-1 text-center text-sm text-zinc-700 dark:text-zinc-300">{item.quantity}</div>
-                                    <div className="col-span-2 text-right text-sm text-zinc-700 dark:text-zinc-300">{fmt(item.price)}</div>
+                                    <div className="col-span-1 text-center text-[13px] text-zinc-600 dark:text-zinc-400">{item.quantity}</div>
+                                    <div className="col-span-2 text-right text-[13px] text-zinc-600 dark:text-zinc-400">{fmt(item.price)}</div>
                                     <div className="col-span-2 text-right flex items-center justify-end gap-1">
-                                        <span className="text-sm font-semibold text-zinc-900 dark:text-white">{fmt(lineTotal)}</span>
+                                        <span className="text-[13px] font-medium text-zinc-900 dark:text-zinc-100">{fmt(lineTotal)}</span>
                                         {!readonly && (
                                             <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity ml-1">
                                                 <button
                                                     onClick={() => openEditItem(item)}
-                                                    className="p-1.5 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-500"
+                                                    className="p-1 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
                                                 >
                                                     <PenLine className="w-3.5 h-3.5" />
                                                 </button>
                                                 <button
                                                     onClick={() => setDeleteItemId(item.id)}
-                                                    className="p-1.5 rounded-lg hover:bg-rose-100 dark:hover:bg-rose-900/30 text-rose-500"
+                                                    className="p-1 rounded-md hover:bg-rose-50 dark:hover:bg-rose-500/10 text-zinc-400 hover:text-rose-600"
                                                 >
                                                     <Trash2 className="w-3.5 h-3.5" />
                                                 </button>
@@ -489,12 +487,12 @@ export function QuotationStep({ deal, dealId, publicToken, currency, readonly, o
 
                     {/* Add buttons */}
                     {!readonly && (
-                        <div className="flex items-center gap-2 px-4 py-3 bg-zinc-50/50 dark:bg-zinc-900/20 border-t border-zinc-200 dark:border-zinc-800">
-                            <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={() => setPickerOpen(true)}>
+                        <div className="flex items-center gap-1.5 px-4 py-2 bg-zinc-50/30 dark:bg-zinc-900/10 border-t border-zinc-100 dark:border-zinc-800">
+                            <Button size="sm" variant="secondary" className="h-7 text-xs rounded-lg text-zinc-600 dark:text-zinc-300 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700" onClick={() => setPickerOpen(true)}>
                                 <Package className="w-3.5 h-3.5 mr-1.5" /> Del catálogo
                             </Button>
-                            <Button size="sm" variant="ghost" className="rounded-xl text-xs text-zinc-500" onClick={openNewItem}>
-                                <PenLine className="w-3.5 h-3.5 mr-1.5" /> Ítem manual
+                            <Button size="sm" variant="ghost" className="h-7 text-xs rounded-lg text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800" onClick={openNewItem}>
+                                <Plus className="w-3.5 h-3.5 mr-1.5" /> Ítem manual
                             </Button>
                         </div>
                     )}
@@ -566,42 +564,41 @@ export function QuotationStep({ deal, dealId, publicToken, currency, readonly, o
             )}
 
             {/* Proposal Global Configurations */}
-            <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm mt-6">
-                <div className="p-5 border-b border-zinc-100 dark:border-zinc-900 bg-zinc-50/50 dark:bg-zinc-900/20">
+            <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden shadow-sm mt-6">
+                <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-900/40">
                     <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-                        <FileText className="w-4 h-4 text-zinc-500" /> Notas Finales y Configuración
+                        <FileText className="w-4 h-4 text-zinc-400" /> Configuración General
                     </h3>
-                    <p className="text-xs text-zinc-500 mt-1">Estos datos como el intro, términos y plazos aplican para cualquiera de las opciones elaboradas arriba.</p>
                 </div>
                 {!readonly ? (
-                    <div className="p-5">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="space-y-3">
-                                <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Mensaje de Introducción (Opcional)</label>
+                    <div className="p-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div className="space-y-2.5">
+                                <label className="text-[13px] font-medium text-zinc-700 dark:text-zinc-300">Mensaje de Introducción</label>
                                 <textarea
-                                    className="w-full h-32 p-3 text-sm rounded-xl border border-zinc-200 dark:border-zinc-800 bg-transparent resize-y focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-zinc-400"
-                                    placeholder="Escribe un resumen o texto para que el cliente lea antes de ver y elegir su cotización..."
+                                    className="w-full h-24 p-3 text-[13px] rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 resize-y focus:outline-none focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-600 transition-shadow placeholder:text-zinc-400"
+                                    placeholder="Mensaje o saludo para acompañar las opciones..."
                                     value={proposalIntroLocal}
                                     onChange={(e) => setProposalIntroLocal(e.target.value)}
                                 />
                             </div>
                             <div className="space-y-4">
-                                <div className="space-y-2">
-                                    <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Términos y Condiciones</label>
+                                <div className="space-y-2.5">
+                                    <label className="text-[13px] font-medium text-zinc-700 dark:text-zinc-300">Términos y Condiciones</label>
                                     <textarea
-                                        className="w-full h-16 p-3 text-xs rounded-xl border border-zinc-200 dark:border-zinc-800 bg-transparent resize-y focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-zinc-400"
+                                        className="w-full h-20 p-3 text-[13px] rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 resize-y focus:outline-none focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-600 transition-shadow placeholder:text-zinc-400"
                                         placeholder="Cláusulas aplicables en esta propuesta..."
                                         value={proposalTermsLocal}
                                         onChange={(e) => setProposalTermsLocal(e.target.value)}
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5">
+                                    <label className="text-[13px] font-medium text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5">
                                         <Calendar className="w-3.5 h-3.5" /> Válida hasta
                                     </label>
                                     <Input
                                         type="date"
-                                        className="h-9 px-3 text-sm rounded-lg"
+                                        className="h-9 px-3 text-[13px] rounded-lg bg-white dark:bg-zinc-950"
                                         value={validUntilLocal}
                                         onChange={(e) => setValidUntilLocal(e.target.value)}
                                     />
