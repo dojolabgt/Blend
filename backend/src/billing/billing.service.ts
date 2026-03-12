@@ -115,9 +115,6 @@ export class BillingService {
     workspaceId: string,
     plan: 'pro' | 'premium',
   ): Promise<{ success: boolean }> {
-    if (this.configService.get('NODE_ENV') === 'production') {
-      throw new BadRequestException('Not available in production');
-    }
 
     const workspace = await this.workspaceRepo.findOne({
       where: { id: workspaceId },
