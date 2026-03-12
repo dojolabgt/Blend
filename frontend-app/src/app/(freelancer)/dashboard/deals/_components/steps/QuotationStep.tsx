@@ -86,6 +86,7 @@ export function QuotationStep({ deal, dealId, publicToken, currency, readonly, o
         fetchQuotations,
         createQuotation,
         updateQuotation,
+        deleteQuotation,
         addItem,
         updateItem,
         deleteItem,
@@ -111,6 +112,9 @@ export function QuotationStep({ deal, dealId, publicToken, currency, readonly, o
 
     // Item delete confirmation
     const [deleteItemId, setDeleteItemId] = useState<string | null>(null);
+
+    // Quotation delete confirmation
+    const [deleteQuotationId, setDeleteQuotationId] = useState<string | null>(null);
 
     // Props config state
     const [proposalIntroLocal, setProposalIntroLocal] = useState(deal?.proposalIntro || '');
@@ -238,6 +242,24 @@ export function QuotationStep({ deal, dealId, publicToken, currency, readonly, o
         onUpdate?.();
     };
 
+    const handleDeleteQuotation = async () => {
+        if (!deleteQuotationId) return;
+        const success = await deleteQuotation(deleteQuotationId);
+        if (success) {
+            toast.success('Cotización eliminada');
+            setDeleteQuotationId(null);
+            
+            // Si acabamos de borrar la activa, limpiar o seleccionar otra
+            if (activeQuotationId === deleteQuotationId) {
+                const remaining = quotations.filter(q => q.id !== deleteQuotationId);
+                setActiveQuotationId(remaining.length > 0 ? remaining[0].id : null);
+            }
+            onUpdate?.();
+        } else {
+            toast.error('Error al eliminar la opción de cotización');
+        }
+    };
+
     // ── Quotation tab rename (2.3) ────────────────────────────────────────────
 
     const startRename = (q: { id: string; optionName: string }) => {
@@ -308,7 +330,7 @@ export function QuotationStep({ deal, dealId, publicToken, currency, readonly, o
             {/* Quotation Option Tabs — 2.3 rename on double-click */}
             <div className="flex items-center gap-2 flex-wrap">
                 {quotations.map((q) => (
-                    <div key={q.id} className="relative flex items-center">
+                    <div key={q.id} className="relative flex items-center group/tab">
                         {renamingQuotationId === q.id ? (
                             <div className="flex items-center gap-1">
                                 <Input
@@ -321,20 +343,31 @@ export function QuotationStep({ deal, dealId, publicToken, currency, readonly, o
                                 />
                             </div>
                         ) : (
-                            <button
-                                onClick={() => setActiveQuotationId(q.id)}
-                                onDoubleClick={() => !readonly && startRename(q)}
-                                title={readonly ? undefined : 'Doble clic para renombrar'}
-                                className={cn(
-                                    'flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium border transition-all',
-                                    q.id === activeQuotationId
-                                        ? 'bg-primary text-white border-primary shadow-md shadow-primary/20'
-                                        : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:border-primary/50'
+                            <div className="relative flex items-center">
+                                <button
+                                    onClick={() => setActiveQuotationId(q.id)}
+                                    onDoubleClick={() => !readonly && startRename(q)}
+                                    title={readonly ? undefined : 'Doble clic para renombrar'}
+                                    className={cn(
+                                        'flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium border transition-all pr-8',
+                                        q.id === activeQuotationId
+                                            ? 'bg-primary text-white border-primary shadow-md shadow-primary/20'
+                                            : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:border-primary/50'
+                                    )}
+                                >
+                                    {q.isApproved && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />}
+                                    {q.optionName}
+                                </button>
+                                {!readonly && q.id === activeQuotationId && (
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); setDeleteQuotationId(q.id); }}
+                                        className="absolute right-2 p-1 rounded-md text-white/70 hover:text-white hover:bg-white/20 transition-colors"
+                                        title="Eliminar opción"
+                                    >
+                                        <X className="w-3.5 h-3.5" />
+                                    </button>
                                 )}
-                            >
-                                {q.isApproved && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />}
-                                {q.optionName}
-                            </button>
+                            </div>
                         )}
                     </div>
                 ))}
@@ -752,6 +785,24 @@ export function QuotationStep({ deal, dealId, publicToken, currency, readonly, o
                         <AlertDialogCancel>Cancelar</AlertDialogCancel>
                         <AlertDialogAction className="bg-rose-600 hover:bg-rose-700" onClick={handleDeleteItem}>
                             Eliminar
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            {/* Quotation option delete confirmation */}
+            <AlertDialog open={!!deleteQuotationId} onOpenChange={o => !o && setDeleteQuotationId(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>¿Eliminar esta opción de cotización?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Se eliminará la opción entera junto con todos los ítems que contenga. Esta acción es irreversible.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction className="bg-rose-600 text-white hover:bg-rose-700" onClick={handleDeleteQuotation}>
+                            Eliminar opción
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

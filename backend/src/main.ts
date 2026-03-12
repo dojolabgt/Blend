@@ -46,7 +46,12 @@ async function bootstrap() {
 
   // Configure CORS with explicit settings for multiple frontends
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-  const allowedOrigins = frontendUrl.split(',').map((url) => url.trim());
+  const frontendPublicUrl = process.env.FRONTEND_PUBLIC_URL || 'http://localhost:3001';
+  
+  const allowedOrigins = [
+    ...frontendUrl.split(','),
+    ...frontendPublicUrl.split(',')
+  ].map((url) => url.trim());
 
   app.enableCors({
     origin: allowedOrigins,
