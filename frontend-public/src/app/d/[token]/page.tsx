@@ -125,20 +125,20 @@ export default function PublicDealPage({ params }: { params: Promise<{ token: st
     if (isWon && approvedQuotation) {
         return (
             <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center p-6 relative overflow-hidden">
-                <div className="max-w-md w-full bg-white rounded-[30px] shadow-xl shadow-zinc-200/50 p-10 text-center border border-zinc-200 relative z-10">
-                    <div className="w-20 h-20 bg-black rounded-full flex items-center justify-center mx-auto mb-8">
+                <div className="max-w-md w-full bg-white rounded-2xl shadow-lg shadow-zinc-200/50 p-10 text-center border border-zinc-200 relative z-10">
+                    <div className="w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center mx-auto mb-8 shadow-sm">
                         <CheckCircle2 className="w-10 h-10 text-white" />
                     </div>
-                    <h1 className="text-3xl font-bold text-black mb-4 tracking-tight">¡Propuesta Aceptada!</h1>
-                    <p className="text-zinc-600 mb-8 text-base leading-relaxed">
-                        Has elegido la <strong>{approvedQuotation.optionName}</strong>.
+                    <h1 className="text-3xl font-bold text-zinc-900 mb-4 tracking-tight">¡Propuesta Aceptada!</h1>
+                    <p className="text-zinc-500 mb-8 text-base leading-relaxed">
+                        Has elegido la opción <strong>{approvedQuotation.optionName}</strong>.
                         {workspace?.name && ` El equipo de ${workspace.name} comenzará a trabajar en ello pronto.`}
                     </p>
-                    <div className="p-6 bg-[#FAFAFA] rounded-[20px] border border-zinc-100">
+                    <div className="p-6 bg-zinc-50 rounded-xl border border-zinc-100">
                         <div className="flex items-center justify-center gap-2 text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-2">
                            Inversión Acordada
                         </div>
-                        <div className="text-4xl font-black tracking-tight text-black">{fmtFor(approvedQuotation.total, approvedQuotation)}</div>
+                        <div className="text-4xl font-bold tracking-tight text-zinc-900">{fmtFor(approvedQuotation.total, approvedQuotation)}</div>
                     </div>
                 </div>
             </div>
@@ -151,13 +151,13 @@ export default function PublicDealPage({ params }: { params: Promise<{ token: st
         <div className="min-h-screen bg-[#FAFAFA] text-zinc-900 selection:bg-black selection:text-white font-sans">
             {/* Very clean header */}
             <header className="sticky top-0 z-50 bg-[#FAFAFA]/80 backdrop-blur-xl border-b border-zinc-200/80">
-                <div className="max-w-5xl mx-auto px-6 h-20 flex items-center justify-between">
+                <div className="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         {isProOrPremium ? (
                             workspace?.logo ? (
                                 <img src={getImageUrl(workspace.logo)} alt={workspace.name || "Workspace"} className="h-10 w-auto rounded object-contain" />
                             ) : (
-                                <div className="w-10 h-10 bg-black text-white rounded-[10px] flex items-center justify-center font-bold text-lg">
+                                <div className="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center font-bold text-lg">
                                     {workspace?.name?.charAt(0) || 'B'}
                                 </div>
                             )
@@ -182,18 +182,18 @@ export default function PublicDealPage({ params }: { params: Promise<{ token: st
                 </div>
             </header>
 
-            <main className="max-w-5xl mx-auto px-6 py-16 md:py-24">
+            <main className="max-w-6xl mx-auto px-6 py-16 md:py-24">
 
                 {/* Hero / Header Section */}
                 <div className="text-center mb-16 max-w-3xl mx-auto">
                     <div className="flex justify-center mb-6">
-                       <div className="flex items-center gap-2 text-xs font-bold text-black uppercase tracking-widest bg-zinc-100 px-4 py-1.5 rounded-full">
-                           <Star className="w-3 h-3 fill-black text-black" />
+                       <div className="flex items-center gap-2 text-xs font-bold text-zinc-800 uppercase tracking-widest bg-zinc-100 px-4 py-1.5 rounded-full">
+                           <Star className="w-3 h-3 fill-zinc-800 text-zinc-800" />
                            Propuesta
-                           <Star className="w-3 h-3 fill-black text-black" />
+                           <Star className="w-3 h-3 fill-zinc-800 text-zinc-800" />
                        </div>
                     </div>
-                    <h1 className="text-4xl md:text-5xl font-extrabold text-black tracking-tight leading-[1.1] mb-6">
+                    <h1 className="text-4xl md:text-5xl font-bold text-zinc-900 tracking-tight leading-[1.1] mb-6">
                         {dealData.name}
                     </h1>
 
@@ -209,44 +209,42 @@ export default function PublicDealPage({ params }: { params: Promise<{ token: st
 
                 {/* Proposal Intro Markdown */}
                 {dealData.proposalIntro && (
-                    <div className="bg-zinc-100/50 rounded-[24px] md:rounded-[30px] p-5 md:p-6 mb-12 border border-zinc-200 shadow-sm">
-                        <div className="bg-white rounded-[16px] md:rounded-[20px] p-6 md:p-10 border border-zinc-100 shadow-sm">
-                            <div className="prose prose-sm md:prose-base prose-zinc max-w-none text-zinc-700 leading-relaxed whitespace-pre-wrap">
-                                {dealData.proposalIntro}
-                            </div>
+                    <div className="bg-white rounded-2xl p-6 md:p-10 mb-12 border border-zinc-200 shadow-sm">
+                        <div className="prose prose-sm md:prose-base prose-zinc max-w-none text-zinc-700 leading-relaxed whitespace-pre-wrap">
+                            {dealData.proposalIntro}
                         </div>
                     </div>
                 )}
 
                 {/* Quotations Section */}
                 {quotations.length === 0 ? (
-                    <div className="text-center py-20 bg-white rounded-[30px] border border-zinc-200">
+                    <div className="text-center py-20 bg-white rounded-2xl border border-zinc-200">
                         <FileText className="w-12 h-12 text-zinc-300 mx-auto mb-4" />
-                        <h3 className="text-xl font-semibold text-black mb-2">Propuesta en elaboración</h3>
+                        <h3 className="text-xl font-semibold text-zinc-900 mb-2">Propuesta en elaboración</h3>
                         <p className="text-zinc-500">Aún no hay opciones disponibles.</p>
                     </div>
                 ) : (
                     <div className="mb-20">
                         {isSingleOption ? (
                             /* --- SINGLE OPTION VIEW --- */
-                            <div className="bg-[#f2f3f4] rounded-[30px] border border-zinc-200 p-2 shadow-sm overflow-hidden">
-                                <div className="bg-white rounded-[24px] overflow-hidden shadow-sm border border-zinc-100/50">
+                            <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden">
+                                <div>
                                     <div className="p-8 md:p-10 border-b border-zinc-100 flex flex-col md:flex-row md:items-center justify-between gap-6 bg-zinc-50/50">
                                         <div className="flex-1">
-                                            <h2 className="text-2xl font-bold text-black mb-2">{quotations[0].optionName}</h2>
+                                            <h2 className="text-2xl font-bold text-zinc-900 mb-2">{quotations[0].optionName}</h2>
                                             {quotations[0].description && (
                                                 <p className="text-zinc-500 text-sm md:text-base leading-relaxed">{quotations[0].description}</p>
                                             )}
                                         </div>
                                         <div className="md:text-right shrink-0">
                                             <div className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-1.5">Inversión</div>
-                                            <div className="text-4xl font-black tracking-tighter text-black">{fmtFor(quotations[0].total, quotations[0])}</div>
+                                            <div className="text-4xl font-bold tracking-tight text-zinc-900">{fmtFor(quotations[0].total, quotations[0])}</div>
                                         </div>
                                     </div>
 
                                     {/* Items */}
                                     <div className="p-8 md:p-10">
-                                        <h3 className="text-lg font-bold text-black mb-6 flex items-center gap-2">
+                                        <h3 className="text-lg font-bold text-zinc-900 mb-6 flex items-center gap-2">
                                             <Sparkles className="w-4 h-4 text-zinc-400" />
                                             Desglose de la propuesta
                                         </h3>
@@ -260,7 +258,7 @@ export default function PublicDealPage({ params }: { params: Promise<{ token: st
                                                     return (
                                                         <div key={item.id} className="flex flex-col md:flex-row md:items-center justify-between py-4 border-b border-zinc-100 last:border-0 gap-3">
                                                             <div className="md:flex-1">
-                                                                <div className="font-semibold text-black text-sm">{item.name}</div>
+                                                                <div className="font-semibold text-zinc-900 text-sm">{item.name}</div>
                                                                 {item.description && <div className="text-zinc-500 text-sm mt-1 leading-relaxed">{item.description}</div>}
                                                             </div>
                                                             <div className="flex flex-row items-center justify-between md:justify-end gap-6 md:min-w-[300px]">
@@ -268,7 +266,7 @@ export default function PublicDealPage({ params }: { params: Promise<{ token: st
                                                                     {qty} x {fmtFor(price, quotations[0])}
                                                                     {disc > 0 && <span className="ml-2 text-[10px] font-bold text-zinc-500 bg-zinc-100 px-1.5 py-0.5 rounded">-{disc}%</span>}
                                                                 </div>
-                                                                <div className="font-bold text-black text-sm md:text-right w-24">{fmtFor(lineTotal, quotations[0])}</div>
+                                                                <div className="font-bold text-zinc-900 text-sm md:text-right w-24">{fmtFor(lineTotal, quotations[0])}</div>
                                                             </div>
                                                         </div>
                                                     );
@@ -276,17 +274,16 @@ export default function PublicDealPage({ params }: { params: Promise<{ token: st
                                             </div>
                                         </div>
 
-                                        {/* Totals Summary */}
                                         <div className="mt-8 border-t border-zinc-200 pt-6 flex flex-col items-end space-y-2">
                                             {Number(quotations[0].discount) > 0 && (
                                                 <div className="flex justify-between w-full md:w-64 text-sm">
                                                     <span className="text-zinc-500">Descuento</span>
-                                                    <span className="font-semibold text-black">-{fmtFor(quotations[0].discount, quotations[0])}</span>
+                                                    <span className="font-semibold text-zinc-900">-{fmtFor(quotations[0].discount, quotations[0])}</span>
                                                 </div>
                                             )}
                                             <div className="flex justify-between w-full md:w-64 text-xl font-bold pt-4 border-t border-zinc-100 mt-2">
-                                                <span className="text-black">Total</span>
-                                                <span className="text-black">{fmtFor(quotations[0].total, quotations[0])}</span>
+                                                <span className="text-zinc-900">Total</span>
+                                                <span className="text-zinc-900">{fmtFor(quotations[0].total, quotations[0])}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -294,16 +291,17 @@ export default function PublicDealPage({ params }: { params: Promise<{ token: st
                                     {/* Payment Plan */}
                                     {dealData.paymentPlan?.milestones?.length > 0 && (
                                         <div className="px-8 md:px-10 pb-10">
-                                            <h3 className="text-lg font-bold text-black mb-6 flex items-center gap-2">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-black"></span>
+                                            <h3 className="text-lg font-bold text-zinc-900 mb-6 flex items-center gap-2">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-zinc-900"></span>
                                                 Plan de Pagos
                                             </h3>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-1 gap-4">
                                                 {dealData.paymentPlan.milestones.map((m: any, idx: number) => (
-                                                    <div key={m.id} className="p-6 rounded-[24px] bg-[#FAFAFA] border border-zinc-200 flex flex-col justify-between hover:border-zinc-300 transition-colors">
-                                                        <div className="flex items-start justify-between mb-4">
+                                                    <div key={m.id} className="p-5 md:p-6 rounded-xl bg-white border border-zinc-200 flex flex-col md:flex-row md:items-center justify-between hover:border-zinc-300 transition-colors shadow-sm gap-4">
+                                                        <div className="flex items-start gap-4">
+                                                            <div className="w-8 h-8 rounded-full bg-zinc-50 border border-zinc-100 text-zinc-600 text-xs font-bold flex items-center justify-center shrink-0">{idx + 1}</div>
                                                             <div>
-                                                                <div className="font-bold text-sm text-black">{m.name}</div>
+                                                                <div className="font-bold text-sm text-zinc-900">{m.name}</div>
                                                                 {m.dueDate && (
                                                                     <div className="text-xs text-zinc-500 mt-1 flex items-center gap-1">
                                                                         <Calendar className="w-3 h-3" />
@@ -311,11 +309,10 @@ export default function PublicDealPage({ params }: { params: Promise<{ token: st
                                                                     </div>
                                                                 )}
                                                             </div>
-                                                            <div className="w-8 h-8 rounded-full bg-white border border-zinc-100 shadow-sm text-black text-xs font-bold flex items-center justify-center shrink-0">{idx + 1}</div>
                                                         </div>
-                                                        <div className="flex items-end justify-between border-t border-zinc-200 pt-4 mt-2">
-                                                            <div className="text-2xl font-black text-black">{fmtFor(m.amount, quotations[0])}</div>
-                                                            {m.percentage && <div className="text-sm font-bold text-black bg-zinc-200/50 px-2 py-1 rounded-md">{m.percentage}%</div>}
+                                                        <div className="flex items-center gap-4 border-t md:border-t-0 md:border-l border-zinc-100 pt-4 md:pt-0 md:pl-6 mt-2 md:mt-0">
+                                                            <div className="text-xl font-bold text-zinc-900">{fmtFor(m.amount, quotations[0])}</div>
+                                                            {m.percentage && <div className="text-sm font-bold text-zinc-700 bg-zinc-100 px-2.5 py-1 rounded-md">{m.percentage}%</div>}
                                                         </div>
                                                     </div>
                                                 ))}
@@ -324,10 +321,10 @@ export default function PublicDealPage({ params }: { params: Promise<{ token: st
                                     )}
 
                                     {/* Action */}
-                                    <div className="p-8 md:p-10 bg-[#FAFAFA] border-t border-zinc-100 flex justify-center">
+                                    <div className="p-8 md:p-10 bg-zinc-50 border-t border-zinc-100 flex justify-center">
                                         <button
                                             onClick={() => setConfirmApproveId(quotations[0].id)}
-                                            className="w-full md:w-auto px-12 h-14 bg-black hover:bg-zinc-800 text-white rounded-full font-bold text-sm uppercase tracking-wider flex items-center justify-center gap-3 transition-transform active:scale-95 shadow-md hover:shadow-xl group"
+                                            className="w-full md:w-auto px-10 h-12 bg-zinc-900 hover:bg-black text-white rounded-xl font-bold text-sm flex items-center justify-center gap-3 transition-transform active:scale-95 shadow-md shadow-zinc-900/10 group"
                                         >
                                             <span>Aceptar Propuesta</span>
                                             <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-colors">
@@ -339,17 +336,17 @@ export default function PublicDealPage({ params }: { params: Promise<{ token: st
                             </div>
                         ) : (
                             /* --- MULTIPLE OPTIONS VIEW (TABS) --- */
-                            <div className="flex flex-col gap-6">
-                                <div className="flex flex-wrap items-center gap-2 p-2 bg-zinc-200/50 rounded-[20px] max-w-max mx-auto shadow-sm">
+                            <div className="flex flex-col gap-8">
+                                <div className="flex flex-wrap items-center gap-2 p-1.5 bg-zinc-100/80 rounded-xl max-w-max mx-auto border border-zinc-200/50">
                                     {quotations.map((q: any) => {
                                         const isActive = activeTabId === q.id;
                                         return (
                                             <button
                                                 key={q.id}
                                                 onClick={() => setActiveTabId(q.id)}
-                                                className={`flex-1 min-w-[140px] py-3.5 px-6 rounded-[16px] text-sm font-bold transition-all ${isActive
-                                                    ? 'bg-white text-black shadow border border-zinc-200/80 scale-[1.02]'
-                                                    : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100'
+                                                className={`flex-1 min-w-[140px] py-2.5 px-6 rounded-lg text-sm font-semibold transition-all ${isActive
+                                                    ? 'bg-white text-zinc-900 shadow-sm border border-zinc-200/80'
+                                                    : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200/50'
                                                     }`}
                                             >
                                                 {q.optionName}
@@ -359,24 +356,24 @@ export default function PublicDealPage({ params }: { params: Promise<{ token: st
                                 </div>
 
                                 {activeTabQuotation && (
-                                    <div className="bg-[#f2f3f4] rounded-[30px] border border-zinc-200 shadow-sm p-2 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                        <div className="bg-white rounded-[24px] overflow-hidden border border-zinc-100/50 shadow-sm">
+                                    <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                        <div>
                                             <div className="p-8 md:p-10 border-b border-zinc-100 flex flex-col md:flex-row md:items-center justify-between gap-6 bg-zinc-50/50">
                                                 <div className="flex-1">
-                                                    <h2 className="text-2xl font-bold text-black mb-2">{activeTabQuotation.optionName}</h2>
+                                                    <h2 className="text-2xl font-bold text-zinc-900 mb-2">{activeTabQuotation.optionName}</h2>
                                                     {activeTabQuotation.description && (
                                                         <p className="text-zinc-500 text-sm md:text-base leading-relaxed">{activeTabQuotation.description}</p>
                                                     )}
                                                 </div>
                                                 <div className="md:text-right shrink-0">
                                                     <div className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-1.5">Inversión</div>
-                                                    <div className="text-4xl font-black tracking-tighter text-black">{fmtFor(activeTabQuotation.total, activeTabQuotation)}</div>
+                                                    <div className="text-4xl font-bold tracking-tight text-zinc-900">{fmtFor(activeTabQuotation.total, activeTabQuotation)}</div>
                                                 </div>
                                             </div>
 
                                             {/* Items */}
                                             <div className="p-8 md:p-10">
-                                                <h3 className="text-lg font-bold text-black mb-6 flex items-center gap-2">
+                                                <h3 className="text-lg font-bold text-zinc-900 mb-6 flex items-center gap-2">
                                                     <Sparkles className="w-4 h-4 text-zinc-400" />
                                                     Desglose de la propuesta
                                                 </h3>
@@ -390,7 +387,7 @@ export default function PublicDealPage({ params }: { params: Promise<{ token: st
                                                             return (
                                                                 <div key={item.id} className="flex flex-col md:flex-row md:items-center justify-between py-4 border-b border-zinc-100 last:border-0 gap-3">
                                                                     <div className="md:flex-1">
-                                                                        <div className="font-semibold text-black text-sm">{item.name}</div>
+                                                                        <div className="font-semibold text-zinc-900 text-sm">{item.name}</div>
                                                                         {item.description && <div className="text-zinc-500 text-sm mt-1 leading-relaxed">{item.description}</div>}
                                                                     </div>
                                                                     <div className="flex flex-row items-center justify-between md:justify-end gap-6 md:min-w-[300px]">
@@ -398,7 +395,7 @@ export default function PublicDealPage({ params }: { params: Promise<{ token: st
                                                                             {qty} x {fmtFor(price, activeTabQuotation)}
                                                                             {disc > 0 && <span className="ml-2 text-[10px] font-bold text-zinc-500 bg-zinc-100 px-1.5 py-0.5 rounded">-{disc}%</span>}
                                                                         </div>
-                                                                        <div className="font-bold text-black text-sm md:text-right w-24">{fmtFor(lineTotal, activeTabQuotation)}</div>
+                                                                        <div className="font-bold text-zinc-900 text-sm md:text-right w-24">{fmtFor(lineTotal, activeTabQuotation)}</div>
                                                                     </div>
                                                                 </div>
                                                             );
@@ -406,17 +403,16 @@ export default function PublicDealPage({ params }: { params: Promise<{ token: st
                                                     </div>
                                                 </div>
 
-                                                {/* Totals Summary */}
                                                 <div className="mt-8 border-t border-zinc-200 pt-6 flex flex-col items-end space-y-2">
                                                     {Number(activeTabQuotation.discount) > 0 && (
                                                         <div className="flex justify-between w-full md:w-64 text-sm">
                                                             <span className="text-zinc-500">Descuento</span>
-                                                            <span className="font-semibold text-black">-{fmtFor(activeTabQuotation.discount, activeTabQuotation)}</span>
+                                                            <span className="font-semibold text-zinc-900">-{fmtFor(activeTabQuotation.discount, activeTabQuotation)}</span>
                                                         </div>
                                                     )}
                                                     <div className="flex justify-between w-full md:w-64 text-xl font-bold pt-4 border-t border-zinc-100 mt-2">
-                                                        <span className="text-black">Total</span>
-                                                        <span className="text-black">{fmtFor(activeTabQuotation.total, activeTabQuotation)}</span>
+                                                        <span className="text-zinc-900">Total</span>
+                                                        <span className="text-zinc-900">{fmtFor(activeTabQuotation.total, activeTabQuotation)}</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -424,16 +420,17 @@ export default function PublicDealPage({ params }: { params: Promise<{ token: st
                                             {/* Payment Plan */}
                                             {dealData.paymentPlan?.milestones?.length > 0 && (
                                                 <div className="px-8 md:px-10 pb-10">
-                                                    <h3 className="text-lg font-bold text-black mb-6 flex items-center gap-2">
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-black"></span>
+                                                    <h3 className="text-lg font-bold text-zinc-900 mb-6 flex items-center gap-2">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-zinc-900"></span>
                                                         Plan de Pagos
                                                     </h3>
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div className="grid grid-cols-1 gap-4">
                                                         {dealData.paymentPlan.milestones.map((m: any, idx: number) => (
-                                                            <div key={m.id} className="p-6 rounded-[24px] bg-[#FAFAFA] border border-zinc-200 flex flex-col justify-between hover:border-zinc-300 transition-colors">
-                                                                <div className="flex items-start justify-between mb-4">
+                                                            <div key={m.id} className="p-5 md:p-6 rounded-xl bg-white border border-zinc-200 flex flex-col md:flex-row md:items-center justify-between hover:border-zinc-300 transition-colors shadow-sm gap-4">
+                                                                <div className="flex items-start gap-4">
+                                                                    <div className="w-8 h-8 rounded-full bg-zinc-50 border border-zinc-100 text-zinc-600 text-xs font-bold flex items-center justify-center shrink-0">{idx + 1}</div>
                                                                     <div>
-                                                                        <div className="font-bold text-sm text-black">{m.name}</div>
+                                                                        <div className="font-bold text-sm text-zinc-900">{m.name}</div>
                                                                         {m.dueDate && (
                                                                             <div className="text-xs text-zinc-500 mt-1 flex items-center gap-1">
                                                                                 <Calendar className="w-3 h-3" />
@@ -441,11 +438,10 @@ export default function PublicDealPage({ params }: { params: Promise<{ token: st
                                                                             </div>
                                                                         )}
                                                                     </div>
-                                                                    <div className="w-8 h-8 rounded-full bg-white border border-zinc-100 shadow-sm text-black text-xs font-bold flex items-center justify-center shrink-0">{idx + 1}</div>
                                                                 </div>
-                                                                <div className="flex items-end justify-between border-t border-zinc-200 pt-4 mt-2">
-                                                                    <div className="text-2xl font-black text-black">{fmtFor(m.amount, activeTabQuotation)}</div>
-                                                                    {m.percentage && <div className="text-sm font-bold text-black bg-zinc-200/50 px-2 py-1 rounded-md">{m.percentage}%</div>}
+                                                                <div className="flex items-center gap-4 border-t md:border-t-0 md:border-l border-zinc-100 pt-4 md:pt-0 md:pl-6 mt-2 md:mt-0">
+                                                                    <div className="text-xl font-bold text-zinc-900">{fmtFor(m.amount, activeTabQuotation)}</div>
+                                                                    {m.percentage && <div className="text-sm font-bold text-zinc-700 bg-zinc-100 px-2.5 py-1 rounded-md">{m.percentage}%</div>}
                                                                 </div>
                                                             </div>
                                                         ))}
@@ -454,10 +450,10 @@ export default function PublicDealPage({ params }: { params: Promise<{ token: st
                                             )}
 
                                             {/* Action */}
-                                            <div className="p-8 md:p-10 bg-[#FAFAFA] border-t border-zinc-100 flex justify-center">
+                                            <div className="p-8 md:p-10 bg-zinc-50 border-t border-zinc-100 flex justify-center">
                                                 <button
                                                     onClick={() => setConfirmApproveId(activeTabQuotation.id)}
-                                                    className="w-full md:w-auto px-12 h-14 bg-black hover:bg-zinc-800 text-white rounded-full font-bold text-sm uppercase tracking-wider flex items-center justify-center gap-3 transition-transform active:scale-95 shadow-md hover:shadow-xl group"
+                                                    className="w-full md:w-auto px-10 h-12 bg-zinc-900 hover:bg-black text-white rounded-xl font-bold text-sm flex items-center justify-center gap-3 transition-transform active:scale-95 shadow-md shadow-zinc-900/10 group"
                                                 >
                                                     <span>Aceptar Opción {activeTabQuotation.optionName}</span>
                                                     <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-colors">
@@ -475,18 +471,18 @@ export default function PublicDealPage({ params }: { params: Promise<{ token: st
 
                 {/* Terms and Conditions */}
                 {dealData.proposalTerms && (
-                    <div className="mt-16 bg-[#f7f8f8] rounded-[30px] border border-zinc-200 p-2 shadow-sm">
-                        <div className="bg-white rounded-[24px] overflow-hidden border border-zinc-100">
-                            <div className="p-8 md:px-12 md:py-8 border-b border-zinc-100 flex items-center gap-4 bg-[#FAFAFA]">
-                                <div className="w-12 h-12 rounded-[16px] bg-zinc-200/60 flex items-center justify-center border border-zinc-200/60">
-                                    <ShieldCheck className="w-6 h-6 text-zinc-600" />
+                    <div className="mt-16 bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden">
+                        <div>
+                            <div className="p-6 md:px-10 md:py-8 border-b border-zinc-100 flex items-center gap-4 bg-zinc-50/50">
+                                <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center border border-zinc-200 shadow-sm">
+                                    <ShieldCheck className="w-5 h-5 text-zinc-600" />
                                 </div>
                                 <div>
-                                    <h3 className="text-xl font-bold text-black">Términos y Condiciones</h3>
+                                    <h3 className="text-lg font-bold text-zinc-900">Términos y Condiciones</h3>
                                     <p className="text-zinc-500 text-sm mt-0.5">Consideraciones legales y acuerdos aplicables al proyecto.</p>
                                 </div>
                             </div>
-                            <div className="p-8 md:p-12 prose prose-zinc max-w-none text-sm text-zinc-600 leading-relaxed whitespace-pre-wrap">
+                            <div className="p-6 md:p-10 prose prose-sm md:prose-base prose-zinc max-w-none text-zinc-600 leading-relaxed whitespace-pre-wrap">
                                 {dealData.proposalTerms}
                             </div>
                         </div>
@@ -511,15 +507,15 @@ export default function PublicDealPage({ params }: { params: Promise<{ token: st
             {confirmApproveId && (() => {
                 const q = quotations.find((x: any) => x.id === confirmApproveId);
                 return (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md animate-in fade-in duration-200">
-                        <div className="w-full max-w-sm bg-white rounded-[30px] shadow-2xl p-10 animate-in zoom-in-95 duration-200 border border-zinc-200">
-                            <div className="w-16 h-16 rounded-full bg-zinc-100 flex items-center justify-center mx-auto mb-6">
-                                <Sparkles className="w-8 h-8 text-black" />
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/40 backdrop-blur-sm animate-in fade-in duration-200">
+                        <div className="w-full max-w-sm bg-white rounded-2xl shadow-xl p-8 animate-in zoom-in-95 duration-200 border border-zinc-200">
+                            <div className="w-16 h-16 rounded-full bg-zinc-50 border border-zinc-100 flex items-center justify-center mx-auto mb-6">
+                                <Sparkles className="w-8 h-8 text-zinc-800" />
                             </div>
-                            <h2 className="text-2xl font-black text-center text-black mb-2">Confirmar selección</h2>
+                            <h2 className="text-2xl font-bold text-center text-zinc-900 mb-2">Confirmar selección</h2>
                             <p className="text-zinc-500 text-center text-sm mb-6">
                                 Estás a punto de confirmar la opción <strong>{q?.optionName}</strong> por un total de
-                                <span className="block text-3xl font-black text-black mt-3 mb-2">{q && fmtFor(q.total, q)}</span>
+                                <span className="block text-3xl font-bold text-zinc-900 mt-3 mb-2">{q && fmtFor(q.total, q)}</span>
                             </p>
                             <p className="text-center text-xs text-zinc-400 mb-8 leading-relaxed">
                                 Al confirmar, notificaremos al equipo para iniciar el proyecto bajo los términos acordados.
@@ -528,13 +524,13 @@ export default function PublicDealPage({ params }: { params: Promise<{ token: st
                                 <button
                                     onClick={handleApproveConfirm}
                                     disabled={!!isApproving}
-                                    className="w-full h-12 rounded-full bg-black hover:bg-zinc-800 text-white font-bold transition-colors disabled:opacity-60 flex items-center justify-center gap-2 uppercase tracking-wide text-sm"
+                                    className="w-full h-12 rounded-xl bg-zinc-900 hover:bg-black text-white font-bold transition-colors disabled:opacity-60 flex items-center justify-center gap-2 text-sm shadow-sm"
                                 >
                                     {isApproving ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Confirmar y Aceptar'}
                                 </button>
                                 <button
                                     onClick={() => setConfirmApproveId(null)}
-                                    className="w-full h-12 rounded-full text-zinc-500 font-semibold hover:bg-zinc-100 transition-colors uppercase tracking-wide text-sm"
+                                    className="w-full h-12 rounded-xl text-zinc-500 font-semibold hover:bg-zinc-100 hover:text-zinc-800 transition-colors text-sm"
                                 >
                                     Cancelar
                                 </button>
