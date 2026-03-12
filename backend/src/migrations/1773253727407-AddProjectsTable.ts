@@ -5,13 +5,13 @@ export class AddProjectsTable1773253727407 implements MigrationInterface {
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `CREATE TYPE "public"."milestone_splits_status_enum" AS ENUM('assigned', 'paid')`,
+      `DO $$ BEGIN CREATE TYPE "public"."milestone_splits_status_enum" AS ENUM('assigned', 'paid'); EXCEPTION WHEN duplicate_object THEN null; END $$;`,
     );
     await queryRunner.query(
       `CREATE TABLE "milestone_splits" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "milestone_id" uuid NOT NULL, "collaborator_workspace_id" uuid NOT NULL, "percentage" numeric(5,2), "amount" numeric(12,2) NOT NULL, "status" "public"."milestone_splits_status_enum" NOT NULL DEFAULT 'assigned', "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_d4e7649100a52e85d53de66957b" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
-      `CREATE TYPE "public"."projects_status_enum" AS ENUM('active', 'completed', 'cancelled')`,
+      `DO $$ BEGIN CREATE TYPE "public"."projects_status_enum" AS ENUM('active', 'completed', 'cancelled'); EXCEPTION WHEN duplicate_object THEN null; END $$;`,
     );
     await queryRunner.query(
       `CREATE TABLE "projects" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "workspace_id" uuid NOT NULL, "deal_id" uuid NOT NULL, "name" character varying NOT NULL, "status" "public"."projects_status_enum" NOT NULL DEFAULT 'active', "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "REL_1580c3f7b5d7a53b926f7e6002" UNIQUE ("deal_id"), CONSTRAINT "PK_6271df0a7aed1d6c0691ce6ac50" PRIMARY KEY ("id"))`,
@@ -23,7 +23,7 @@ export class AddProjectsTable1773253727407 implements MigrationInterface {
       `CREATE INDEX "IDX_1580c3f7b5d7a53b926f7e6002" ON "projects" ("deal_id") `,
     );
     await queryRunner.query(
-      `CREATE TYPE "public"."project_collaborators_role_enum" AS ENUM('viewer', 'editor')`,
+      `DO $$ BEGIN CREATE TYPE "public"."project_collaborators_role_enum" AS ENUM('viewer', 'editor'); EXCEPTION WHEN duplicate_object THEN null; END $$;`,
     );
     await queryRunner.query(
       `CREATE TABLE "project_collaborators" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "project_id" uuid NOT NULL, "workspace_id" uuid NOT NULL, "role" "public"."project_collaborators_role_enum" NOT NULL DEFAULT 'viewer', "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_b5127c1db2bc3c9f5623328d13e" PRIMARY KEY ("id"))`,
