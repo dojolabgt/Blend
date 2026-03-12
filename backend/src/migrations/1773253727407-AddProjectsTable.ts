@@ -8,32 +8,32 @@ export class AddProjectsTable1773253727407 implements MigrationInterface {
       `DO $$ BEGIN CREATE TYPE "public"."milestone_splits_status_enum" AS ENUM('assigned', 'paid'); EXCEPTION WHEN duplicate_object THEN null; END $$;`,
     );
     await queryRunner.query(
-      `CREATE TABLE "milestone_splits" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "milestone_id" uuid NOT NULL, "collaborator_workspace_id" uuid NOT NULL, "percentage" numeric(5,2), "amount" numeric(12,2) NOT NULL, "status" "public"."milestone_splits_status_enum" NOT NULL DEFAULT 'assigned', "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_d4e7649100a52e85d53de66957b" PRIMARY KEY ("id"))`,
+      `CREATE TABLE IF NOT EXISTS "milestone_splits" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "milestone_id" uuid NOT NULL, "collaborator_workspace_id" uuid NOT NULL, "percentage" numeric(5,2), "amount" numeric(12,2) NOT NULL, "status" "public"."milestone_splits_status_enum" NOT NULL DEFAULT 'assigned', "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_d4e7649100a52e85d53de66957b" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
       `DO $$ BEGIN CREATE TYPE "public"."projects_status_enum" AS ENUM('active', 'completed', 'cancelled'); EXCEPTION WHEN duplicate_object THEN null; END $$;`,
     );
     await queryRunner.query(
-      `CREATE TABLE "projects" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "workspace_id" uuid NOT NULL, "deal_id" uuid NOT NULL, "name" character varying NOT NULL, "status" "public"."projects_status_enum" NOT NULL DEFAULT 'active', "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "REL_1580c3f7b5d7a53b926f7e6002" UNIQUE ("deal_id"), CONSTRAINT "PK_6271df0a7aed1d6c0691ce6ac50" PRIMARY KEY ("id"))`,
+      `CREATE TABLE IF NOT EXISTS "projects" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "workspace_id" uuid NOT NULL, "deal_id" uuid NOT NULL, "name" character varying NOT NULL, "status" "public"."projects_status_enum" NOT NULL DEFAULT 'active', "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "REL_1580c3f7b5d7a53b926f7e6002" UNIQUE ("deal_id"), CONSTRAINT "PK_6271df0a7aed1d6c0691ce6ac50" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_af78b8fc6857fe0a10d1bb1699" ON "projects" ("workspace_id") `,
+      `CREATE INDEX IF NOT EXISTS "IDX_af78b8fc6857fe0a10d1bb1699" ON "projects" ("workspace_id") `,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_1580c3f7b5d7a53b926f7e6002" ON "projects" ("deal_id") `,
+      `CREATE INDEX IF NOT EXISTS "IDX_1580c3f7b5d7a53b926f7e6002" ON "projects" ("deal_id") `,
     );
     await queryRunner.query(
       `DO $$ BEGIN CREATE TYPE "public"."project_collaborators_role_enum" AS ENUM('viewer', 'editor'); EXCEPTION WHEN duplicate_object THEN null; END $$;`,
     );
     await queryRunner.query(
-      `CREATE TABLE "project_collaborators" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "project_id" uuid NOT NULL, "workspace_id" uuid NOT NULL, "role" "public"."project_collaborators_role_enum" NOT NULL DEFAULT 'viewer', "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_b5127c1db2bc3c9f5623328d13e" PRIMARY KEY ("id"))`,
+      `CREATE TABLE IF NOT EXISTS "project_collaborators" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "project_id" uuid NOT NULL, "workspace_id" uuid NOT NULL, "role" "public"."project_collaborators_role_enum" NOT NULL DEFAULT 'viewer', "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_b5127c1db2bc3c9f5623328d13e" PRIMARY KEY ("id"))`,
     );
-    await queryRunner.query(`ALTER TABLE "deals" DROP COLUMN "project_id"`);
+    await queryRunner.query(`ALTER TABLE "deals" DROP COLUMN IF EXISTS "project_id"`);
     await queryRunner.query(
       `ALTER TYPE "public"."quotation_items_chargetype_enum" RENAME TO "quotation_items_chargetype_enum_old"`,
     );
     await queryRunner.query(
-      `CREATE TYPE "public"."quotation_items_chargetype_enum" AS ENUM('ONE_TIME', 'HOURLY', 'RECURRING')`,
+      `DO $$ BEGIN CREATE TYPE "public"."quotation_items_chargetype_enum" AS ENUM('ONE_TIME', 'HOURLY', 'RECURRING'); EXCEPTION WHEN duplicate_object THEN null; END $$;`,
     );
     await queryRunner.query(
       `ALTER TABLE "quotation_items" ALTER COLUMN "chargeType" DROP DEFAULT`,
@@ -51,7 +51,7 @@ export class AddProjectsTable1773253727407 implements MigrationInterface {
       `ALTER TYPE "public"."quotation_items_unittype_enum" RENAME TO "quotation_items_unittype_enum_old"`,
     );
     await queryRunner.query(
-      `CREATE TYPE "public"."quotation_items_unittype_enum" AS ENUM('HOUR', 'PROJECT', 'MONTH', 'UNIT')`,
+      `DO $$ BEGIN CREATE TYPE "public"."quotation_items_unittype_enum" AS ENUM('HOUR', 'PROJECT', 'MONTH', 'UNIT'); EXCEPTION WHEN duplicate_object THEN null; END $$;`,
     );
     await queryRunner.query(
       `ALTER TABLE "quotation_items" ALTER COLUMN "unitType" DROP DEFAULT`,
@@ -66,37 +66,37 @@ export class AddProjectsTable1773253727407 implements MigrationInterface {
       `DROP TYPE "public"."quotation_items_unittype_enum_old"`,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_5a994c441a4612d4a35e0927da" ON "clients" ("workspaceId") `,
+      `CREATE INDEX IF NOT EXISTS "IDX_5a994c441a4612d4a35e0927da" ON "clients" ("workspaceId") `,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_b48860677afe62cd96e1265948" ON "clients" ("email") `,
+      `CREATE INDEX IF NOT EXISTS "IDX_b48860677afe62cd96e1265948" ON "clients" ("email") `,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_fab024a65dc86a463a1d042ea7" ON "quotations" ("deal_id") `,
+      `CREATE INDEX IF NOT EXISTS "IDX_fab024a65dc86a463a1d042ea7" ON "quotations" ("deal_id") `,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_6d0696dcb275b1754e3fc60bee" ON "deals" ("workspace_id") `,
+      `CREATE INDEX IF NOT EXISTS "IDX_6d0696dcb275b1754e3fc60bee" ON "deals" ("workspace_id") `,
     );
     await queryRunner.query(
-      `CREATE INDEX "IDX_7a1770366da1de36b1efc62807" ON "deals" ("client_id") `,
+      `CREATE INDEX IF NOT EXISTS "IDX_7a1770366da1de36b1efc62807" ON "deals" ("client_id") `,
     );
     await queryRunner.query(
-      `ALTER TABLE "milestone_splits" ADD CONSTRAINT "FK_0b842471ea6f6d5d5fc66ffab89" FOREIGN KEY ("milestone_id") REFERENCES "payment_milestones"("id") ON DELETE CASCADE ON UPDATE NO ACTION`,
+      `DO $$ BEGIN ALTER TABLE "milestone_splits" ADD CONSTRAINT "FK_0b842471ea6f6d5d5fc66ffab89" FOREIGN KEY ("milestone_id") REFERENCES "payment_milestones"("id") ON DELETE CASCADE ON UPDATE NO ACTION; EXCEPTION WHEN duplicate_object THEN null; END $$;`,
     );
     await queryRunner.query(
-      `ALTER TABLE "milestone_splits" ADD CONSTRAINT "FK_bd2ab107ce1d540caa720b72e3d" FOREIGN KEY ("collaborator_workspace_id") REFERENCES "workspaces"("id") ON DELETE CASCADE ON UPDATE NO ACTION`,
+      `DO $$ BEGIN ALTER TABLE "milestone_splits" ADD CONSTRAINT "FK_bd2ab107ce1d540caa720b72e3d" FOREIGN KEY ("collaborator_workspace_id") REFERENCES "workspaces"("id") ON DELETE CASCADE ON UPDATE NO ACTION; EXCEPTION WHEN duplicate_object THEN null; END $$;`,
     );
     await queryRunner.query(
-      `ALTER TABLE "projects" ADD CONSTRAINT "FK_af78b8fc6857fe0a10d1bb1699e" FOREIGN KEY ("workspace_id") REFERENCES "workspaces"("id") ON DELETE CASCADE ON UPDATE NO ACTION`,
+      `DO $$ BEGIN ALTER TABLE "projects" ADD CONSTRAINT "FK_af78b8fc6857fe0a10d1bb1699e" FOREIGN KEY ("workspace_id") REFERENCES "workspaces"("id") ON DELETE CASCADE ON UPDATE NO ACTION; EXCEPTION WHEN duplicate_object THEN null; END $$;`,
     );
     await queryRunner.query(
-      `ALTER TABLE "projects" ADD CONSTRAINT "FK_1580c3f7b5d7a53b926f7e6002e" FOREIGN KEY ("deal_id") REFERENCES "deals"("id") ON DELETE CASCADE ON UPDATE NO ACTION`,
+      `DO $$ BEGIN ALTER TABLE "projects" ADD CONSTRAINT "FK_1580c3f7b5d7a53b926f7e6002e" FOREIGN KEY ("deal_id") REFERENCES "deals"("id") ON DELETE CASCADE ON UPDATE NO ACTION; EXCEPTION WHEN duplicate_object THEN null; END $$;`,
     );
     await queryRunner.query(
-      `ALTER TABLE "project_collaborators" ADD CONSTRAINT "FK_23bacaa9035c88b85468965f4ba" FOREIGN KEY ("project_id") REFERENCES "projects"("id") ON DELETE CASCADE ON UPDATE NO ACTION`,
+      `DO $$ BEGIN ALTER TABLE "project_collaborators" ADD CONSTRAINT "FK_23bacaa9035c88b85468965f4ba" FOREIGN KEY ("project_id") REFERENCES "projects"("id") ON DELETE CASCADE ON UPDATE NO ACTION; EXCEPTION WHEN duplicate_object THEN null; END $$;`,
     );
     await queryRunner.query(
-      `ALTER TABLE "project_collaborators" ADD CONSTRAINT "FK_ecbe5053785a2a53a092672b1b5" FOREIGN KEY ("workspace_id") REFERENCES "workspaces"("id") ON DELETE CASCADE ON UPDATE NO ACTION`,
+      `DO $$ BEGIN ALTER TABLE "project_collaborators" ADD CONSTRAINT "FK_ecbe5053785a2a53a092672b1b5" FOREIGN KEY ("workspace_id") REFERENCES "workspaces"("id") ON DELETE CASCADE ON UPDATE NO ACTION; EXCEPTION WHEN duplicate_object THEN null; END $$;`,
     );
   }
 
