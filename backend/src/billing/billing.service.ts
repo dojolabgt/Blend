@@ -11,7 +11,7 @@ import {
   BillingSubscription,
   BillingSubscriptionStatus,
 } from './billing-subscription.entity';
-import { RecurrenteNodallyService } from './recurrente-nodally.service';
+import { RecurrenteKrewVaultService } from './recurrente-krewvault.service';
 import { Workspace, WorkspacePlan } from '../workspaces/workspace.entity';
 import { SubscribeDto } from './dto/subscribe.dto';
 
@@ -24,9 +24,9 @@ export class BillingService {
     private readonly subscriptionRepo: Repository<BillingSubscription>,
     @InjectRepository(Workspace)
     private readonly workspaceRepo: Repository<Workspace>,
-    private readonly recurrenteNodally: RecurrenteNodallyService,
+    private readonly recurrenteKrewVault: RecurrenteKrewVaultService,
     private readonly configService: ConfigService,
-  ) {}
+  ) { }
 
   /**
    * Returns the current billing status for a workspace:
@@ -48,7 +48,7 @@ export class BillingService {
       plan: workspace.plan,
       planExpiresAt: workspace.planExpiresAt,
       subscription: activeSubscription ?? null,
-      prices: this.recurrenteNodally.prices,
+      prices: this.recurrenteKrewVault.prices,
     };
   }
 
@@ -87,7 +87,7 @@ export class BillingService {
     const successUrl = `${frontendUrl}/dashboard/billing?success=1`;
     const cancelUrl = `${frontendUrl}/dashboard/billing?cancelled=1`;
 
-    const checkout = await this.recurrenteNodally.createSubscriptionCheckout(
+    const checkout = await this.recurrenteKrewVault.createSubscriptionCheckout(
       workspaceId,
       dto.plan,
       dto.interval === 'year',
@@ -178,7 +178,7 @@ export class BillingService {
       subscription.recurrenteSubscriptionId &&
       !subscription.recurrenteSubscriptionId.startsWith('dev_')
     ) {
-      await this.recurrenteNodally.cancelSubscription(
+      await this.recurrenteKrewVault.cancelSubscription(
         subscription.recurrenteSubscriptionId,
       );
     }
@@ -224,8 +224,8 @@ export class BillingService {
     const metadata = (body['metadata'] ?? {}) as Record<string, string>;
     const data = (body['data'] ?? {}) as Record<string, unknown>;
 
-    // Safety check — only handle nodally_billing context
-    if (metadata['context'] !== 'nodally_billing') {
+    // Safety check — only handle krew_vault_billing context
+    if (metadata['context'] !== 'krew_vault_billing') {
       this.logger.warn(
         `Received webhook with unexpected context: ${metadata['context']}`,
       );
@@ -298,7 +298,7 @@ export class BillingService {
           !oldSub.recurrenteSubscriptionId.startsWith('dev_')
         ) {
           try {
-            await this.recurrenteNodally.cancelSubscription(
+            await this.recurrenteKrewVault.cancelSubscription(
               oldSub.recurrenteSubscriptionId,
             );
           } catch {

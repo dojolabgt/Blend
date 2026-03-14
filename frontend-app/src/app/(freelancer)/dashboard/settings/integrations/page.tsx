@@ -126,7 +126,7 @@ export default function SettingsPage() {
                                             className="object-contain dark:invert"
                                         />
                                     }
-                                    name="Nodally API"
+                                    name="Krew Vault API"
                                     description={t('integrations.apiDesc')}
                                     isConfigured={false}
                                     onConfigure={() => { }}

@@ -19,13 +19,13 @@ const dm_sans = DM_Sans({
 export const metadata = {
   title: {
     absolute: '',
-    default: 'Nodally',
-    template: '%s | Nodally',
+    default: 'Krew Vault',
+    template: '%s | Krew Vault',
   },
-  description: 'Nodally',
+  description: 'Krew Vault',
   openGraph: {
-    title: 'Nodally',
-    description: 'Nodally',
+    title: 'Krew Vault',
+    description: 'Krew Vault',
   },
 };
 

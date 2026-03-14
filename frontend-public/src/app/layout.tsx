@@ -41,7 +41,7 @@ export default function RootLayout({
         document.title = settings.appName || "Dashboard App";
 
         /* 
-        El favicon ahora siempre es el de Nodally
+        El favicon ahora siempre es el de Krew Vault
         if (settings.appFavicon) {
             const faviconUrl = getImageUrl(settings.appFavicon);
 
@@ -63,7 +63,7 @@ export default function RootLayout({
     return (
         <html lang="en" className="scroll-smooth">
             <head>
-                <link rel="icon" href="/NodallyLogo.png" sizes="any" id="favicon" />
+                <link rel="icon" href="/KrewVaultLogo.png" sizes="any" id="favicon" />
             </head>
             <body
                 className={`${inter.variable} ${generalSans.variable} ${geistMono.variable} font-body antialiased`}

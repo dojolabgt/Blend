@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Nodally",
+  title: "Krew Vault",
   description: "Plataforma de gestión para freelancers",
   icons: {
-    icon: "/NodallyLogo.png",
+    icon: "/KrewVaultLogo.png",
   },
 };
 

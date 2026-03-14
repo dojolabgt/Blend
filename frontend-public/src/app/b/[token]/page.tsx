@@ -156,11 +156,11 @@ export default function PublicBriefPage({ params }: { params: Promise<{ token: s
                                 </div>
                             )
                         ) : (
-                            <img src="/NodallyLogo.png" alt="Nodally" className="h-8 w-auto object-contain dark:invert" />
+                            <img src="/KrewVaultLogo.png" alt="Krew Vault" className="h-8 w-auto object-contain dark:invert" />
                         )}
                         <div>
                             <span className="font-semibold text-base text-black dark:text-white block leading-none mb-1">
-                                {isProOrPremium ? workspace?.name : 'Nodally'}
+                                {isProOrPremium ? workspace?.name : 'Krew Vault'}
                             </span>
                             <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Cuestionario de Proyecto</span>
                         </div>
@@ -169,240 +169,240 @@ export default function PublicBriefPage({ params }: { params: Promise<{ token: s
             </header>
 
             <main className="flex-1 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-3xl mx-auto">
-                <div className="mb-10 flex flex-col items-center text-center">
-                    <div className="w-16 h-16 bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-zinc-200 dark:border-zinc-800 flex items-center justify-center mb-6">
-                        <FileText className="w-8 h-8 text-zinc-700 dark:text-zinc-300" />
-                    </div>
-                    <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">
-                        {template?.name || 'Cuestionario de Proyecto'}
-                    </h1>
-                    <p className="mt-3 text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto">
-                        Ayúdanos a entender mejor tus necesidades para "{deal?.name}" llenando este breve formulario.
-                    </p>
-                </div>
-
-                <div className="bg-white dark:bg-zinc-900 shadow-xl shadow-zinc-200/50 dark:shadow-none rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden">
-                    <div className="px-6 py-5 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50">
-                        <p className="text-sm font-medium text-zinc-500 flex items-center justify-between">
-                            <span>Completado para: <strong className="text-zinc-900 dark:text-zinc-100">{deal?.workspace?.name || 'El Agencia'}</strong></span>
-                            <span>{schema.length} preguntas</span>
+                <div className="max-w-3xl mx-auto">
+                    <div className="mb-10 flex flex-col items-center text-center">
+                        <div className="w-16 h-16 bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-zinc-200 dark:border-zinc-800 flex items-center justify-center mb-6">
+                            <FileText className="w-8 h-8 text-zinc-700 dark:text-zinc-300" />
+                        </div>
+                        <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">
+                            {template?.name || 'Cuestionario de Proyecto'}
+                        </h1>
+                        <p className="mt-3 text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto">
+                            Ayúdanos a entender mejor tus necesidades para "{deal?.name}" llenando este breve formulario.
                         </p>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="p-6 md:p-10 space-y-10">
-                        {schema.map((field: SchemaField, index: number) => (
-                            <div key={field.id} className="space-y-4">
-                                <div>
-                                    <Label required={field.required}>
-                                        <span className="text-zinc-400 mr-2">{index + 1}.</span>
-                                        {field.label}
-                                    </Label>
-                                    {field.description && (
-                                        <p className="text-sm text-zinc-500 ml-6">{field.description}</p>
-                                    )}
-                                </div>
+                    <div className="bg-white dark:bg-zinc-900 shadow-xl shadow-zinc-200/50 dark:shadow-none rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+                        <div className="px-6 py-5 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50">
+                            <p className="text-sm font-medium text-zinc-500 flex items-center justify-between">
+                                <span>Completado para: <strong className="text-zinc-900 dark:text-zinc-100">{deal?.workspace?.name || 'El Agencia'}</strong></span>
+                                <span>{schema.length} preguntas</span>
+                            </p>
+                        </div>
 
-                                <div className="ml-6">
-                                    {field.type === 'text' && (
-                                        <Input
-                                            value={responses[field.id] || ''}
-                                            onChange={(e) => handleChange(field.id, e.target.value)}
-                                            required={field.required}
-                                            placeholder="Tu respuesta..."
-                                            className="max-w-xl"
-                                        />
-                                    )}
+                        <form onSubmit={handleSubmit} className="p-6 md:p-10 space-y-10">
+                            {schema.map((field: SchemaField, index: number) => (
+                                <div key={field.id} className="space-y-4">
+                                    <div>
+                                        <Label required={field.required}>
+                                            <span className="text-zinc-400 mr-2">{index + 1}.</span>
+                                            {field.label}
+                                        </Label>
+                                        {field.description && (
+                                            <p className="text-sm text-zinc-500 ml-6">{field.description}</p>
+                                        )}
+                                    </div>
 
-                                    {field.type === 'textarea' && (
-                                        <textarea
-                                            value={responses[field.id] || ''}
-                                            onChange={(e) => handleChange(field.id, e.target.value)}
-                                            required={field.required}
-                                            placeholder="Escribe el detalle aquí..."
-                                            className={`${inputClasses} min-h-[120px] max-w-xl resize-y`}
-                                        />
-                                    )}
+                                    <div className="ml-6">
+                                        {field.type === 'text' && (
+                                            <Input
+                                                value={responses[field.id] || ''}
+                                                onChange={(e) => handleChange(field.id, e.target.value)}
+                                                required={field.required}
+                                                placeholder="Tu respuesta..."
+                                                className="max-w-xl"
+                                            />
+                                        )}
 
-                                    {field.type === 'radio' && (
-                                        <div className="space-y-3">
-                                            {field.options?.map((opt) => (
-                                                <label key={opt.value} className="flex items-center space-x-3 cursor-pointer">
-                                                    <input
-                                                        type="radio"
-                                                        name={field.id}
-                                                        value={opt.value}
-                                                        checked={responses[field.id] === opt.value}
-                                                        disabled={isSubmitting}
-                                                        onChange={(e) => handleChange(field.id, e.target.value)}
-                                                        required={field.required && !responses[field.id]}
-                                                        className="w-4 h-4 text-primary bg-zinc-100 border-zinc-300 focus:ring-primary dark:focus:ring-primary dark:ring-offset-zinc-800 focus:ring-2 dark:bg-zinc-700 dark:border-zinc-600"
-                                                    />
-                                                    <span className="text-sm font-normal text-zinc-900 dark:text-zinc-100">
-                                                        {opt.label}
-                                                    </span>
-                                                </label>
-                                            ))}
-                                            {field.allowOther && (
-                                                <div className="flex items-center space-x-3 mt-2">
-                                                    <label className="flex items-center space-x-3 cursor-pointer shrink-0">
+                                        {field.type === 'textarea' && (
+                                            <textarea
+                                                value={responses[field.id] || ''}
+                                                onChange={(e) => handleChange(field.id, e.target.value)}
+                                                required={field.required}
+                                                placeholder="Escribe el detalle aquí..."
+                                                className={`${inputClasses} min-h-[120px] max-w-xl resize-y`}
+                                            />
+                                        )}
+
+                                        {field.type === 'radio' && (
+                                            <div className="space-y-3">
+                                                {field.options?.map((opt) => (
+                                                    <label key={opt.value} className="flex items-center space-x-3 cursor-pointer">
                                                         <input
                                                             type="radio"
                                                             name={field.id}
-                                                            value="other"
-                                                            checked={responses[field.id] === 'other'}
+                                                            value={opt.value}
+                                                            checked={responses[field.id] === opt.value}
                                                             disabled={isSubmitting}
                                                             onChange={(e) => handleChange(field.id, e.target.value)}
+                                                            required={field.required && !responses[field.id]}
                                                             className="w-4 h-4 text-primary bg-zinc-100 border-zinc-300 focus:ring-primary dark:focus:ring-primary dark:ring-offset-zinc-800 focus:ring-2 dark:bg-zinc-700 dark:border-zinc-600"
-                                                        />
-                                                        <span className="text-sm font-normal text-zinc-900 dark:text-zinc-100 whitespace-nowrap">
-                                                            Otra opción:
-                                                        </span>
-                                                    </label>
-                                                    <Input
-                                                        value={otherValues[field.id] || ''}
-                                                        onChange={(e) => handleOtherChange(field.id, e.target.value)}
-                                                        onFocus={() => handleChange(field.id, 'other')}
-                                                        disabled={isSubmitting}
-                                                        placeholder="Especificar..."
-                                                        className="h-8 py-1 max-w-xs"
-                                                        required={responses[field.id] === 'other'}
-                                                    />
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {field.type === 'checkbox' && (
-                                        <div className="space-y-3">
-                                            {field.options?.map((opt) => {
-                                                const isChecked = (responses[field.id] || []).includes(opt.value);
-                                                return (
-                                                    <label key={opt.value} className="flex items-start space-x-3 cursor-pointer">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={isChecked}
-                                                            disabled={isSubmitting}
-                                                            onChange={(e) => {
-                                                                const current = responses[field.id] || [];
-                                                                const newVal = e.target.checked
-                                                                    ? [...current, opt.value]
-                                                                    : current.filter((v: string) => v !== opt.value);
-                                                                handleChange(field.id, newVal);
-                                                            }}
-                                                            className="w-4 h-4 mt-0.5 text-primary bg-zinc-100 border-zinc-300 rounded focus:ring-primary dark:focus:ring-primary dark:ring-offset-zinc-800 focus:ring-2 dark:bg-zinc-700 dark:border-zinc-600"
                                                         />
                                                         <span className="text-sm font-normal text-zinc-900 dark:text-zinc-100">
                                                             {opt.label}
                                                         </span>
                                                     </label>
-                                                );
-                                            })}
-                                            {field.allowOther && (
-                                                <div className="flex items-start space-x-3 pt-2">
-                                                    <label className="flex items-center space-x-3 cursor-pointer shrink-0">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={(responses[field.id] || []).includes('other')}
-                                                            disabled={isSubmitting}
-                                                            onChange={(e) => {
-                                                                const current = responses[field.id] || [];
-                                                                const newVal = e.target.checked
-                                                                    ? [...current, 'other']
-                                                                    : current.filter((v: string) => v !== 'other');
-                                                                handleChange(field.id, newVal);
-                                                            }}
-                                                            className="w-4 h-4 text-primary bg-zinc-100 border-zinc-300 rounded focus:ring-primary dark:focus:ring-primary dark:ring-offset-zinc-800 focus:ring-2 dark:bg-zinc-700 dark:border-zinc-600"
-                                                        />
-                                                        <span className="text-sm font-normal text-zinc-900 dark:text-zinc-100 whitespace-nowrap">
-                                                            Otra opción:
-                                                        </span>
-                                                    </label>
-                                                    <div className="flex-1 -mt-1 flex items-center gap-3">
+                                                ))}
+                                                {field.allowOther && (
+                                                    <div className="flex items-center space-x-3 mt-2">
+                                                        <label className="flex items-center space-x-3 cursor-pointer shrink-0">
+                                                            <input
+                                                                type="radio"
+                                                                name={field.id}
+                                                                value="other"
+                                                                checked={responses[field.id] === 'other'}
+                                                                disabled={isSubmitting}
+                                                                onChange={(e) => handleChange(field.id, e.target.value)}
+                                                                className="w-4 h-4 text-primary bg-zinc-100 border-zinc-300 focus:ring-primary dark:focus:ring-primary dark:ring-offset-zinc-800 focus:ring-2 dark:bg-zinc-700 dark:border-zinc-600"
+                                                            />
+                                                            <span className="text-sm font-normal text-zinc-900 dark:text-zinc-100 whitespace-nowrap">
+                                                                Otra opción:
+                                                            </span>
+                                                        </label>
                                                         <Input
                                                             value={otherValues[field.id] || ''}
-                                                            onChange={(e) => {
-                                                                setOtherValues(prev => ({ ...prev, [field.id]: e.target.value }));
-                                                                const current = responses[field.id] || [];
-                                                                if (!current.includes('other')) {
-                                                                    handleChange(field.id, [...current, 'other']);
-                                                                }
-                                                            }}
+                                                            onChange={(e) => handleOtherChange(field.id, e.target.value)}
+                                                            onFocus={() => handleChange(field.id, 'other')}
                                                             disabled={isSubmitting}
                                                             placeholder="Especificar..."
                                                             className="h-8 py-1 max-w-xs"
-                                                            required={(responses[field.id] || []).includes('other')}
+                                                            required={responses[field.id] === 'other'}
                                                         />
                                                     </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {field.type === 'select' && (
-                                        <div className="max-w-md">
-                                            <select
-                                                value={responses[field.id] || ''}
-                                                onChange={(e) => handleChange(field.id, e.target.value)}
-                                                required={field.required}
-                                                disabled={isSubmitting}
-                                                className={`${inputClasses} bg-white dark:bg-zinc-950`}
-                                            >
-                                                <option value="" disabled>Selecciona una opción...</option>
-                                                {field.options?.map((opt) => (
-                                                    <option key={opt.value} value={opt.value}>
-                                                        {opt.label}
-                                                    </option>
-                                                ))}
-                                                {field.allowOther && (
-                                                    <option value="other">Otra opción...</option>
                                                 )}
-                                            </select>
+                                            </div>
+                                        )}
 
-                                            {responses[field.id] === 'other' && (
-                                                <div className="mt-3">
-                                                    <Input
-                                                        value={otherValues[field.id] || ''}
-                                                        onChange={(e) => setOtherValues(prev => ({ ...prev, [field.id]: e.target.value }))}
-                                                        placeholder="Especifica tu respuesta..."
-                                                        required
-                                                    />
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
+                                        {field.type === 'checkbox' && (
+                                            <div className="space-y-3">
+                                                {field.options?.map((opt) => {
+                                                    const isChecked = (responses[field.id] || []).includes(opt.value);
+                                                    return (
+                                                        <label key={opt.value} className="flex items-start space-x-3 cursor-pointer">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={isChecked}
+                                                                disabled={isSubmitting}
+                                                                onChange={(e) => {
+                                                                    const current = responses[field.id] || [];
+                                                                    const newVal = e.target.checked
+                                                                        ? [...current, opt.value]
+                                                                        : current.filter((v: string) => v !== opt.value);
+                                                                    handleChange(field.id, newVal);
+                                                                }}
+                                                                className="w-4 h-4 mt-0.5 text-primary bg-zinc-100 border-zinc-300 rounded focus:ring-primary dark:focus:ring-primary dark:ring-offset-zinc-800 focus:ring-2 dark:bg-zinc-700 dark:border-zinc-600"
+                                                            />
+                                                            <span className="text-sm font-normal text-zinc-900 dark:text-zinc-100">
+                                                                {opt.label}
+                                                            </span>
+                                                        </label>
+                                                    );
+                                                })}
+                                                {field.allowOther && (
+                                                    <div className="flex items-start space-x-3 pt-2">
+                                                        <label className="flex items-center space-x-3 cursor-pointer shrink-0">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={(responses[field.id] || []).includes('other')}
+                                                                disabled={isSubmitting}
+                                                                onChange={(e) => {
+                                                                    const current = responses[field.id] || [];
+                                                                    const newVal = e.target.checked
+                                                                        ? [...current, 'other']
+                                                                        : current.filter((v: string) => v !== 'other');
+                                                                    handleChange(field.id, newVal);
+                                                                }}
+                                                                className="w-4 h-4 text-primary bg-zinc-100 border-zinc-300 rounded focus:ring-primary dark:focus:ring-primary dark:ring-offset-zinc-800 focus:ring-2 dark:bg-zinc-700 dark:border-zinc-600"
+                                                            />
+                                                            <span className="text-sm font-normal text-zinc-900 dark:text-zinc-100 whitespace-nowrap">
+                                                                Otra opción:
+                                                            </span>
+                                                        </label>
+                                                        <div className="flex-1 -mt-1 flex items-center gap-3">
+                                                            <Input
+                                                                value={otherValues[field.id] || ''}
+                                                                onChange={(e) => {
+                                                                    setOtherValues(prev => ({ ...prev, [field.id]: e.target.value }));
+                                                                    const current = responses[field.id] || [];
+                                                                    if (!current.includes('other')) {
+                                                                        handleChange(field.id, [...current, 'other']);
+                                                                    }
+                                                                }}
+                                                                disabled={isSubmitting}
+                                                                placeholder="Especificar..."
+                                                                className="h-8 py-1 max-w-xs"
+                                                                required={(responses[field.id] || []).includes('other')}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {field.type === 'select' && (
+                                            <div className="max-w-md">
+                                                <select
+                                                    value={responses[field.id] || ''}
+                                                    onChange={(e) => handleChange(field.id, e.target.value)}
+                                                    required={field.required}
+                                                    disabled={isSubmitting}
+                                                    className={`${inputClasses} bg-white dark:bg-zinc-950`}
+                                                >
+                                                    <option value="" disabled>Selecciona una opción...</option>
+                                                    {field.options?.map((opt) => (
+                                                        <option key={opt.value} value={opt.value}>
+                                                            {opt.label}
+                                                        </option>
+                                                    ))}
+                                                    {field.allowOther && (
+                                                        <option value="other">Otra opción...</option>
+                                                    )}
+                                                </select>
+
+                                                {responses[field.id] === 'other' && (
+                                                    <div className="mt-3">
+                                                        <Input
+                                                            value={otherValues[field.id] || ''}
+                                                            onChange={(e) => setOtherValues(prev => ({ ...prev, [field.id]: e.target.value }))}
+                                                            placeholder="Especifica tu respuesta..."
+                                                            required
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))}
 
-                        <div className="pt-8 border-t border-zinc-200 dark:border-zinc-800 flex justify-end">
-                            <Button
-                                type="submit"
-                                size="lg"
-                                disabled={isSubmitting}
-                                className="w-full sm:w-auto px-8"
-                            >
-                                {isSubmitting ? (
-                                    <>Enviando... <Loader2 className="w-4 h-4 ml-2 animate-spin" /></>
-                                ) : (
-                                    <>Enviar Respuestas <ArrowRight className="w-4 h-4 ml-2" /></>
-                                )}
-                            </Button>
-                        </div>
-                    </form>
+                            <div className="pt-8 border-t border-zinc-200 dark:border-zinc-800 flex justify-end">
+                                <Button
+                                    type="submit"
+                                    size="lg"
+                                    disabled={isSubmitting}
+                                    className="w-full sm:w-auto px-8"
+                                >
+                                    {isSubmitting ? (
+                                        <>Enviando... <Loader2 className="w-4 h-4 ml-2 animate-spin" /></>
+                                    ) : (
+                                        <>Enviar Respuestas <ArrowRight className="w-4 h-4 ml-2" /></>
+                                    )}
+                                </Button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-            </div>
             </main>
 
             {/* Footer */}
             <footer className="border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 py-12 text-center mt-10">
                 <div className="px-6 flex flex-col items-center gap-4">
                     <p className="text-sm font-medium text-zinc-500">
-                        Cuestionario enviado por <strong className="text-black dark:text-white">{isProOrPremium ? workspace?.name : 'Nodally'}</strong>.
+                        Cuestionario enviado por <strong className="text-black dark:text-white">{isProOrPremium ? workspace?.name : 'Krew Vault'}</strong>.
                     </p>
                     <div className="flex items-center gap-2 text-[10px] font-bold text-zinc-400 uppercase tracking-widest bg-zinc-50 dark:bg-zinc-900 px-3 py-1.5 rounded-full border border-zinc-100 dark:border-zinc-800">
                         Powered by
-                        <img src="/NodallyLogo.png" alt="Nodally" className="h-4 object-contain ml-1 grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-all dark:invert" />
+                        <img src="/KrewVaultLogo.png" alt="Krew Vault" className="h-4 object-contain ml-1 grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-all dark:invert" />
                     </div>
                 </div>
             </footer>

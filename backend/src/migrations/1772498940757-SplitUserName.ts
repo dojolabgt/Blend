@@ -17,7 +17,7 @@ export class SplitUserName1772498940757 implements MigrationInterface {
     await queryRunner.query(`
             UPDATE "users" 
             SET "firstName" = split_part("name", ' ', 1),
-                "lastName" = COALESCE(NULLIF(substring("name" from position(' ' in "name") + 1), ''), 'Nodally')
+                "lastName" = COALESCE(NULLIF(substring("name" from position(' ' in "name") + 1), ''), 'Krew Vault')
             WHERE "name" IS NOT NULL
         `);
 
