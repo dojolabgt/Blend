@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Menu, X } from 'lucide-react';
+import React from 'react';
+import { LogOut } from 'lucide-react';
 import { NavItem, NavItemConfig } from './NavItem';
 import { cn, getImageUrl } from '@/lib/utils';
 import { useAuth } from '@/features/auth/hooks/useAuth';
@@ -9,13 +9,13 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface SidebarProps {
     navItems: NavItemConfig[];
+    mobileMenuOpen?: boolean;
+    onMobileMenuClose?: () => void;
 }
 
-export function Sidebar({ navItems }: SidebarProps) {
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const { user, activeWorkspace, activeWorkspaceId, switchWorkspace } = useAuth();
+export function Sidebar({ navItems, mobileMenuOpen, onMobileMenuClose }: SidebarProps) {
+    const { user, activeWorkspace, activeWorkspaceId, switchWorkspace, logout } = useAuth();
 
-    // Group items by section
     const groupedItems = navItems.reduce((acc, item) => {
         const section = item.section || 'MAIN NAVIGATION';
         if (!acc[section]) acc[section] = [];
@@ -23,59 +23,38 @@ export function Sidebar({ navItems }: SidebarProps) {
         return acc;
     }, {} as Record<string, NavItemConfig[]>);
 
-    // Branding Logic
     const isProOrPremium = activeWorkspace?.plan === 'pro' || activeWorkspace?.plan === 'premium';
     const businessName = isProOrPremium ? (activeWorkspace?.businessName || 'Mi Espacio') : 'Hi Krew';
     const displayLogo = isProOrPremium ? (activeWorkspace?.logo || undefined) : '/HiKrewLogo.png';
     const initials = isProOrPremium ? businessName.substring(0, 2).toUpperCase() : 'HK';
-
-    // Optional style based on brandColor
     const brandColorStyle = (isProOrPremium && activeWorkspace?.brandColor) ? { color: activeWorkspace.brandColor } : {};
+
+    const userFullName = `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || 'Usuario';
+    const userInitial = (user?.firstName?.[0] || user?.email?.[0] || '?').toUpperCase();
 
     return (
         <>
-            {/* Mobile Header */}
-            <div className="md:hidden flex items-center justify-between px-4 py-3 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 fixed top-0 w-full z-40 shadow-sm">
-                <div className="flex items-center gap-2">
-                    <Avatar className="w-8 h-8 rounded-lg shadow-sm border border-border">
+            <aside className={cn(
+                "fixed inset-y-0 left-0 z-50 w-60 bg-white dark:bg-zinc-950",
+                "border-r border-zinc-100 dark:border-zinc-800/60",
+                "flex flex-col transform transition-transform duration-300 ease-in-out",
+                "md:translate-x-0 md:static md:z-auto",
+                mobileMenuOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"
+            )}>
+                {/* Brand / Logo header */}
+                <div className="h-14 flex items-center px-4 border-b border-zinc-100 dark:border-zinc-800/60 shrink-0 gap-2.5">
+                    <Avatar className="w-7 h-7 rounded-lg shrink-0 border border-zinc-200 dark:border-zinc-700">
                         <AvatarImage src={getImageUrl(displayLogo)} alt={businessName} className="object-cover" />
-                        <AvatarFallback className="bg-primary/10 text-primary rounded-lg text-xs" style={brandColorStyle}>
+                        <AvatarFallback className="bg-primary/10 text-primary rounded-lg text-xs font-bold" style={brandColorStyle}>
                             {initials}
                         </AvatarFallback>
                     </Avatar>
-                    <span className="font-semibold text-zinc-900 dark:text-white tracking-tight truncate max-w-[150px]">{businessName}</span>
-                </div>
-                <button
-                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                    className="p-2 -mr-2 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
-                >
-                    {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-                </button>
-            </div>
-
-            {/* Main Sidebar Desktop + Mobile Menu */}
-            <div className={cn(
-                "fixed inset-y-0 left-0 z-50 w-56 bg-white dark:bg-zinc-950 border-r border-zinc-100 dark:border-zinc-800/60 transform transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:flex md:flex-col",
-                mobileMenuOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"
-            )}>
-
-                {/* Logo Area & Switcher */}
-                <div className="h-16 flex items-center px-6 border-b border-zinc-100 dark:border-zinc-800/60 justify-between shrink-0">
-                    <div className="flex items-center gap-3 overflow-hidden">
-                        <Avatar className="w-8 h-8 rounded-lg shadow-sm border border-border">
-                            <AvatarImage src={getImageUrl(displayLogo)} alt={businessName} className="object-cover" />
-                            <AvatarFallback className="bg-primary/10 text-primary rounded-lg text-xs font-bold" style={brandColorStyle}>
-                                {initials}
-                            </AvatarFallback>
-                        </Avatar>
-                        <span className="font-bold text-lg text-zinc-900 dark:text-white tracking-tight truncate" title={businessName}>
-                            {businessName}
-                        </span>
-                    </div>
-
+                    <span className="font-bold text-sm text-zinc-900 dark:text-white tracking-tight truncate flex-1" title={businessName}>
+                        {businessName}
+                    </span>
                     {user?.workspaceMembers && user.workspaceMembers.length > 1 && (
                         <select
-                            className="bg-transparent text-zinc-500 dark:text-zinc-400 text-sm ml-2 p-1 cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded outline-none"
+                            className="bg-transparent text-zinc-400 text-xs p-1 cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded outline-none shrink-0"
                             value={activeWorkspaceId || ''}
                             onChange={(e) => switchWorkspace(e.target.value)}
                         >
@@ -88,36 +67,63 @@ export function Sidebar({ navItems }: SidebarProps) {
                     )}
                 </div>
 
-                {/* Navigation Links */}
-                <div className="flex-1 overflow-y-auto pt-6 pb-4 px-3 space-y-8 scrollbar-hide">
-                    {Object.entries(groupedItems).map(([section, items]) => (
-                        <div key={section} className="space-y-2">
-                            <p className="px-3 text-xs font-semibold text-zinc-400 dark:text-zinc-500 tracking-wider uppercase">
-                                {section}
+                {/* Navigation */}
+                <nav className="flex-1 overflow-y-auto py-4 px-3 scrollbar-hide">
+                    <div className="space-y-6">
+                        {Object.entries(groupedItems).map(([section, items]) => (
+                            <div key={section}>
+                                <p className="px-3 mb-1.5 text-[10px] font-semibold text-zinc-400 dark:text-zinc-500 tracking-widest uppercase">
+                                    {section}
+                                </p>
+                                <div className="space-y-0.5">
+                                    {items.map((item) => (
+                                        <NavItem
+                                            key={item.href}
+                                            item={item}
+                                            onClick={onMobileMenuClose}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </nav>
+
+                {/* Footer: user info + logout */}
+                <div className="shrink-0 border-t border-zinc-100 dark:border-zinc-800/60 p-3">
+                    <div className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg">
+                        <Avatar className="h-7 w-7 border border-zinc-200 dark:border-zinc-700 shrink-0">
+                            <AvatarImage src={getImageUrl(user?.profileImage)} alt={userFullName} className="object-cover" />
+                            <AvatarFallback className="bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 font-bold text-xs uppercase">
+                                {userInitial}
+                            </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium text-zinc-800 dark:text-zinc-200 truncate leading-tight">
+                                {userFullName}
                             </p>
-                            <nav className="space-y-1">
-                                {items.map((item) => (
-                                    <NavItem
-                                        key={item.href}
-                                        item={item}
-                                        onClick={() => setMobileMenuOpen(false)}
-                                    />
-                                ))}
-                            </nav>
+                            <p className="text-[10px] text-zinc-400 dark:text-zinc-500 truncate leading-tight">
+                                {user?.email}
+                            </p>
                         </div>
-                    ))}
+                        <button
+                            onClick={logout}
+                            className="p-1.5 rounded-md text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors shrink-0"
+                            title="Cerrar sesión"
+                        >
+                            <LogOut className="h-3.5 w-3.5" />
+                        </button>
+                    </div>
                 </div>
+            </aside>
 
-            </div>
-
-            {/* Mobile Backdrop */}
+            {/* Mobile backdrop */}
             {mobileMenuOpen && (
                 <div
                     className="fixed inset-0 bg-zinc-900/40 backdrop-blur-sm z-40 md:hidden"
-                    onClick={() => setMobileMenuOpen(false)}
+                    onClick={onMobileMenuClose}
                 />
             )}
         </>
     );
 }
-
