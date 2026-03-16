@@ -7,6 +7,7 @@ import { Sidebar } from '@/components/layout/Sidebar';
 import { NavItemConfig } from '@/components/layout/NavItem';
 import { LayoutDashboard, Users, Briefcase, FileText, CreditCard, LayoutTemplate, Network, FolderKanban } from 'lucide-react';
 import { TopHeader } from '@/components/layout/Header';
+import { MobileHeader } from '@/components/layout/MobileHeader';
 import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
 import { Settings } from 'lucide-react';
 import { useEffect } from 'react';
@@ -47,6 +48,7 @@ export default function FreelancerLayout({ children }: { children: React.ReactNo
         <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-950">
             <Sidebar navItems={freelancerNavItems} />
             <main className="flex-1 flex flex-col min-w-0">
+                <MobileHeader />
                 <TopHeader />
                 <div className="flex-1 overflow-y-auto pb-16 md:pb-0">
                     {children}
