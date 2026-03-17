@@ -12,7 +12,7 @@ export function Header() {
     return (
         <div className="fixed top-4 inset-x-0 z-50 flex justify-center px-4">
             <motion.div
-                className="w-full max-w-3xl flex items-center justify-between px-5 h-14 rounded-2xl bg-[#111]/90 backdrop-blur-xl border border-white/[0.08] shadow-2xl shadow-black/30"
+                className="w-full max-w-3xl flex items-center justify-between px-5 h-14 rounded-2xl bg-[#111]/90 backdrop-blur-xl border border-white/[0.08] shadow-lg shadow-black/50"
                 initial={{ opacity: 0, y: -16, scale: 0.97 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ duration: 0.5, ease: "easeOut" }}

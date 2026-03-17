@@ -211,8 +211,8 @@ export function HowItWorks() {
 
                                 {/* Text */}
                                 <motion.div
-                                    initial={{ opacity: 0, x: isEven ? -24 : 24 }}
-                                    whileInView={{ opacity: 1, x: 0 }}
+                                    initial={{ opacity: 0, y: 16 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
                                     viewport={{ once: true, margin: "-60px" }}
                                     transition={{ duration: 0.5, delay: 0.05, ease: [0.25, 0.1, 0.25, 1] }}
                                     className={`flex flex-col gap-3 ${isEven ? "md:pr-14 md:text-right md:items-end" : "md:order-last md:pl-14"}`}
@@ -239,8 +239,8 @@ export function HowItWorks() {
 
                                 {/* Preview */}
                                 <motion.div
-                                    initial={{ opacity: 0, x: isEven ? 24 : -24 }}
-                                    whileInView={{ opacity: 1, x: 0 }}
+                                    initial={{ opacity: 0, y: 16 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
                                     viewport={{ once: true, margin: "-60px" }}
                                     transition={{ duration: 0.5, delay: 0.12, ease: [0.25, 0.1, 0.25, 1] }}
                                     className={`${isEven ? "md:pl-14" : "md:pr-14 md:order-first"}`}
