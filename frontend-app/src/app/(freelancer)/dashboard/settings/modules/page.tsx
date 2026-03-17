@@ -1,20 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { DashboardShell } from '@/components/layout/DashboardShell';
 import { ModuleCard, WorkspacePlan } from './_components/ModuleCard';
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import { Puzzle, Crown } from 'lucide-react';
+import { Crown } from 'lucide-react';
 import { useWorkspaceSettings } from '@/hooks/use-workspace-settings';
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 export default function ModulesPage() {
     const { t } = useWorkspaceSettings();
     const { activeWorkspace } = useAuth();
     const userPlan = (activeWorkspace?.plan ?? 'free') as WorkspacePlan;
-
-    // ─── Module definitions ───────────────────────────────────────────────────────
 
     const MODULES = [
         {
@@ -109,10 +104,7 @@ export default function ModulesPage() {
         },
     ];
 
-
-    // In the future this will come from workspace settings
     const [activeModuleIds, setActiveModuleIds] = useState<string[]>([]);
-
     const activeCount = activeModuleIds.length;
 
     const toggleModule = (id: string) => {
@@ -121,84 +113,79 @@ export default function ModulesPage() {
         );
     };
 
-    // Plan descriptions
-    const planInfo: Record<WorkspacePlan, { label: string; limit: string; color: string }> = {
-        free: { label: 'Free', limit: t('modules.planFreeLimit'), color: 'bg-zinc-100 text-zinc-600 border-zinc-200' },
-        pro: { label: 'Pro', limit: t('modules.planProLimit'), color: 'bg-amber-100 text-amber-700 border-amber-200' },
-        premium: { label: 'Premium', limit: t('modules.planPremiumLimit'), color: 'bg-violet-100 text-violet-700 border-violet-200' },
+    const planInfo: Record<WorkspacePlan, { label: string; limit: string; cls: string }> = {
+        free: { label: 'Free', limit: t('modules.planFreeLimit'), cls: 'bg-gray-100 dark:bg-white/[0.06] text-gray-600 dark:text-white/60 border-gray-200 dark:border-white/[0.08]' },
+        pro: { label: 'Pro', limit: t('modules.planProLimit'), cls: 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800/30' },
+        premium: { label: 'Premium', limit: t('modules.planPremiumLimit'), cls: 'bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-400 border-violet-200 dark:border-violet-800/30' },
     };
-    const { label, limit, color } = planInfo[userPlan];
+    const { label, limit, cls } = planInfo[userPlan];
 
     return (
-        <DashboardShell>
-            <div className="space-y-8 w-full py-2">
-                {/* Header */}
-                <div className="flex items-start justify-between gap-4">
-                    <div>
-                        <h1 className="text-xl font-semibold tracking-tight flex items-center gap-2">
-                            <Puzzle className="w-5 h-5 text-primary" />
-                            {t('modules.title')}
-                        </h1>
-                        <p className="text-sm text-muted-foreground mt-1">
-                            {t('modules.titleDesc')}
-                        </p>
-                    </div>
+        <div className="px-6 py-6">
 
-                    {/* Plan badge + usage */}
-                    <div className={`flex-shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold ${color}`}>
-                        <Crown className="w-3 h-3" />
-                        {label} — {limit}
-                    </div>
-                </div>
-
-                {/* Pro limit notice */}
-                {userPlan === 'pro' && activeCount >= 1 && (
-                    <div className="rounded-xl border border-amber-200/60 bg-amber-50/50 dark:bg-amber-900/10 dark:border-amber-800/30 px-4 py-3 text-sm text-amber-800 dark:text-amber-400 flex items-center gap-2">
-                        <Crown className="w-4 h-4 shrink-0" />
-                        {t('modules.proLimitReachedPrefix')} <strong>{t('modules.proLimitReachedPremium')}</strong> {t('modules.proLimitReachedPostfix')}
-                    </div>
-                )}
-
-                {/* Pro modules */}
+            {/* Header */}
+            <div className="flex items-start justify-between gap-4 mb-8">
                 <div>
-                    <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4 flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-amber-400 block" />
-                        {t('modules.proModules')}
+                    <h1 className="text-[18px] font-bold text-gray-900 dark:text-white tracking-tight">
+                        {t('modules.title')}
+                    </h1>
+                    <p className="text-[13px] text-gray-500 dark:text-white/50 mt-0.5 leading-snug">
+                        {t('modules.titleDesc')}
                     </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {MODULES.filter(m => m.requiredPlan === 'pro').map(module => (
-                            <ModuleCard
-                                key={module.id}
-                                {...module}
-                                isActive={activeModuleIds.includes(module.id)}
-                                activeModulesCount={activeCount}
-                                userPlan={userPlan}
-                                onActivate={() => toggleModule(module.id)}
-                            />
-                        ))}
-                    </div>
                 </div>
-
-                {/* Premium modules */}
-                <div>
-                    <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4 flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-violet-400 block" />
-                        {t('modules.premiumModules')}
-                    </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {MODULES.filter(m => m.requiredPlan === 'premium').map(module => (
-                            <ModuleCard
-                                key={module.id}
-                                {...module}
-                                isActive={activeModuleIds.includes(module.id)}
-                                activeModulesCount={activeCount}
-                                userPlan={userPlan}
-                                onActivate={() => toggleModule(module.id)}
-                            />
-                        ))}
-                    </div>
+                <div className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11px] font-semibold ${cls}`}>
+                    <Crown className="w-3 h-3" />
+                    {label} — {limit}
                 </div>
             </div>
-        </DashboardShell>
+
+            {/* Pro limit notice */}
+            {userPlan === 'pro' && activeCount >= 1 && (
+                <div className="rounded-xl border border-amber-200/60 dark:border-amber-800/30 bg-amber-50/50 dark:bg-amber-900/10 px-4 py-3 text-[13px] text-amber-800 dark:text-amber-400 flex items-center gap-2 mb-6">
+                    <Crown className="w-4 h-4 shrink-0" />
+                    {t('modules.proLimitReachedPrefix')} <strong>{t('modules.proLimitReachedPremium')}</strong> {t('modules.proLimitReachedPostfix')}
+                </div>
+            )}
+
+            {/* Pro modules */}
+            <div className="mb-8">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-white/40 mb-4 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
+                    {t('modules.proModules')}
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {MODULES.filter(m => m.requiredPlan === 'pro').map(module => (
+                        <ModuleCard
+                            key={module.id}
+                            {...module}
+                            isActive={activeModuleIds.includes(module.id)}
+                            activeModulesCount={activeCount}
+                            userPlan={userPlan}
+                            onActivate={() => toggleModule(module.id)}
+                        />
+                    ))}
+                </div>
+            </div>
+
+            {/* Premium modules */}
+            <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-white/40 mb-4 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-violet-400 shrink-0" />
+                    {t('modules.premiumModules')}
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {MODULES.filter(m => m.requiredPlan === 'premium').map(module => (
+                        <ModuleCard
+                            key={module.id}
+                            {...module}
+                            isActive={activeModuleIds.includes(module.id)}
+                            activeModulesCount={activeCount}
+                            userPlan={userPlan}
+                            onActivate={() => toggleModule(module.id)}
+                        />
+                    ))}
+                </div>
+            </div>
+        </div>
     );
 }

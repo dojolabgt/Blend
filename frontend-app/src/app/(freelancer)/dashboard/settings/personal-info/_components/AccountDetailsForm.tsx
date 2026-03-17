@@ -22,16 +22,7 @@ import {
     FormMessage,
 } from '@/components/ui/form';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
 import { AppInput } from '@/components/common/AppInput';
-import { PrimaryButton } from '@/components/common/PrimaryButton';
 
 const accountSchema = z.object({
     firstName: z.string().min(2, 'El nombre debe tener al menos 2 caracteres').max(100),
@@ -107,43 +98,53 @@ export function AccountDetailsForm() {
 
     const initials = ((user?.firstName || user?.email || 'U')[0] + (user?.lastName?.[0] || '')).toUpperCase();
     const currentImage = getImageUrl(user?.profileImage);
+    const fullName = `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || 'Usuario';
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4">
 
-            {/* ── Foto Personal ─────────────────────────────────── */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>{t('personalInfo.photoTitle')}</CardTitle>
-                    <CardDescription>
-                        {t('personalInfo.photoDesc')}
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="relative group inline-flex flex-shrink-0">
-                        <div className="absolute -inset-0.5 bg-gradient-to-tr from-primary/30 to-primary/0 rounded-full blur opacity-0 group-hover:opacity-100 transition duration-500" />
-                        <Avatar
-                            className="relative h-20 w-20 border-2 border-background shadow-sm cursor-pointer transition-all duration-300 group-hover:scale-[1.02]"
-                            onClick={() => fileInputRef.current?.click()}
-                        >
-                            <AvatarImage
-                                src={currentImage}
-                                alt={user?.firstName ? `${user.firstName} ${user?.lastName ?? ''}` : 'Usuario'}
-                                className="object-cover"
-                            />
-                            <AvatarFallback className="text-2xl font-bold bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 uppercase">
-                                {initials}
-                            </AvatarFallback>
-                        </Avatar>
+            {/* ── Foto de Perfil ── */}
+            <div className="rounded-2xl border border-gray-100 dark:border-white/[0.06] bg-white dark:bg-[#1a1a1a] overflow-hidden">
+                <div className="px-6 py-5 border-b border-gray-100 dark:border-white/[0.05]">
+                    <h3 className="text-[14px] font-semibold text-gray-900 dark:text-white">{t('personalInfo.photoTitle')}</h3>
+                    <p className="text-[12px] text-gray-500 dark:text-white/50 mt-0.5">{t('personalInfo.photoDesc')}</p>
+                </div>
+                <div className="px-6 py-5">
+                    <div className="flex items-center gap-5">
+                        {/* Avatar clickable */}
                         <div
-                            className="absolute inset-0 z-10 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-pointer"
+                            className="relative group cursor-pointer shrink-0"
                             onClick={() => fileInputRef.current?.click()}
                         >
-                            {isUploadingImage
-                                ? <Loader2 className="w-5 h-5 text-white animate-spin" />
-                                : <Camera className="w-5 h-5 text-white" />
-                            }
+                            <Avatar className="h-16 w-16 rounded-2xl ring-1 ring-gray-200 dark:ring-white/[0.08]">
+                                <AvatarImage src={currentImage} alt={fullName} className="object-cover" />
+                                <AvatarFallback className="rounded-2xl text-lg font-bold bg-zinc-900 dark:bg-zinc-800 text-white uppercase">
+                                    {initials}
+                                </AvatarFallback>
+                            </Avatar>
+                            <div className="absolute inset-0 rounded-2xl bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200">
+                                {isUploadingImage
+                                    ? <Loader2 className="w-4 h-4 text-white animate-spin" />
+                                    : <Camera className="w-4 h-4 text-white" />
+                                }
+                            </div>
                         </div>
+
+                        {/* Upload text */}
+                        <div>
+                            <button
+                                type="button"
+                                disabled={isUploadingImage}
+                                onClick={() => fileInputRef.current?.click()}
+                                className="text-[13px] font-medium text-gray-900 dark:text-white hover:text-gray-600 dark:hover:text-white/70 transition-colors disabled:opacity-40"
+                            >
+                                {isUploadingImage ? t('branding.btnUploading') : t('personalInfo.photoTitle')}
+                            </button>
+                            <p className="text-[11px] text-gray-500 dark:text-white/50 mt-0.5">
+                                PNG, JPG o WEBP · Máx. 2 MB
+                            </p>
+                        </div>
+
                         <input
                             type="file"
                             ref={fileInputRef}
@@ -152,29 +153,34 @@ export function AccountDetailsForm() {
                             accept="image/png, image/jpeg, image/jpg, image/webp"
                         />
                     </div>
-                </CardContent>
-            </Card>
+                </div>
+            </div>
 
-            {/* ── Información Personal ───────────────────────────── */}
+            {/* ── Información Personal ── */}
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)}>
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>{t('personalInfo.formTitle')}</CardTitle>
-                            <CardDescription>
-                                {t('personalInfo.formDesc')}
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="rounded-2xl border border-gray-100 dark:border-white/[0.06] bg-white dark:bg-[#1a1a1a] overflow-hidden">
+                        <div className="px-6 py-5 border-b border-gray-100 dark:border-white/[0.05]">
+                            <h3 className="text-[14px] font-semibold text-gray-900 dark:text-white">{t('personalInfo.formTitle')}</h3>
+                            <p className="text-[12px] text-gray-500 dark:text-white/50 mt-0.5">{t('personalInfo.formDesc')}</p>
+                        </div>
+
+                        <div className="px-6 py-5">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                 <FormField
                                     control={form.control}
                                     name="firstName"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>{t('personalInfo.firstNameLabel')}</FormLabel>
+                                            <FormLabel className="text-[12px] font-medium text-gray-700 dark:text-white/75">
+                                                {t('personalInfo.firstNameLabel')}
+                                            </FormLabel>
                                             <FormControl>
-                                                <AppInput placeholder={t('personalInfo.firstNamePlaceholder')} {...field} />
+                                                <AppInput
+                                                    placeholder={t('personalInfo.firstNamePlaceholder')}
+                                                    className="dark:bg-white/[0.05] dark:border-white/[0.08] dark:text-white dark:placeholder:text-white/40"
+                                                    {...field}
+                                                />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -185,9 +191,15 @@ export function AccountDetailsForm() {
                                     name="lastName"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>{t('personalInfo.lastNameLabel')}</FormLabel>
+                                            <FormLabel className="text-[12px] font-medium text-gray-700 dark:text-white/75">
+                                                {t('personalInfo.lastNameLabel')}
+                                            </FormLabel>
                                             <FormControl>
-                                                <AppInput placeholder={t('personalInfo.lastNamePlaceholder')} {...field} />
+                                                <AppInput
+                                                    placeholder={t('personalInfo.lastNamePlaceholder')}
+                                                    className="dark:bg-white/[0.05] dark:border-white/[0.08] dark:text-white dark:placeholder:text-white/40"
+                                                    {...field}
+                                                />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -198,15 +210,18 @@ export function AccountDetailsForm() {
                                     name="email"
                                     render={({ field }) => (
                                         <FormItem className="sm:col-span-2">
-                                            <FormLabel>{t('personalInfo.emailLabel')}</FormLabel>
+                                            <FormLabel className="text-[12px] font-medium text-gray-700 dark:text-white/75">
+                                                {t('personalInfo.emailLabel')}
+                                            </FormLabel>
                                             <FormControl>
                                                 <AppInput
                                                     placeholder={t('personalInfo.emailPlaceholder')}
                                                     type="email"
+                                                    className="dark:bg-white/[0.05] dark:border-white/[0.08] dark:text-white dark:placeholder:text-white/40"
                                                     {...field}
                                                 />
                                             </FormControl>
-                                            <FormDescription className="text-xs">
+                                            <FormDescription className="text-[11px] text-gray-400 dark:text-white/50">
                                                 {t('personalInfo.emailDesc')}
                                             </FormDescription>
                                             <FormMessage />
@@ -214,21 +229,20 @@ export function AccountDetailsForm() {
                                     )}
                                 />
                             </div>
-                        </CardContent>
-                        <CardFooter className="justify-between border-t border-border/40 pt-6">
-                            <p className="text-xs text-muted-foreground">{t('personalInfo.footerNote')}</p>
-                            <PrimaryButton compact type="submit" disabled={isSaving}>
-                                {isSaving ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        {t('personalInfo.btnSaving')}
-                                    </>
-                                ) : (
-                                    t('personalInfo.btnSave')
-                                )}
-                            </PrimaryButton>
-                        </CardFooter>
-                    </Card>
+                        </div>
+
+                        <div className="px-6 py-4 border-t border-gray-100 dark:border-white/[0.05] flex items-center justify-between">
+                            <p className="text-[11px] text-gray-400 dark:text-white/50">{t('personalInfo.footerNote')}</p>
+                            <button
+                                type="submit"
+                                disabled={isSaving}
+                                className="flex items-center gap-2 h-9 px-5 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-[13px] font-semibold hover:bg-gray-700 dark:hover:bg-white/90 transition-colors disabled:opacity-40"
+                            >
+                                {isSaving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                                {isSaving ? t('personalInfo.btnSaving') : t('personalInfo.btnSave')}
+                            </button>
+                        </div>
+                    </div>
                 </form>
             </Form>
 

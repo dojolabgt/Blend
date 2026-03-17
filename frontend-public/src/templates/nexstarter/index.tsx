@@ -1,9 +1,9 @@
 import { Hero } from './components/Hero';
 import { Features } from './components/Features';
+import { Technologies } from './components/Technologies';
 import { DashboardPreview } from './components/DashboardPreview';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
-import { Technologies } from './components/Technologies';
 
 export function NexStarterTemplate() {
     return (
@@ -11,8 +11,8 @@ export function NexStarterTemplate() {
             <Header />
             <main className="flex-1">
                 <Hero />
-                <Technologies />
                 <Features />
+                <Technologies />
                 <DashboardPreview />
             </main>
             <Footer />

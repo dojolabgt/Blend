@@ -1,151 +1,152 @@
 "use client";
 
+import Link from "next/link";
 import { motion } from "framer-motion";
-import {
-    LayoutDashboard,
-    Users,
-    Settings,
-    Bell,
-    Search,
-    CreditCard,
-    Activity
-} from "lucide-react";
-import Image from "next/image";
+import { Check, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+const DASHBOARD_URL = process.env.NEXT_PUBLIC_DASHBOARD_URL || '';
+
+const PLANS = [
+    {
+        name: "Free",
+        price: "$0",
+        period: "para siempre",
+        description: "Para empezar a organizar tu negocio freelance.",
+        features: [
+            "Hasta 3 deals activos",
+            "1 usuario",
+            "Gestión de clientes",
+            "Brief digital",
+        ],
+        cta: "Empezar gratis",
+        href: `${DASHBOARD_URL}/register`,
+        featured: false,
+    },
+    {
+        name: "Pro",
+        price: "$19",
+        period: "/ mes",
+        description: "Para freelancers que quieren escalar y verse profesionales.",
+        features: [
+            "Deals ilimitados",
+            "Branding personalizado",
+            "Cotizaciones A/B",
+            "Integración Recurrente",
+            "Planes de pago con hitos",
+        ],
+        cta: "Empezar con Pro",
+        href: `${DASHBOARD_URL}/register?plan=pro`,
+        featured: true,
+    },
+    {
+        name: "Premium",
+        price: "$39",
+        period: "/ mes",
+        description: "Para agencias y equipos que colaboran en proyectos.",
+        features: [
+            "Todo lo de Pro",
+            "Colaboradores ilimitados",
+            "Red de workspaces",
+            "Splits de ingresos",
+            "Soporte prioritario",
+        ],
+        cta: "Empezar con Premium",
+        href: `${DASHBOARD_URL}/register?plan=premium`,
+        featured: false,
+    },
+];
 
 export function DashboardPreview() {
     return (
-        <section id="demo" className="py-24 bg-white dark:bg-black overflow-hidden relative">
-            {/* Background Decoration */}
-            <div className="absolute inset-0 z-0 pointer-events-none">
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gradient-to-tr from-indigo-50/50 via-white to-purple-50/50 dark:from-indigo-950/20 dark:via-black dark:to-purple-950/20 blur-3xl opacity-60" />
-            </div>
+        <section id="precios" className="py-28 bg-gray-50/60">
+            <div className="container mx-auto px-4 max-w-5xl">
 
-            <div className="container mx-auto px-4 relative z-10 text-center">
-                <div className="max-w-4xl mx-auto mb-16">
-                    <h2 className="text-3xl md:text-5xl font-black tracking-tight text-gray-900 dark:text-gray-100 mb-6">
-                        Interfaz Premium lista para usar
+                {/* Header */}
+                <div className="text-center max-w-2xl mx-auto mb-14">
+                    <p className="text-[11px] font-semibold tracking-widest text-gray-400 uppercase mb-4">
+                        Precios
+                    </p>
+                    <h2 className="text-4xl md:text-5xl font-black tracking-tight text-gray-900 leading-tight mb-4">
+                        Elige tu plan.
                     </h2>
-                    <p className="text-xl text-gray-600 dark:text-gray-300 font-light">
-                        Diseñado con atención obsesiva al detalle. Componentes modulares, accesibles y totalmente personalizables.
+                    <p className="text-lg text-gray-500 font-light">
+                        Empieza gratis. Sube de plan cuando tu negocio lo necesite.
                     </p>
                 </div>
 
-                {/* Dashboard Browser Mockup */}
-                <motion.div
-                    initial={{ opacity: 0, y: 40 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: "-100px" }}
-                    transition={{ duration: 0.8, ease: "easeOut" }}
-                    className="relative max-w-7xl mx-auto"
-                >
-                    <div className="rounded-xl bg-zinc-950 shadow-2xl overflow-hidden border border-gray-800">
-                        {/* Browser Header */}
-                        <div className="bg-zinc-900 px-4 py-3 flex items-center gap-2 border-b border-white/5">
-                            <div className="flex gap-2">
-                                <div className="w-3 h-3 rounded-full bg-red-500" />
-                                <div className="w-3 h-3 rounded-full bg-yellow-500" />
-                                <div className="w-3 h-3 rounded-full bg-green-500" />
-                            </div>
-                            <div className="flex-1 text-center">
-                                <div className="bg-zinc-800 rounded-md px-3 py-1 text-xs text-gray-400 inline-block font-mono">
-                                    localhost:3000/dashboard
+                {/* Plans grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-stretch">
+                    {PLANS.map((plan, index) => (
+                        <motion.div
+                            key={index}
+                            initial={{ opacity: 0, y: 24 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true, margin: "-60px" }}
+                            transition={{ duration: 0.45, delay: index * 0.1 }}
+                            className={`relative flex flex-col rounded-3xl p-7 ${
+                                plan.featured
+                                    ? "bg-gray-900 text-white shadow-2xl shadow-black/15 scale-[1.02]"
+                                    : "bg-white border border-gray-100 shadow-sm"
+                            }`}
+                        >
+                            {plan.featured && (
+                                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
+                                    <span className="bg-white text-gray-900 text-[11px] font-bold tracking-widest uppercase px-4 py-1.5 rounded-full shadow-sm border border-gray-100">
+                                        Más popular
+                                    </span>
                                 </div>
-                            </div>
-                        </div>
+                            )}
 
-                        {/* Real Dashboard Layout: Dark Sidebar + White Content Card */}
-                        <div className="flex h-[800px] bg-zinc-950 text-left overflow-hidden relative font-sans">
-
-                            {/* Dark Sidebar */}
-                            <aside className="w-64 bg-zinc-950 border-r border-white/5 flex flex-col hidden md:flex">
-                                {/* Branding */}
-                                <div className="h-16 flex items-center px-6 border-b border-white/5">
-                                    <div className="flex items-center gap-2 font-bold text-xl text-white">
-                                        <Image
-                                            src="/logos/NexLogo.png"
-                                            alt="NexStack Logo"
-                                            width={32}
-                                            height={32}
-                                            className="w-8 h-8 rounded-lg object-contain"
-                                        />
-                                        <span>NexStack</span>
-                                    </div>
+                            <div className="mb-6">
+                                <p className={`text-[11px] font-semibold tracking-widest uppercase mb-3 ${plan.featured ? "text-gray-400" : "text-gray-400"}`}>
+                                    {plan.name}
+                                </p>
+                                <div className="flex items-baseline gap-1 mb-2">
+                                    <span className={`text-4xl font-black ${plan.featured ? "text-white" : "text-gray-900"}`}>
+                                        {plan.price}
+                                    </span>
+                                    <span className={`text-sm ${plan.featured ? "text-gray-400" : "text-gray-400"}`}>
+                                        {plan.period}
+                                    </span>
                                 </div>
-
-                                {/* Nav Items */}
-                                <nav className="flex-1 px-3 py-6 space-y-1">
-                                    {[
-                                        { icon: LayoutDashboard, label: "Overview", active: true },
-                                        { icon: Users, label: "Usuarios", active: false },
-                                        { icon: Settings, label: "Settings", active: false },
-                                    ].map((item, i) => (
-                                        <div key={i} className={`flex items-center px-3 py-2.5 rounded-xl cursor-default transition-all ${item.active ? 'bg-white text-zinc-900 shadow-lg shadow-white/10' : 'text-zinc-400 opacity-60'}`}>
-                                            <item.icon size={18} className="mr-3" />
-                                            <span className="font-medium text-sm">{item.label}</span>
-                                        </div>
-                                    ))}
-                                </nav>
-
-                                {/* User Profile */}
-                                <div className="p-4 border-t border-white/5">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-9 h-9 rounded-full bg-zinc-800 border border-white/10" />
-                                        <div className="flex-1">
-                                            <div className="h-3 w-20 bg-zinc-800 rounded mb-1" />
-                                            <div className="h-2 w-12 bg-zinc-800 rounded opacity-50" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </aside>
-
-                            {/* Main Content Wrapper - White Card Layout */}
-                            <div className="flex-1 flex flex-col h-full relative p-4">
-                                <main className="flex-1 bg-white rounded-[2.5rem] shadow-xl shadow-zinc-200/50 border border-zinc-100 flex flex-col overflow-hidden relative">
-                                    {/* Header Inside Card */}
-                                    <header className="px-8 py-6 flex items-center justify-between border-b border-gray-50">
-                                        <div>
-                                            <h1 className="text-2xl font-bold text-zinc-900">Dashboard</h1>
-                                            <p className="text-zinc-500 text-sm">Bienvenido de nuevo, Admin</p>
-                                        </div>
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-400">
-                                                <Search size={18} />
-                                            </div>
-                                            <div className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 relative">
-                                                <Bell size={18} />
-                                                <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
-                                            </div>
-                                        </div>
-                                    </header>
-
-                                    {/* Content Area */}
-                                    <div className="flex-1 overflow-hidden p-8 bg-slate-50/50">
-                                        {/* Stats Grid */}
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                                            {[
-                                                { label: "Total Revenue", value: "$45,231", change: "+20.1%", icon: CreditCard },
-                                                { label: "Active Users", value: "2,845", change: "+12.5%", icon: Users },
-                                                { label: "Projects", value: "127", change: "+8.2%", icon: Activity },
-                                            ].map((stat, i) => (
-                                                <div key={i} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                                                    <div className="flex justify-between items-start mb-4">
-                                                        <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600">
-                                                            <stat.icon size={20} />
-                                                        </div>
-                                                        <span className="text-xs font-medium px-2 py-1 rounded-full bg-green-50 text-green-700">{stat.change}</span>
-                                                    </div>
-                                                    <div className="text-2xl font-bold text-gray-900 mb-1">{stat.value}</div>
-                                                    <div className="text-sm text-gray-500">{stat.label}</div>
-                                                </div>
-                                            ))}
-                                        </div>
-
-                                    </div>
-                                </main>
+                                <p className={`text-[13px] leading-snug ${plan.featured ? "text-gray-400" : "text-gray-500"}`}>
+                                    {plan.description}
+                                </p>
                             </div>
-                        </div>
-                    </div>
-                </motion.div>
+
+                            <ul className="space-y-2.5 mb-8 flex-1">
+                                {plan.features.map((feature, i) => (
+                                    <li key={i} className="flex items-center gap-2.5 text-[13px]">
+                                        <Check className={`h-4 w-4 shrink-0 ${plan.featured ? "text-gray-400" : "text-gray-400"}`} strokeWidth={2.5} />
+                                        <span className={plan.featured ? "text-gray-200" : "text-gray-600"}>
+                                            {feature}
+                                        </span>
+                                    </li>
+                                ))}
+                            </ul>
+
+                            <Button
+                                asChild
+                                className={`w-full rounded-xl h-11 text-[14px] font-semibold transition-all duration-200 ${
+                                    plan.featured
+                                        ? "bg-white text-gray-900 hover:bg-gray-100 shadow-none"
+                                        : "bg-gray-900 text-white hover:bg-gray-800"
+                                }`}
+                            >
+                                <Link href={plan.href}>
+                                    {plan.cta}
+                                    <ArrowRight className="ml-2 h-4 w-4" />
+                                </Link>
+                            </Button>
+                        </motion.div>
+                    ))}
+                </div>
+
+                <p className="text-center text-[12px] text-gray-400 mt-8">
+                    Precios en USD. Sin contratos. Cancela cuando quieras.
+                </p>
+
             </div>
         </section>
     );

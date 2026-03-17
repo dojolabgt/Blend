@@ -1,17 +1,6 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { PrimaryButton } from '@/components/common/PrimaryButton';
-import { CheckCircle2, ChevronRight } from 'lucide-react';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-    CardFooter,
-} from '@/components/ui/card';
+import { CheckCircle2, ChevronRight, Lock } from 'lucide-react';
 import { useWorkspaceSettings } from '@/hooks/use-workspace-settings';
 
 interface IntegrationCardProps {
@@ -41,77 +30,87 @@ export function IntegrationCard({
 }: IntegrationCardProps) {
     const { t } = useWorkspaceSettings();
     const isLocked = (proOnly && !userIsPro) || !!disabledReason;
+    const isDisabled = comingSoon || isLocked;
 
     return (
-        <Card className={`flex flex-col transition-all duration-300 ${comingSoon ? 'opacity-70 grayscale' : isLocked ? 'opacity-80' : 'hover:shadow-md hover:-translate-y-0.5 hover:border-zinc-300 dark:hover:border-zinc-700'}`}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                {/* Logo */}
-                <div className={`flex-shrink-0 w-12 h-12 rounded-xl bg-zinc-50 dark:bg-zinc-800/80 border flex items-center justify-center overflow-hidden p-2.5 shadow-sm transition-transform ${isLocked && !disabledReason ? 'grayscale' : 'group-hover:scale-105'}`}>
+        <div className={`flex flex-col rounded-2xl border transition-all duration-200 ${
+            comingSoon
+                ? 'opacity-55 grayscale border-gray-100 dark:border-white/[0.05] bg-white dark:bg-[#1a1a1a]'
+                : isLocked
+                    ? 'opacity-70 border-gray-100 dark:border-white/[0.06] bg-white dark:bg-[#1a1a1a]'
+                    : 'border-gray-100 dark:border-white/[0.06] bg-white dark:bg-[#1a1a1a] hover:border-gray-200 dark:hover:border-white/[0.1]'
+        }`}>
+
+            {/* Top row: logo + status */}
+            <div className="px-5 pt-5 pb-3 flex items-center justify-between">
+                <div className="w-11 h-11 rounded-xl bg-gray-50 dark:bg-white/[0.05] border border-gray-100 dark:border-white/[0.06] flex items-center justify-center p-2.5 shrink-0">
                     {logo}
                 </div>
-
-                {/* Status Badge */}
-                <div className="flex items-center">
-                    {comingSoon ? (
-                        <Badge className="bg-zinc-100 text-zinc-500 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 text-[10px] font-semibold px-2 py-0.5 uppercase tracking-wider shadow-none">
-                            Beta
-                        </Badge>
-                    ) : isConfigured ? (
-                        <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800/30 gap-1 text-[10px] font-medium px-2 py-0.5 shadow-sm uppercase tracking-wider">
-                            <CheckCircle2 className="w-3 h-3" />
-                            {t('integrations.connected')}
-                        </Badge>
-                    ) : (
-                        <Badge variant="outline" className="text-muted-foreground gap-1 text-[10px] font-medium px-2 py-0.5 uppercase tracking-wider shadow-sm border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
-                            {t('integrations.inactive')}
-                        </Badge>
-                    )}
-                </div>
-            </CardHeader>
-
-            <CardContent className="flex-1 pb-4">
-                <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                        <CardTitle className="text-lg tracking-tight">
-                            {name}
-                        </CardTitle>
-                        {badges && badges.length > 0 && (
-                            <div className="flex items-center gap-1.5 ml-1">
-                                {badges.map((badge, idx) => (
-                                    <div key={idx} className="flex">{badge}</div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                    {proOnly && (
-                        <Badge className="bg-amber-100/70 hover:bg-amber-100/70 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800/50 shadow-none text-[9px] font-bold px-1.5 py-0 uppercase tracking-widest leading-4">
-                            PRO
-                        </Badge>
-                    )}
-                </div>
-                <CardDescription className="leading-relaxed line-clamp-3 text-sm">{description}</CardDescription>
-            </CardContent>
-
-            <CardFooter className="pt-4 border-t border-border/50">
-                {isConfigured || comingSoon || isLocked ? (
-                    <Button
-                        variant={isConfigured ? 'outline' : 'secondary'}
-                        className={`w-full gap-2 transition-all active:scale-[0.98] h-12 rounded-xl text-base`}
-                        onClick={onConfigure}
-                        disabled={comingSoon || isLocked}
-                    >
-                        {isLocked ? (disabledReason || t('integrations.requiresPro')) : comingSoon ? t('integrations.notAvailableYet') : t('integrations.configuration')}
-                    </Button>
+                {comingSoon ? (
+                    <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-lg bg-gray-100 dark:bg-white/[0.06] text-gray-400 dark:text-white/40">
+                        Próximamente
+                    </span>
+                ) : isConfigured ? (
+                    <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider px-2 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800/30">
+                        <CheckCircle2 className="w-3 h-3" />
+                        {t('integrations.connected')}
+                    </span>
                 ) : (
-                    <PrimaryButton
-                        className="w-full gap-2"
+                    <span className="text-[9px] font-semibold uppercase tracking-widest px-2 py-1 rounded-lg bg-gray-50 dark:bg-white/[0.04] text-gray-400 dark:text-white/35 border border-gray-100 dark:border-white/[0.06]">
+                        {t('integrations.inactive')}
+                    </span>
+                )}
+            </div>
+
+            {/* Name + description */}
+            <div className="px-5 pb-4 flex-1">
+                <div className="flex items-center gap-2 mb-1.5">
+                    <h3 className="font-semibold text-[15px] text-gray-900 dark:text-white tracking-tight">{name}</h3>
+                    {badges && badges.length > 0 && (
+                        <div className="flex items-center gap-1">
+                            {badges.map((badge, idx) => <div key={idx}>{badge}</div>)}
+                        </div>
+                    )}
+                    {proOnly && (
+                        <span className="text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-md bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-100 dark:border-amber-800/30">
+                            PRO
+                        </span>
+                    )}
+                </div>
+                <p className="text-[13px] text-gray-500 dark:text-white/50 leading-relaxed line-clamp-3">
+                    {description}
+                </p>
+            </div>
+
+            {/* Footer button */}
+            <div className="px-4 pb-4">
+                <div className="h-px bg-gray-100 dark:bg-white/[0.05] mb-3" />
+                {isDisabled ? (
+                    <button
+                        disabled
+                        className="w-full py-2.5 px-4 rounded-xl text-[13px] font-medium flex items-center justify-center gap-2 bg-gray-50 dark:bg-white/[0.03] text-gray-400 dark:text-white/30 border border-gray-100 dark:border-white/[0.05] cursor-not-allowed"
+                    >
+                        <Lock className="w-3.5 h-3.5 shrink-0" />
+                        <span className="truncate">{isLocked ? (disabledReason || t('integrations.requiresPro')) : t('integrations.notAvailableYet')}</span>
+                    </button>
+                ) : isConfigured ? (
+                    <button
                         onClick={onConfigure}
+                        className="w-full py-2.5 px-4 rounded-xl text-[13px] font-medium flex items-center justify-center gap-2 border border-gray-200 dark:border-white/[0.1] text-gray-700 dark:text-white/70 hover:bg-gray-50 dark:hover:bg-white/[0.04] transition-colors"
+                    >
+                        {t('integrations.configuration')}
+                        <ChevronRight className="w-3.5 h-3.5 ml-auto" />
+                    </button>
+                ) : (
+                    <button
+                        onClick={onConfigure}
+                        className="w-full py-2.5 px-4 rounded-xl text-[13px] font-semibold flex items-center justify-center gap-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-white/90 transition-colors"
                     >
                         {t('integrations.connectAccount')}
-                        <ChevronRight className="w-4 h-4 ml-auto" />
-                    </PrimaryButton>
+                        <ChevronRight className="w-3.5 h-3.5 ml-auto" />
+                    </button>
                 )}
-            </CardFooter>
-        </Card>
+            </div>
+        </div>
     );
 }

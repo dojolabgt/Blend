@@ -8,9 +8,11 @@ import {
   Delete,
   UseGuards,
   Req,
+  Query,
 } from '@nestjs/common';
 import { ServicesService } from './services.service';
 import { CreateServiceDto, UpdateServiceDto } from './dto/service.dto';
+import { ServicesQueryDto } from './dto/services-query.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { WorkspaceGuard } from '../common/guards/workspace.guard';
 import type { AuthRequest } from '../common/types/auth-request';
@@ -26,14 +28,17 @@ export class ServicesController {
   }
 
   @Get()
-  findAll(@Req() req: AuthRequest) {
-    return this.servicesService.findAll(req.workspaceId);
+  findAll(@Req() req: AuthRequest, @Query() query: ServicesQueryDto) {
+    return this.servicesService.findAll(req.workspaceId, query);
   }
 
   // Allow fetching any workspace's services (needed by collaborators in a deal)
   @Get('workspace/:workspaceId')
-  findAllByWorkspace(@Param('workspaceId') workspaceId: string) {
-    return this.servicesService.findAll(workspaceId);
+  findAllByWorkspace(
+    @Param('workspaceId') workspaceId: string,
+    @Query() query: ServicesQueryDto,
+  ) {
+    return this.servicesService.findAll(workspaceId, query);
   }
 
   @Get(':id')

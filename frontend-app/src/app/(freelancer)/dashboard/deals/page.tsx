@@ -1,14 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, ArrowRight, Handshake, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DashboardShell } from '@/components/layout/DashboardShell';
 import { useWorkspaceSettings } from '@/hooks/use-workspace-settings';
-import { useDeals, Deal } from '@/hooks/use-deals';
+import { useDeals, Deal, DealStatus } from '@/hooks/use-deals';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { clientsApi } from '@/features/clients/api';
+import { dealsApi } from '@/features/deals/api';
 import { Client } from '@/features/clients/types';
 import {
     Dialog,
@@ -32,6 +33,10 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DataTable, ColumnDef } from '@/components/common/DataTable';
+import { useListState } from '@/hooks/use-list-state';
+import { AppSearch } from '@/components/common/AppSearch';
+import { AppFilterTabs, FilterOption } from '@/components/common/AppFilterTabs';
+import { AppPagination } from '@/components/common/AppPagination';
 import { toast } from 'sonner';
 
 // ─── Status helpers ───────────────────────────────────────────────────────────
@@ -54,7 +59,15 @@ const STATUS_LABEL: Record<string, string> = {
     LOST: 'Perdido',
 };
 
-const ALL_STATUSES = ['DRAFT', 'SENT', 'VIEWED', 'NEGOTIATING', 'WON', 'LOST'];
+const STATUS_OPTIONS: FilterOption<DealStatus>[] = [
+    { label: 'Todos', value: undefined },
+    { label: 'Borrador', value: 'DRAFT' as DealStatus },
+    { label: 'Enviado', value: 'SENT' as DealStatus },
+    { label: 'Visto', value: 'VIEWED' as DealStatus },
+    { label: 'Negociando', value: 'NEGOTIATING' as DealStatus },
+    { label: 'Ganado', value: 'WON' as DealStatus },
+    { label: 'Perdido', value: 'LOST' as DealStatus },
+];
 
 function StatusBadge({ status }: { status: string }) {
     const key = status?.toUpperCase() ?? 'DRAFT';
@@ -70,22 +83,47 @@ function StatusBadge({ status }: { status: string }) {
 export default function DealsPage() {
     const { t } = useWorkspaceSettings();
     const { activeWorkspace } = useAuth();
-    const { deals, fetchDeals, createDeal, deleteDeal, isLoading } = useDeals();
+    const { createDeal, deleteDeal, isLoading: isMutating } = useDeals();
     const router = useRouter();
+
+    const list = useListState<{ status: DealStatus | undefined }>({
+        initialFilters: { status: undefined },
+    });
+
+    const [deals, setDeals] = useState<Deal[]>([]);
+    const [meta, setMeta] = useState({ total: 0, totalPages: 1 });
+    const [isLoading, setIsLoading] = useState(true);
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [title, setTitle] = useState('');
     const [clientId, setClientId] = useState('');
     const [clients, setClients] = useState<Client[]>([]);
-    const [statusFilter, setStatusFilter] = useState<string>('ALL');
     const [dealToDelete, setDealToDelete] = useState<Deal | null>(null);
 
+    const loadDeals = useCallback(async () => {
+        if (!activeWorkspace?.id) return;
+        setIsLoading(true);
+        try {
+            const res = await dealsApi.getAll(activeWorkspace.id, list.query);
+            setDeals(res.data);
+            setMeta({ total: res.total, totalPages: res.totalPages });
+        } catch (error) {
+            console.error('Error loading deals', error);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [activeWorkspace?.id, list.query]);
+
+    useEffect(() => {
+        loadDeals();
+    }, [loadDeals]);
+
+    // Load clients for the create dialog (flat list, high limit)
     useEffect(() => {
         if (activeWorkspace) {
-            fetchDeals();
-            clientsApi.getAll().then(setClients).catch(console.error);
+            clientsApi.getAll({ limit: 100 }).then((res) => setClients(res.data)).catch(console.error);
         }
-    }, [activeWorkspace, fetchDeals]);
+    }, [activeWorkspace]);
 
     const handleCreateDeal = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -95,7 +133,6 @@ export default function DealsPage() {
             setIsDialogOpen(false);
             setTitle('');
             setClientId('');
-            // Prefer slug for clean URLs, fall back to id for backward compat
             router.push(`/dashboard/deals/${deal.slug || deal.id}`);
         } else {
             toast.error('Error al crear la propuesta.');
@@ -105,25 +142,24 @@ export default function DealsPage() {
     const handleConfirmDelete = async () => {
         if (!dealToDelete) return;
         const ok = await deleteDeal(dealToDelete.id);
-        if (ok) toast.success('Propuesta eliminada');
-        else toast.error('Error al eliminar la propuesta');
+        if (ok) {
+            toast.success('Propuesta eliminada');
+            loadDeals();
+        } else {
+            toast.error('Error al eliminar la propuesta');
+        }
         setDealToDelete(null);
     };
 
     const getClientName = (deal: Deal) => deal.client?.name ?? '—';
 
     const getDealTotal = (deal: Deal) => {
-        const approved = deal.quotations?.find((q: any) => q.isApproved);
-        const any = deal.quotations?.[0] as any;
-        const total = approved?.total ?? any?.total ?? null;
+        const approved = deal.quotations?.find((q: Record<string, unknown>) => q.isApproved);
+        const any = deal.quotations?.[0] as Record<string, unknown> | undefined;
+        const total = (approved as Record<string, unknown>)?.total ?? any?.total ?? null;
         if (total === null) return null;
         return Number(total);
     };
-
-    // Filter by status
-    const filteredDeals = statusFilter === 'ALL'
-        ? deals
-        : deals.filter(d => d.status?.toString().toUpperCase() === statusFilter);
 
     const columns: ColumnDef<Deal>[] = [
         {
@@ -143,9 +179,7 @@ export default function DealsPage() {
                                 </span>
                             )}
                         </div>
-                        <div className="text-xs text-muted-foreground">
-                            {getClientName(deal)}
-                        </div>
+                        <div className="text-xs text-muted-foreground">{getClientName(deal)}</div>
                     </div>
                 );
             },
@@ -160,29 +194,21 @@ export default function DealsPage() {
             header: 'Total',
             render: (deal) => {
                 const total = getDealTotal(deal);
-                let symbol = deal.currency || '$'; // `Deal.currency` is a string now, based on use-deals payload
-
-                // Si el deal no tiene el currency populado, pero sí el string, podríamos buscarlo 
-                // en activeWorkspace.currencies si estuviera disponible en el contexto. 
-                // Sin embargo, getDealTotal saca el total de approvedQuotation o la primera, 
-                // así que usemos el currency de la quotation si coincide.
-                const approved = deal.quotations?.find((q: any) => q.isApproved) as any;
-                const any = deal.quotations?.[0] as any;
+                const approved = deal.quotations?.find((q: Record<string, unknown>) => q.isApproved) as Record<string, unknown> | undefined;
+                const any = deal.quotations?.[0] as Record<string, unknown> | undefined;
                 const q = approved || any;
+                let symbol = (deal.currency as unknown as { symbol?: string })?.symbol || '$';
 
                 if (q?.currency) {
-                    if (activeWorkspace?.currencies && activeWorkspace.currencies.length > 0) {
-                        const found = activeWorkspace.currencies.find((c: { code: string; symbol: string }) => c.code === q.currency);
-                        if (found) symbol = found.symbol;
-                        else symbol = q.currency;
-                    } else {
+                    const found = activeWorkspace?.currencies?.find(
+                        (c: { code: string; symbol: string }) => c.code === q.currency,
+                    );
+                    if (found) symbol = found.symbol;
+                    else {
                         const fallbacks: Record<string, string> = {
-                            GTQ: 'Q', USD: '$', EUR: '€', MXN: '$', GBP: '£', JPY: '¥',
-                            CAD: '$', AUD: '$', CHF: 'Fr', CNY: '¥', BRL: 'R$', COP: '$',
-                            ARS: '$', PEN: 'S/', CLP: '$', CRC: '₡', HNL: 'L', NIO: 'C$',
-                            DOP: 'RD$', KRW: '₩', INR: '₹', SAR: '﷼', AED: 'د.إ'
+                            GTQ: 'Q', USD: '$', EUR: '€', MXN: '$', GBP: '£',
                         };
-                        symbol = fallbacks[q.currency] || q.currency;
+                        symbol = fallbacks[q.currency as string] || q.currency as string;
                     }
                 }
 
@@ -209,7 +235,6 @@ export default function DealsPage() {
 
     return (
         <DashboardShell>
-            {/* Header */}
             <div className="flex justify-between items-center mb-6">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight">{t('deals.title')}</h1>
@@ -268,8 +293,8 @@ export default function DealsPage() {
                                 <Button variant="outline" type="button" onClick={() => setIsDialogOpen(false)}>
                                     Cancelar
                                 </Button>
-                                <Button type="submit" disabled={isLoading || !title || !clientId}>
-                                    {isLoading ? 'Creando...' : 'Comenzar Flujo'}{' '}
+                                <Button type="submit" disabled={isMutating || !title || !clientId}>
+                                    {isMutating ? 'Creando...' : 'Comenzar Flujo'}{' '}
                                     <ArrowRight className="w-4 h-4 ml-2" />
                                 </Button>
                             </div>
@@ -278,29 +303,8 @@ export default function DealsPage() {
                 </Dialog>
             </div>
 
-            {/* Status filter tabs */}
-            <div className="flex items-center gap-1.5 mb-5 flex-wrap">
-                {['ALL', ...ALL_STATUSES].map((s) => (
-                    <button
-                        key={s}
-                        onClick={() => setStatusFilter(s)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-medium border transition-all ${statusFilter === s
-                            ? 'bg-primary text-white border-primary'
-                            : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-primary/50'
-                            }`}
-                    >
-                        {s === 'ALL' ? 'Todos' : STATUS_LABEL[s]}
-                        {s !== 'ALL' && (
-                            <span className="ml-1.5 opacity-60 text-[10px]">
-                                {deals.filter(d => d.status?.toUpperCase() === s).length}
-                            </span>
-                        )}
-                    </button>
-                ))}
-            </div>
-
             <DataTable
-                data={filteredDeals}
+                data={deals}
                 columns={columns}
                 isLoading={isLoading}
                 emptyIcon={<Handshake className="w-8 h-8" />}
@@ -310,6 +314,30 @@ export default function DealsPage() {
                     <Button variant="outline" className="rounded-full" onClick={() => setIsDialogOpen(true)}>
                         <Plus className="mr-2 h-4 w-4" /> {t('deals.create')}
                     </Button>
+                }
+                toolbar={
+                    <>
+                        <AppSearch
+                            value={list.search}
+                            onChange={list.setSearch}
+                            placeholder="Buscar propuestas..."
+                            className="w-56"
+                        />
+                        <AppFilterTabs
+                            options={STATUS_OPTIONS}
+                            value={list.filters.status}
+                            onChange={(v) => list.setFilter('status', v)}
+                        />
+                    </>
+                }
+                footer={
+                    <AppPagination
+                        page={list.page}
+                        totalPages={meta.totalPages}
+                        total={meta.total}
+                        limit={20}
+                        onPageChange={list.setPage}
+                    />
                 }
                 onRowClick={(deal) => router.push(`/dashboard/deals/${deal.slug || deal.id}`)}
                 actions={(deal) => {
@@ -326,7 +354,6 @@ export default function DealsPage() {
                 }}
             />
 
-            {/* Delete confirmation (proper AlertDialog, not native confirm()) */}
             <AlertDialog open={!!dealToDelete} onOpenChange={(o) => !o && setDealToDelete(null)}>
                 <AlertDialogContent>
                     <AlertDialogHeader>

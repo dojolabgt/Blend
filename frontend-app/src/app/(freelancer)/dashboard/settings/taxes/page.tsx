@@ -1,8 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { DashboardShell } from '@/components/layout/DashboardShell';
-import { PrimaryButton } from '@/components/common/PrimaryButton';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useWorkspaceSettings } from '@/hooks/use-workspace-settings';
 import api from '@/lib/api';
@@ -13,23 +11,10 @@ import {
     Percent,
     X,
     CheckCircle2,
-    TagIcon,
-    BarChart3,
-    Building2,
     Loader2,
 } from 'lucide-react';
 import paisData from '@/data/localization/pais.json';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
 import { AppInput } from '@/components/common/AppInput';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -61,8 +46,6 @@ const APPLIES_TO_LABELS: Record<TaxAppliesTo, string> = {
     services: 'taxes.services',
     products: 'taxes.products',
 };
-
-// ─── Empty form ───────────────────────────────────────────────────────────────
 
 const emptyForm = {
     key: '',
@@ -121,16 +104,20 @@ function TaxModal({ open, onClose, onSave, initial }: {
         } finally { setSaving(false); }
     };
 
-    const inputCls = 'w-full rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900 transition';
-    const labelCls = 'block text-sm font-medium text-zinc-700 mb-1.5';
+    const inputCls = 'w-full h-10 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.05] px-3.5 text-[13px] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:ring-1 focus:ring-gray-900 dark:focus:ring-white/30 transition';
+    const labelCls = 'block text-[12px] font-medium text-gray-700 dark:text-white/75 mb-1.5';
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
-            <div className="relative z-10 bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 p-6">
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+            <div className="relative z-10 bg-white dark:bg-[#1a1a1a] border border-gray-100 dark:border-white/[0.08] rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6">
                 <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-lg font-semibold text-zinc-900">{initial ? t('taxes.editTax') : t('taxes.newTax')}</h2>
-                    <button onClick={onClose} className="text-zinc-400 hover:text-zinc-700 transition"><X className="w-5 h-5" /></button>
+                    <h2 className="text-[15px] font-bold text-gray-900 dark:text-white tracking-tight">
+                        {initial ? t('taxes.editTax') : t('taxes.newTax')}
+                    </h2>
+                    <button onClick={onClose} className="text-gray-400 dark:text-white/40 hover:text-gray-700 dark:hover:text-white/70 transition">
+                        <X className="w-5 h-5" />
+                    </button>
                 </div>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
@@ -138,16 +125,19 @@ function TaxModal({ open, onClose, onSave, initial }: {
                         <input className={inputCls} placeholder={t('taxes.namePlaceholder')} value={form.label} onChange={e => setForm(f => ({ ...f, label: e.target.value }))} />
                     </div>
                     <div>
-                        <label className={labelCls}>{t('taxes.internalKey')} <span className="text-zinc-400 font-normal">{t('taxes.uniqueSlug')}</span></label>
+                        <label className={labelCls}>
+                            {t('taxes.internalKey')}
+                            <span className="text-gray-400 dark:text-white/35 font-normal ml-1">{t('taxes.uniqueSlug')}</span>
+                        </label>
                         <input className={inputCls} placeholder={t('taxes.keyPlaceholder')} value={form.key} disabled={!!initial} onChange={e => setForm(f => ({ ...f, key: e.target.value.toLowerCase().replace(/\s+/g, '_') }))} />
-                        {initial && <p className="text-xs text-zinc-400 mt-1">{t('taxes.keyNoChange')}</p>}
+                        {initial && <p className="text-[11px] text-gray-400 dark:text-white/35 mt-1">{t('taxes.keyNoChange')}</p>}
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className={labelCls}>{t('taxes.rate')}</label>
                             <div className="relative">
                                 <input className={inputCls + ' pr-9'} placeholder="12" type="number" min={0} max={100} step={0.01} value={form.rate} onChange={e => setForm(f => ({ ...f, rate: e.target.value }))} />
-                                <Percent className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
+                                <Percent className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-white/35 pointer-events-none" />
                             </div>
                         </div>
                         <div>
@@ -160,25 +150,43 @@ function TaxModal({ open, onClose, onSave, initial }: {
                         </div>
                     </div>
                     <div>
-                        <label className={labelCls}>{t('taxes.description')} <span className="text-zinc-400 font-normal">{t('taxes.optional')}</span></label>
+                        <label className={labelCls}>
+                            {t('taxes.description')}
+                            <span className="text-gray-400 dark:text-white/35 font-normal ml-1">{t('taxes.optional')}</span>
+                        </label>
                         <input className={inputCls} placeholder={t('taxes.descPlaceholder')} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
                     </div>
                     <div className="flex gap-6 pt-1">
-                        <label className="flex items-center gap-2 text-sm text-zinc-700 cursor-pointer select-none">
+                        <label className="flex items-center gap-2 text-[13px] text-gray-700 dark:text-white/70 cursor-pointer select-none">
                             <input type="checkbox" checked={form.isDefault} onChange={e => setForm(f => ({ ...f, isDefault: e.target.checked }))} className="rounded" />
                             {t('taxes.mainTax')}
                         </label>
-                        <label className="flex items-center gap-2 text-sm text-zinc-700 cursor-pointer select-none">
+                        <label className="flex items-center gap-2 text-[13px] text-gray-700 dark:text-white/70 cursor-pointer select-none">
                             <input type="checkbox" checked={form.isActive} onChange={e => setForm(f => ({ ...f, isActive: e.target.checked }))} className="rounded" />
                             {t('taxes.active')}
                         </label>
                     </div>
-                    {error && <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</p>}
-                    <div className="flex justify-end gap-3 pt-2">
-                        <Button type="button" variant="ghost" onClick={onClose}>{t('taxes.cancel')}</Button>
-                        <PrimaryButton compact type="submit" disabled={saving}>
-                            {saving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t('taxes.saving')}</> : t('taxes.save')}
-                        </PrimaryButton>
+                    {error && (
+                        <p className="text-[12px] text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/30 rounded-xl px-3 py-2">
+                            {error}
+                        </p>
+                    )}
+                    <div className="flex justify-end gap-2 pt-2 border-t border-gray-100 dark:border-white/[0.06]">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="h-9 px-4 rounded-xl text-[13px] font-medium text-gray-600 dark:text-white/60 hover:bg-gray-50 dark:hover:bg-white/[0.05] transition"
+                        >
+                            {t('taxes.cancel')}
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={saving}
+                            className="h-9 px-4 rounded-xl text-[13px] font-semibold bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-white/90 disabled:opacity-50 transition flex items-center gap-2"
+                        >
+                            {saving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                            {saving ? t('taxes.saving') : t('taxes.save')}
+                        </button>
                     </div>
                 </form>
             </div>
@@ -199,7 +207,6 @@ export default function TaxesPage() {
     const [togglingId, setTogglingId] = useState<string | null>(null);
     const [deletingId, setDeletingId] = useState<string | null>(null);
 
-    // Workspace-level tax preferences
     const [prefs, setPrefs] = useState<WorkspacePrefs>({
         taxInclusivePricing: false,
         taxReporting: false,
@@ -222,7 +229,6 @@ export default function TaxesPage() {
 
     useEffect(() => { load(); }, [load]);
 
-    // Hydrate prefs from activeWorkspace
     useEffect(() => {
         if (activeWorkspace) {
             const ws = activeWorkspace as { taxInclusivePricing?: boolean; taxReporting?: boolean; taxId?: string; taxType?: string; country?: string };
@@ -283,236 +289,230 @@ export default function TaxesPage() {
         finally { setDeletingId(null); }
     };
 
-    // Get tax identifiers for current country from pais.json
     const countryData = (paisData as Record<string, { taxIdentifiers?: Array<{ key: string; label: string; placeholder: string; description: string; required: boolean }> }>)[prefs.country ?? 'GT'];
-    const taxIdentifiers: Array<{ key: string; label: string; placeholder: string; description: string; required: boolean }> =
-        countryData?.taxIdentifiers ?? [];
+    const taxIdentifiers = countryData?.taxIdentifiers ?? [];
+
+    const sectionCls = 'rounded-2xl border border-gray-100 dark:border-white/[0.06] bg-white dark:bg-[#1a1a1a] overflow-hidden';
 
     return (
-        <DashboardShell>
-            {/* Page Header */}
-            <div className="mb-6">
-                <h1 className="text-xl font-semibold tracking-tight">{t('taxes.title')}</h1>
-                <p className="text-sm text-muted-foreground mt-0.5">
+        <div className="px-6 py-6 max-w-3xl">
+
+            {/* Header */}
+            <div className="mb-8">
+                <h1 className="text-[18px] font-bold text-gray-900 dark:text-white tracking-tight">
+                    {t('taxes.title')}
+                </h1>
+                <p className="text-[13px] text-gray-500 dark:text-white/50 mt-0.5 leading-snug">
                     {t('taxes.titleDesc')}
                 </p>
             </div>
 
-            <div className="space-y-6 max-w-3xl">
+            <div className="space-y-5">
 
-                {/* ── Preferencias + Información fiscal ────────────────── */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <TagIcon className="h-5 w-5 text-zinc-500" />
-                            {t('taxes.taxPrefs')}
-                        </CardTitle>
-                        <CardDescription>
-                            {t('taxes.taxPrefsDesc')}
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-5">
+                {/* ── Preferences section ─────────────────────────────── */}
+                <div className={sectionCls}>
+                    <div className="px-5 py-4 border-b border-gray-100 dark:border-white/[0.06]">
+                        <h2 className="text-[13px] font-semibold text-gray-900 dark:text-white">{t('taxes.taxPrefs')}</h2>
+                        <p className="text-[12px] text-gray-500 dark:text-white/50 mt-0.5">{t('taxes.taxPrefsDesc')}</p>
+                    </div>
+
+                    <div className="px-5 py-4 space-y-4">
                         {/* Tax Inclusive Pricing */}
                         <div className="flex items-center justify-between gap-4">
-                            <div className="space-y-0.5">
-                                <Label htmlFor="tax-inclusive" className="text-sm font-medium">
-                                    {t('taxes.inclusivePricing')}
-                                </Label>
-                                <p className="text-xs text-muted-foreground">
-                                    {t('taxes.inclusiveDesc')}
-                                </p>
+                            <div>
+                                <p className="text-[13px] font-medium text-gray-800 dark:text-white/80">{t('taxes.inclusivePricing')}</p>
+                                <p className="text-[12px] text-gray-500 dark:text-white/45 mt-0.5">{t('taxes.inclusiveDesc')}</p>
                             </div>
                             <Switch
-                                id="tax-inclusive"
                                 checked={prefs.taxInclusivePricing}
                                 onCheckedChange={() => togglePref('taxInclusivePricing')}
                                 disabled={savingPrefs}
                             />
                         </div>
 
-                        <div className="border-t border-border/40" />
+                        <div className="h-px bg-gray-100 dark:bg-white/[0.05]" />
 
                         {/* Tax Reporting */}
                         <div className="flex items-center justify-between gap-4">
-                            <div className="space-y-0.5">
-                                <Label htmlFor="tax-reporting" className="text-sm font-medium">
-                                    {t('taxes.taxReporting')}
-                                </Label>
-                                <p className="text-xs text-muted-foreground">
-                                    {t('taxes.taxReportingDesc')}
-                                </p>
+                            <div>
+                                <p className="text-[13px] font-medium text-gray-800 dark:text-white/80">{t('taxes.taxReporting')}</p>
+                                <p className="text-[12px] text-gray-500 dark:text-white/45 mt-0.5">{t('taxes.taxReportingDesc')}</p>
                             </div>
                             <Switch
-                                id="tax-reporting"
                                 checked={prefs.taxReporting}
                                 onCheckedChange={() => togglePref('taxReporting')}
                                 disabled={savingPrefs}
                             />
                         </div>
 
-                        {/* ── Información fiscal (inline) ─────────────── */}
+                        {/* Tax identifiers (NIT etc.) */}
                         {taxIdentifiers.length > 0 && (
                             <>
-                                <div className="border-t border-border/40" />
-                                <div className="flex items-center gap-2 mb-1">
-                                    <Building2 className="h-4 w-4 text-zinc-500" />
-                                    <p className="text-sm font-medium">{t('taxes.taxInfo')}</p>
-                                </div>
-                                <p className="text-xs text-muted-foreground -mt-1 mb-3">
-                                    {t('taxes.taxInfoDesc')}
-                                </p>
-                                <div className="space-y-4">
-                                    {taxIdentifiers.map((identifier) => (
-                                        <div key={identifier.key}>
-                                            <Label className="mb-1.5 block">
-                                                {identifier.label}
-                                                {!identifier.required && <span className="text-muted-foreground font-normal ml-1">{t('taxes.optional')}</span>}
-                                            </Label>
-                                            <AppInput
-                                                placeholder={identifier.placeholder}
-                                                value={identifier.key === 'nit' ? taxIdValue : ''}
-                                                onChange={(e) => {
-                                                    if (identifier.key === 'nit') setTaxIdValue(e.target.value);
-                                                }}
-                                            />
-                                            <p className="text-xs text-muted-foreground mt-1">{identifier.description}</p>
-                                        </div>
-                                    ))}
+                                <div className="h-px bg-gray-100 dark:bg-white/[0.05]" />
+                                <div>
+                                    <p className="text-[13px] font-medium text-gray-800 dark:text-white/80 mb-0.5">{t('taxes.taxInfo')}</p>
+                                    <p className="text-[12px] text-gray-500 dark:text-white/45 mb-3">{t('taxes.taxInfoDesc')}</p>
+                                    <div className="space-y-3">
+                                        {taxIdentifiers.map((identifier) => (
+                                            <div key={identifier.key}>
+                                                <label className="block text-[12px] font-medium text-gray-700 dark:text-white/75 mb-1.5">
+                                                    {identifier.label}
+                                                    {!identifier.required && (
+                                                        <span className="text-gray-400 dark:text-white/35 font-normal ml-1">{t('taxes.optional')}</span>
+                                                    )}
+                                                </label>
+                                                <AppInput
+                                                    placeholder={identifier.placeholder}
+                                                    value={identifier.key === 'nit' ? taxIdValue : ''}
+                                                    onChange={(e) => {
+                                                        if (identifier.key === 'nit') setTaxIdValue(e.target.value);
+                                                    }}
+                                                />
+                                                <p className="text-[11px] text-gray-400 dark:text-white/35 mt-1">{identifier.description}</p>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             </>
                         )}
-                    </CardContent>
-                    <CardFooter className="justify-between border-t border-border/40 pt-6">
-                        <p className="text-xs text-muted-foreground">
-                            {prefsSaved
-                                ? <span className="text-emerald-600 flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" /> {t('taxes.saved')}</span>
-                                : t('taxes.savePrompt')}
-                        </p>
-                        <PrimaryButton compact onClick={saveAllPrefs} disabled={savingPrefs}>
-                            {savingPrefs
-                                ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t('taxes.saving')}</>
-                                : t('taxes.saveChanges')}
-                        </PrimaryButton>
-                    </CardFooter>
-                </Card>
+                    </div>
 
-                {/* ── Tasas de impuestos ───────────────────────────────── */}
-                <Card>
-                    <CardHeader>
-                        <div className="flex items-start justify-between gap-4">
-                            <div>
-                                <CardTitle className="flex items-center gap-2">
-                                    <BarChart3 className="h-5 w-5 text-zinc-500" />
-                                    {t('taxes.taxRates')}
-                                </CardTitle>
-                                <CardDescription className="mt-1.5">
-                                    {t('taxes.taxRatesDesc')}
-                                </CardDescription>
-                            </div>
-                            <PrimaryButton compact onClick={openCreate} className="shrink-0">
-                                <Plus className="w-3.5 h-3.5 mr-1.5" />
-                                {t('taxes.add')}
-                            </PrimaryButton>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        {loading ? (
-                            <div className="flex items-center justify-center py-10 text-sm text-muted-foreground">
-                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                {t('taxes.loading')}
-                            </div>
-                        ) : taxes.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center py-10 text-center rounded-lg border border-dashed border-border/60">
-                                <div className="w-12 h-12 bg-muted/50 rounded-full flex items-center justify-center mb-3">
-                                    <Percent className="w-5 h-5 text-muted-foreground" />
-                                </div>
-                                <p className="text-sm font-medium text-foreground mb-1">{t('taxes.noTaxes')}</p>
-                                <p className="text-xs text-muted-foreground max-w-xs">{t('taxes.addTaxesInfo')}</p>
-                                <button onClick={openCreate} className="mt-4 text-sm font-medium text-foreground underline underline-offset-2 hover:no-underline transition">
-                                    {t('taxes.addFirst')}
-                                </button>
-                            </div>
+                    {/* Footer */}
+                    <div className="px-5 py-3.5 border-t border-gray-100 dark:border-white/[0.06] flex items-center justify-between gap-4">
+                        {prefsSaved ? (
+                            <span className="text-[12px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                {t('taxes.saved')}
+                            </span>
                         ) : (
-                            <div className="rounded-lg border border-border/50 overflow-hidden">
-                                <table className="w-full text-sm">
-                                    <thead>
-                                        <tr className="border-b border-border/40 bg-muted/40">
-                                            <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground uppercase tracking-wide">{t('taxes.thName')}</th>
-                                            <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground uppercase tracking-wide">{t('taxes.thRate')}</th>
-                                            <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground uppercase tracking-wide">{t('taxes.thAppliesTo')}</th>
-                                            <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground uppercase tracking-wide">{t('taxes.thStatus')}</th>
-                                            <th className="px-4 py-2.5" />
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {taxes.map(tax => (
-                                            <tr key={tax.id} className={`group border-b border-border/30 last:border-0 transition-colors ${tax.isActive ? 'hover:bg-muted/20' : 'opacity-50'}`}>
-                                                <td className="px-4 py-3.5">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="font-medium text-foreground">{tax.label}</span>
-                                                        {tax.isDefault && (
-                                                            <span className="flex items-center gap-1 text-xs font-medium text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-full">
-                                                                <CheckCircle2 className="w-3 h-3" /> {t('taxes.badgeDefault')}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                    {tax.description && (
-                                                        <p className="text-xs text-muted-foreground mt-0.5 max-w-[260px] truncate">{tax.description}</p>
-                                                    )}
-                                                </td>
-                                                <td className="px-4 py-3.5">
-                                                    <span className="font-mono font-medium text-foreground">
-                                                        {(Number(tax.rate) * 100).toFixed(2).replace(/\.00$/, '')}%
-                                                    </span>
-                                                </td>
-                                                <td className="px-4 py-3.5 text-muted-foreground text-xs">{t(APPLIES_TO_LABELS[tax.appliesTo])}</td>
-                                                <td className="px-4 py-3.5">
-                                                    <div className="flex items-center gap-2">
-                                                        <Switch
-                                                            checked={tax.isActive}
-                                                            onCheckedChange={() => toggleActive(tax)}
-                                                            disabled={togglingId === tax.id}
-                                                        />
-                                                        <span className={`text-xs font-medium ${tax.isActive ? 'text-foreground' : 'text-muted-foreground'}`}>
-                                                            {tax.isActive ? t('taxes.statusActive') : t('taxes.statusInactive')}
-                                                        </span>
-                                                    </div>
-                                                </td>
-                                                <td className="px-4 py-3.5">
-                                                    <div className="flex items-center gap-1 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                                                            onClick={() => openEdit(tax)}
-                                                            title={t('taxes.btnEdit')}
-                                                        >
-                                                            <Pencil className="w-3.5 h-3.5" />
-                                                        </Button>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                                                            onClick={() => deleteTax(tax)}
-                                                            disabled={deletingId === tax.id}
-                                                            title={t('taxes.btnDelete')}
-                                                        >
-                                                            <Trash2 className="w-3.5 h-3.5" />
-                                                        </Button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                            <span className="text-[12px] text-gray-400 dark:text-white/35">{t('taxes.savePrompt')}</span>
                         )}
-                    </CardContent>
-                </Card>
+                        <button
+                            onClick={saveAllPrefs}
+                            disabled={savingPrefs}
+                            className="h-9 px-4 rounded-xl text-[13px] font-semibold bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-white/90 disabled:opacity-50 transition flex items-center gap-2"
+                        >
+                            {savingPrefs && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                            {savingPrefs ? t('taxes.saving') : t('taxes.saveChanges')}
+                        </button>
+                    </div>
+                </div>
+
+                {/* ── Tax rates section ────────────────────────────────── */}
+                <div className={sectionCls}>
+                    <div className="px-5 py-4 border-b border-gray-100 dark:border-white/[0.06] flex items-center justify-between gap-4">
+                        <div>
+                            <h2 className="text-[13px] font-semibold text-gray-900 dark:text-white">{t('taxes.taxRates')}</h2>
+                            <p className="text-[12px] text-gray-500 dark:text-white/50 mt-0.5">{t('taxes.taxRatesDesc')}</p>
+                        </div>
+                        <button
+                            onClick={openCreate}
+                            className="shrink-0 h-8 px-3 rounded-xl text-[12px] font-semibold bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-white/90 transition flex items-center gap-1.5"
+                        >
+                            <Plus className="w-3.5 h-3.5" />
+                            {t('taxes.add')}
+                        </button>
+                    </div>
+
+                    {loading ? (
+                        <div className="flex items-center justify-center py-10 text-[13px] text-gray-400 dark:text-white/40 gap-2">
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            {t('taxes.loading')}
+                        </div>
+                    ) : taxes.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-12 text-center px-6">
+                            <div className="w-11 h-11 bg-gray-50 dark:bg-white/[0.05] rounded-xl flex items-center justify-center mb-3">
+                                <Percent className="w-5 h-5 text-gray-400 dark:text-white/35" />
+                            </div>
+                            <p className="text-[13px] font-medium text-gray-800 dark:text-white/75 mb-1">{t('taxes.noTaxes')}</p>
+                            <p className="text-[12px] text-gray-400 dark:text-white/40 max-w-xs mb-4">{t('taxes.addTaxesInfo')}</p>
+                            <button
+                                onClick={openCreate}
+                                className="text-[12px] font-medium text-gray-700 dark:text-white/60 underline underline-offset-2 hover:no-underline transition"
+                            >
+                                {t('taxes.addFirst')}
+                            </button>
+                        </div>
+                    ) : (
+                        <table className="w-full text-[13px]">
+                            <thead>
+                                <tr className="border-b border-gray-100 dark:border-white/[0.05]">
+                                    <th className="text-left px-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-white/40">{t('taxes.thName')}</th>
+                                    <th className="text-left px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-white/40">{t('taxes.thRate')}</th>
+                                    <th className="text-left px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-white/40">{t('taxes.thAppliesTo')}</th>
+                                    <th className="text-left px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-white/40">{t('taxes.thStatus')}</th>
+                                    <th className="px-4 py-2.5 w-16" />
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {taxes.map(tax => (
+                                    <tr
+                                        key={tax.id}
+                                        className={`group border-b border-gray-50 dark:border-white/[0.04] last:border-0 transition-colors hover:bg-gray-50/50 dark:hover:bg-white/[0.02] ${!tax.isActive ? 'opacity-50' : ''}`}
+                                    >
+                                        <td className="px-5 py-3.5">
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-medium text-gray-900 dark:text-white">{tax.label}</span>
+                                                {tax.isDefault && (
+                                                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-1.5 py-0.5 rounded-md border border-emerald-100 dark:border-emerald-800/30">
+                                                        <CheckCircle2 className="w-2.5 h-2.5" />
+                                                        {t('taxes.badgeDefault')}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            {tax.description && (
+                                                <p className="text-[11px] text-gray-400 dark:text-white/40 mt-0.5 max-w-[240px] truncate">{tax.description}</p>
+                                            )}
+                                        </td>
+                                        <td className="px-4 py-3.5">
+                                            <span className="font-mono font-semibold text-gray-800 dark:text-white/75">
+                                                {(Number(tax.rate) * 100).toFixed(2).replace(/\.00$/, '')}%
+                                            </span>
+                                        </td>
+                                        <td className="px-4 py-3.5 text-gray-500 dark:text-white/45 text-[12px]">
+                                            {t(APPLIES_TO_LABELS[tax.appliesTo])}
+                                        </td>
+                                        <td className="px-4 py-3.5">
+                                            <div className="flex items-center gap-2">
+                                                <Switch
+                                                    checked={tax.isActive}
+                                                    onCheckedChange={() => toggleActive(tax)}
+                                                    disabled={togglingId === tax.id}
+                                                />
+                                                <span className={`text-[11px] font-medium ${tax.isActive ? 'text-gray-700 dark:text-white/60' : 'text-gray-400 dark:text-white/30'}`}>
+                                                    {tax.isActive ? t('taxes.statusActive') : t('taxes.statusInactive')}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-3.5">
+                                            <div className="flex items-center gap-1 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button
+                                                    className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 dark:text-white/40 hover:text-gray-700 dark:hover:text-white/70 hover:bg-gray-100 dark:hover:bg-white/[0.07] transition"
+                                                    onClick={() => openEdit(tax)}
+                                                    title={t('taxes.btnEdit')}
+                                                >
+                                                    <Pencil className="w-3.5 h-3.5" />
+                                                </button>
+                                                <button
+                                                    className="w-7 h-7 flex items-center justify-center rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition"
+                                                    onClick={() => deleteTax(tax)}
+                                                    disabled={deletingId === tax.id}
+                                                    title={t('taxes.btnDelete')}
+                                                >
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
+                </div>
 
             </div>
 
             <TaxModal open={modalOpen} onClose={() => setModalOpen(false)} onSave={handleSave} initial={editing} />
-        </DashboardShell>
+        </div>
     );
 }

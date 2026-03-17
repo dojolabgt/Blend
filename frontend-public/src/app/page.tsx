@@ -1,5 +1,5 @@
-import { NexStarterTemplate } from '@/templates/nexstarter';
+import { HiKrewLanding } from '@/templates/hikrew';
 
 export default function Home() {
-    return <NexStarterTemplate />;
+    return <HiKrewLanding />;
 }

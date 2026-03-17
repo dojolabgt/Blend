@@ -32,7 +32,10 @@ export function ServicePickerDialog({ open, onOpenChange, onSelect, currency = '
         if (open) {
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setIsLoading(true);
-            servicesApi.getAll(workspaceId)
+            const request = workspaceId
+                ? servicesApi.getAllByWorkspace(workspaceId)
+                : servicesApi.getAll({ limit: 100 }).then((res) => res.data);
+            request
                 .then(setServices)
                 .catch(console.error)
                 .finally(() => setIsLoading(false));

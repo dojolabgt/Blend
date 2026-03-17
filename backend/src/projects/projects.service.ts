@@ -16,6 +16,8 @@ import { Deal } from '../deals/entities/deal.entity';
 import { PaymentMilestone } from '../deals/entities/payment-milestone.entity';
 import { MilestoneSplit } from '../deals/entities/milestone-split.entity';
 import { CreateMilestoneSplitDto } from '../deals/dto/milestone-split.dto';
+import { ProjectsQueryDto } from './dto/projects-query.dto';
+import { paginate, PaginatedResponse } from '../common/dto/pagination.dto';
 
 @Injectable()
 export class ProjectsService {
@@ -52,17 +54,42 @@ export class ProjectsService {
     return await this.projectsRepository.save(project);
   }
 
-  async findAll(workspaceId: string): Promise<Project[]> {
-    return this.projectsRepository
+  async findAll(
+    workspaceId: string,
+    query: ProjectsQueryDto = new ProjectsQueryDto(),
+  ): Promise<PaginatedResponse<Project>> {
+    const { search, status, sortBy = 'createdAt', sortOrder = 'desc' } = query;
+
+    const qb = this.projectsRepository
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.deal', 'deal')
       .leftJoinAndSelect('deal.client', 'client')
       .leftJoinAndSelect('project.collaborators', 'collaborators')
       .leftJoinAndSelect('collaborators.workspace', 'collaboratorWorkspace')
-      .where('project.workspace_id = :workspaceId', { workspaceId })
-      .orWhere('collaborators.workspace_id = :workspaceId', { workspaceId })
-      .orderBy('project.createdAt', 'DESC')
-      .getMany();
+      .where(
+        '(project.workspace_id = :workspaceId OR collaborators.workspace_id = :workspaceId)',
+        { workspaceId },
+      );
+
+    if (search) {
+      qb.andWhere('project.name ILIKE :search', { search: `%${search}%` });
+    }
+
+    if (status) {
+      qb.andWhere('project.status = :status', { status });
+    }
+
+    const allowedSort = ['name', 'createdAt', 'status'];
+    const orderField = allowedSort.includes(sortBy) ? sortBy : 'createdAt';
+    qb.orderBy(
+      `project.${orderField}`,
+      sortOrder.toUpperCase() as 'ASC' | 'DESC',
+    )
+      .skip(query.skip)
+      .take(query.limit);
+
+    const [data, total] = await qb.getManyAndCount();
+    return paginate(data, total, query);
   }
 
   async findOne(workspaceId: string, projectId: string): Promise<Project> {

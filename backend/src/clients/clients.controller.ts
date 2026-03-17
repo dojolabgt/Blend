@@ -8,9 +8,11 @@ import {
   Delete,
   UseGuards,
   Req,
+  Query,
 } from '@nestjs/common';
 import { ClientsService } from './clients.service';
 import { CreateClientDto, UpdateClientDto } from './dto/client.dto';
+import { ClientsQueryDto } from './dto/clients-query.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { WorkspaceGuard } from '../common/guards/workspace.guard';
 import type { AuthRequest } from '../common/types/auth-request';
@@ -26,8 +28,8 @@ export class ClientsController {
   }
 
   @Get()
-  findAll(@Req() req: AuthRequest) {
-    return this.clientsService.findAll(req.workspaceId);
+  findAll(@Req() req: AuthRequest, @Query() query: ClientsQueryDto) {
+    return this.clientsService.findAll(req.workspaceId, query);
   }
 
   @Get(':id')

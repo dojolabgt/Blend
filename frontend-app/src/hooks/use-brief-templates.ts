@@ -53,7 +53,11 @@ export function useBriefTemplates(workspaceId?: string) {
         setError(null);
         try {
             const res = await api.get(`/workspaces/${targetWorkspaceId}/deals/brief-templates`);
-            setTemplates(res.data);
+            // Handle both paginated response { data: [...] } and legacy array format
+            const data: BriefTemplate[] = Array.isArray(res.data)
+                ? res.data
+                : (res.data?.data ?? []);
+            setTemplates(data);
         } catch (err: unknown) {
             setError(getErrorMessage(err));
         } finally {

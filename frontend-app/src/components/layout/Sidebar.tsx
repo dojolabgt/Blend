@@ -30,32 +30,37 @@ export function Sidebar({ navItems }: SidebarProps) {
     const userInitial = (user?.firstName?.[0] || user?.email?.[0] || '?').toUpperCase();
 
     return (
-        <aside className="hidden md:flex flex-col w-60 bg-gradient-to-b from-gray-50 to-gray-100/80 dark:from-zinc-900 dark:to-zinc-950 border-r border-gray-200/60 dark:border-zinc-800/50 shrink-0">
+        <aside className="hidden md:flex flex-col w-60 bg-white dark:bg-[#111111] border-r border-gray-200/80 dark:border-white/[0.06] shrink-0">
 
             {/* ── Brand header ── */}
-            <div className="h-14 flex items-center px-4 shrink-0">
-                <div className="flex items-center gap-2.5 flex-1 min-w-0">
-                    <Avatar className="w-7 h-7 rounded-lg shrink-0 ring-1 ring-gray-200 dark:ring-zinc-700 shadow-sm">
+            <div className="h-16 flex items-center px-4 shrink-0 border-b border-gray-100 dark:border-white/[0.06]">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <Avatar className="w-9 h-9 rounded-xl shrink-0 ring-1 ring-gray-200 dark:ring-white/[0.12] shadow-sm">
                         <AvatarImage src={getImageUrl(displayLogo)} alt={businessName} className="object-cover" />
                         <AvatarFallback
-                            className="rounded-lg text-[11px] font-bold bg-gray-800 dark:bg-zinc-700 text-white"
+                            className="rounded-xl text-[13px] font-bold bg-zinc-900 dark:bg-zinc-800 text-white"
                             style={brandColorStyle}
                         >
                             {initials}
                         </AvatarFallback>
                     </Avatar>
-                    <span
-                        className="font-semibold text-[13px] text-gray-900 dark:text-white tracking-tight truncate"
-                        title={businessName}
-                    >
-                        {businessName}
-                    </span>
+                    <div className="flex-1 min-w-0">
+                        <span
+                            className="block font-bold text-[15px] text-gray-900 dark:text-white tracking-tight truncate leading-tight"
+                            title={businessName}
+                        >
+                            {businessName}
+                        </span>
+                        <span className="block text-[11px] text-gray-500 dark:text-white/50 leading-tight">
+                            Dashboard
+                        </span>
+                    </div>
                 </div>
 
                 {user?.workspaceMembers && user.workspaceMembers.length > 1 && (
                     <div className="relative shrink-0">
                         <select
-                            className="appearance-none bg-transparent text-gray-400 text-xs pl-1 pr-5 py-1 cursor-pointer hover:bg-white/70 dark:hover:bg-white/5 rounded-lg outline-none transition-all duration-200"
+                            className="appearance-none bg-transparent text-gray-500 text-xs pl-1 pr-5 py-1 cursor-pointer hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg outline-none transition-all duration-200"
                             value={activeWorkspaceId || ''}
                             onChange={(e) => switchWorkspace(e.target.value)}
                         >
@@ -65,7 +70,7 @@ export function Sidebar({ navItems }: SidebarProps) {
                                 </option>
                             ))}
                         </select>
-                        <ChevronsUpDown className="absolute right-1 top-1/2 -translate-y-1/2 h-3 w-3 text-gray-400 pointer-events-none" />
+                        <ChevronsUpDown className="absolute right-1 top-1/2 -translate-y-1/2 h-3 w-3 text-gray-500 pointer-events-none" />
                     </div>
                 )}
             </div>
@@ -75,7 +80,7 @@ export function Sidebar({ navItems }: SidebarProps) {
                 <div className="space-y-5">
                     {Object.entries(groupedItems).map(([section, items]) => (
                         <div key={section}>
-                            <p className="px-3 mb-1.5 text-[10px] font-semibold tracking-widest text-gray-400/80 dark:text-zinc-500 uppercase select-none">
+                            <p className="px-3 mb-2 text-[10px] font-semibold tracking-widest text-gray-500 dark:text-white/40 uppercase select-none">
                                 {section}
                             </p>
                             <div className="space-y-0.5">
@@ -89,25 +94,25 @@ export function Sidebar({ navItems }: SidebarProps) {
             </nav>
 
             {/* ── User footer ── */}
-            <div className="shrink-0 p-3">
-                <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-white/70 dark:hover:bg-white/5 transition-all duration-200 group">
-                    <Avatar className="h-7 w-7 ring-1 ring-gray-200 dark:ring-zinc-700 shrink-0">
+            <div className="shrink-0 p-3 border-t border-gray-100 dark:border-white/[0.06]">
+                <div className="flex items-center gap-2.5 px-2.5 py-2.5 rounded-xl hover:bg-gray-100 dark:hover:bg-white/[0.05] transition-all duration-200 group cursor-default">
+                    <Avatar className="h-8 w-8 ring-1 ring-gray-200 dark:ring-white/[0.12] shrink-0">
                         <AvatarImage src={getImageUrl(user?.profileImage)} alt={userFullName} className="object-cover" />
-                        <AvatarFallback className="bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-zinc-300 font-bold text-[11px] uppercase">
+                        <AvatarFallback className="bg-gray-200 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 font-bold text-[11px] uppercase">
                             {userInitial}
                         </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                        <p className="text-[12px] font-semibold text-gray-700 dark:text-zinc-200 truncate leading-tight">
+                        <p className="text-[13px] font-semibold text-gray-800 dark:text-white/90 truncate leading-tight">
                             {userFullName}
                         </p>
-                        <p className="text-[10px] text-gray-400 dark:text-zinc-500 truncate leading-tight">
+                        <p className="text-[11px] text-gray-500 dark:text-white/50 truncate leading-tight">
                             {user?.email}
                         </p>
                     </div>
                     <button
                         onClick={logout}
-                        className="p-1.5 rounded-lg text-gray-300 dark:text-zinc-600 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 dark:hover:text-red-400 transition-all duration-200 shrink-0 opacity-0 group-hover:opacity-100"
+                        className="p-1.5 rounded-lg text-gray-400 dark:text-white/40 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 dark:hover:text-red-400 transition-all duration-200 shrink-0 opacity-0 group-hover:opacity-100"
                         title="Cerrar sesión"
                     >
                         <LogOut className="h-3.5 w-3.5" />

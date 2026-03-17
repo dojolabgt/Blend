@@ -8,12 +8,16 @@ import { ConfigService } from '@nestjs/config';
 const RECURRENTE_API = 'https://app.recurrente.com/api';
 
 /**
- * Prices in cents for each plan interval.
- * Defaults: Q149/month, Q1490/year (~Q124/mes con 2 meses gratis)
- * Override via BILLING_PRO_MONTHLY_CENTS / BILLING_PRO_YEARLY_CENTS env vars.
+ * Prices in USD cents for each plan/interval.
+ * Defaults: Pro $19/month, $190/year (~$15.83/mo, save 2 months)
+ *           Premium $39/month, $390/year (~$32.50/mo, save 2 months)
+ * Override via BILLING_PRO_MONTHLY_CENTS / BILLING_PRO_YEARLY_CENTS /
+ *              BILLING_PREMIUM_MONTHLY_CENTS / BILLING_PREMIUM_YEARLY_CENTS
  */
-const DEFAULT_MONTHLY_CENTS = 14900;
-const DEFAULT_YEARLY_CENTS = 149000;
+const DEFAULT_PRO_MONTHLY_CENTS = 1900;
+const DEFAULT_PRO_YEARLY_CENTS = 19000;
+const DEFAULT_PREMIUM_MONTHLY_CENTS = 3900;
+const DEFAULT_PREMIUM_YEARLY_CENTS = 39000;
 
 interface RecurrenteCheckoutResponse {
   id: string;
@@ -25,8 +29,10 @@ export class RecurrenteHiKrewService {
   private readonly logger = new Logger(RecurrenteHiKrewService.name);
   private readonly publicKey: string;
   private readonly secretKey: string;
-  private readonly monthlyPriceCents: number;
-  private readonly yearlyPriceCents: number;
+  private readonly proMonthlyCents: number;
+  private readonly proYearlyCents: number;
+  private readonly premiumMonthlyCents: number;
+  private readonly premiumYearlyCents: number;
 
   constructor(private readonly configService: ConfigService) {
     this.publicKey = this.configService.getOrThrow<string>(
@@ -35,12 +41,18 @@ export class RecurrenteHiKrewService {
     this.secretKey = this.configService.getOrThrow<string>(
       'KREW_RECURRENTE_SECRET_KEY',
     );
-    this.monthlyPriceCents =
-      this.configService.get<number>('KREW_PRO_MONTHLY_CENTS') ??
-      DEFAULT_MONTHLY_CENTS;
-    this.yearlyPriceCents =
-      this.configService.get<number>('KREW_PRO_YEARLY_CENTS') ??
-      DEFAULT_YEARLY_CENTS;
+    this.proMonthlyCents =
+      this.configService.get<number>('BILLING_PRO_MONTHLY_CENTS') ??
+      DEFAULT_PRO_MONTHLY_CENTS;
+    this.proYearlyCents =
+      this.configService.get<number>('BILLING_PRO_YEARLY_CENTS') ??
+      DEFAULT_PRO_YEARLY_CENTS;
+    this.premiumMonthlyCents =
+      this.configService.get<number>('BILLING_PREMIUM_MONTHLY_CENTS') ??
+      DEFAULT_PREMIUM_MONTHLY_CENTS;
+    this.premiumYearlyCents =
+      this.configService.get<number>('BILLING_PREMIUM_YEARLY_CENTS') ??
+      DEFAULT_PREMIUM_YEARLY_CENTS;
   }
 
   private get authHeaders(): Record<string, string> {
@@ -65,8 +77,8 @@ export class RecurrenteHiKrewService {
   ): Promise<RecurrenteCheckoutResponse> {
     const isMonthly = !isAnnual;
     const amountInCents = isMonthly
-      ? this.monthlyPriceCents
-      : this.yearlyPriceCents;
+      ? (planType === 'premium' ? this.premiumMonthlyCents : this.proMonthlyCents)
+      : (planType === 'premium' ? this.premiumYearlyCents : this.proYearlyCents);
 
     const itemName =
       planType === 'premium'
@@ -79,7 +91,7 @@ export class RecurrenteHiKrewService {
           name: itemName,
           description:
             'Acceso completo a Krew: clientes ilimitados, cotizaciones ilimitadas y más.',
-          currency: 'GTQ',
+          currency: 'USD',
           amount_in_cents: amountInCents,
           charge_type: 'recurring',
           billing_interval: isMonthly ? 'month' : 'year',
@@ -154,8 +166,14 @@ export class RecurrenteHiKrewService {
 
   get prices() {
     return {
-      monthly: this.monthlyPriceCents,
-      yearly: this.yearlyPriceCents,
+      pro: {
+        monthly: this.proMonthlyCents,
+        yearly: this.proYearlyCents,
+      },
+      premium: {
+        monthly: this.premiumMonthlyCents,
+        yearly: this.premiumYearlyCents,
+      },
     };
   }
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { servicesApi } from '@/features/services/api';
 import { Service, ServiceChargeType, ServiceUnitType } from '@/features/services/types';
 import { DashboardShell } from '@/components/layout/DashboardShell';
@@ -10,6 +10,10 @@ import { useWorkspaceSettings } from '@/hooks/use-workspace-settings';
 import { ServiceModal } from './_components/ServiceModal';
 import { toast } from 'sonner';
 import { DataTable, ColumnDef } from '@/components/common/DataTable';
+import { useListState } from '@/hooks/use-list-state';
+import { AppSearch } from '@/components/common/AppSearch';
+import { AppFilterTabs, FilterOption } from '@/components/common/AppFilterTabs';
+import { AppPagination } from '@/components/common/AppPagination';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -26,29 +30,44 @@ const UNIT_TYPE_LABEL: Record<ServiceUnitType, string> = {
     [ServiceUnitType.UNIT]: 'Unidad',
 };
 
+const CHARGE_TYPE_OPTIONS: FilterOption<ServiceChargeType>[] = [
+    { label: 'Todos', value: undefined },
+    { label: 'Único', value: ServiceChargeType.ONE_TIME },
+    { label: 'Por hora', value: ServiceChargeType.HOURLY },
+    { label: 'Recurrente', value: ServiceChargeType.RECURRING },
+];
+
 // ─── Page ────────────────────────────────────────────────────────────────────
 
 export default function ServicesPage() {
     const { formatCurrency, t } = useWorkspaceSettings();
+
+    const list = useListState<{ chargeType: ServiceChargeType | undefined }>({
+        initialFilters: { chargeType: undefined },
+    });
+
     const [services, setServices] = useState<Service[]>([]);
+    const [meta, setMeta] = useState({ total: 0, totalPages: 1 });
     const [isLoading, setIsLoading] = useState(true);
     const [modalOpen, setModalOpen] = useState(false);
     const [editingService, setEditingService] = useState<Service | null>(null);
 
-    useEffect(() => {
-        loadServices();
-    }, []);
-
-    const loadServices = async () => {
+    const loadServices = useCallback(async () => {
+        setIsLoading(true);
         try {
-            const data = await servicesApi.getAll();
-            setServices(data);
+            const res = await servicesApi.getAll(list.query);
+            setServices(res.data);
+            setMeta({ total: res.total, totalPages: res.totalPages });
         } catch (error) {
             console.error('Error loading services', error);
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [list.query]);
+
+    useEffect(() => {
+        loadServices();
+    }, [loadServices]);
 
     const handleEdit = (service: Service) => {
         setEditingService(service);
@@ -134,20 +153,23 @@ export default function ServicesPage() {
             header: t('services.colPrice'),
             className: 'text-right',
             render: (service) => {
-                // Return a combined string of valid prices
-                if (!service.basePrice || Object.keys(service.basePrice).length === 0) return <span className="font-mono font-medium text-muted-foreground">-</span>
+                if (!service.basePrice || Object.keys(service.basePrice).length === 0)
+                    return <span className="font-mono font-medium text-muted-foreground">-</span>;
 
                 const prices = Object.entries(service.basePrice)
-                    .filter(([, value]) => value !== null && value !== undefined && value > 0)
-                    .map(([currency, value]) => formatCurrency(value, currency));
+                    .filter(([, value]) => value !== null && value !== undefined && (value as number) > 0)
+                    .map(([currency, value]) => formatCurrency(value as number, currency));
 
                 return (
                     <div className="flex flex-col items-end gap-1">
-                        {prices.length > 0 ? prices.map((p, i) => (
-                            <span key={i} className="font-mono font-medium text-xs whitespace-nowrap bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-md">
-                                {p}
-                            </span>
-                        )) : <span className="font-mono font-medium text-muted-foreground">-</span>}
+                        {prices.length > 0
+                            ? prices.map((p, i) => (
+                                <span key={i} className="font-mono font-medium text-xs whitespace-nowrap bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-md">
+                                    {p}
+                                </span>
+                            ))
+                            : <span className="font-mono font-medium text-muted-foreground">-</span>
+                        }
                     </div>
                 );
             },
@@ -181,6 +203,30 @@ export default function ServicesPage() {
                     <Button variant="outline" className="rounded-full" onClick={handleCreate}>
                         {t('services.emptyBtn')}
                     </Button>
+                }
+                toolbar={
+                    <>
+                        <AppSearch
+                            value={list.search}
+                            onChange={list.setSearch}
+                            placeholder="Buscar servicios..."
+                            className="w-56"
+                        />
+                        <AppFilterTabs
+                            options={CHARGE_TYPE_OPTIONS}
+                            value={list.filters.chargeType}
+                            onChange={(v) => list.setFilter('chargeType', v)}
+                        />
+                    </>
+                }
+                footer={
+                    <AppPagination
+                        page={list.page}
+                        totalPages={meta.totalPages}
+                        total={meta.total}
+                        limit={20}
+                        onPageChange={list.setPage}
+                    />
                 }
                 actions={(service) => [
                     {

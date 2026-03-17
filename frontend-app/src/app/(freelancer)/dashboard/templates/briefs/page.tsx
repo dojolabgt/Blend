@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useBriefTemplates, BriefTemplate } from '@/hooks/use-brief-templates';
+import { briefTemplatesApi } from '@/features/brief-templates/api';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Plus, FileText, Settings2, ArrowLeft } from 'lucide-react';
 import { DataTable, ColumnDef } from '@/components/common/DataTable';
@@ -10,78 +12,113 @@ import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { BriefBuilder } from './_components/BriefBuilder'; // We will create this
+import { useListState } from '@/hooks/use-list-state';
+import { AppSearch } from '@/components/common/AppSearch';
+import { AppFilterTabs, FilterOption } from '@/components/common/AppFilterTabs';
+import { AppPagination } from '@/components/common/AppPagination';
+import { BriefBuilder } from './_components/BriefBuilder';
+
+// ─── Filter options ───────────────────────────────────────────────────────────
+
+type ActiveFilter = 'true' | 'false';
+
+const ACTIVE_OPTIONS: FilterOption<ActiveFilter>[] = [
+    { label: 'Todas', value: undefined },
+    { label: 'Activas', value: 'true' },
+    { label: 'Inactivas', value: 'false' },
+];
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function BriefTemplatesPage() {
     const searchParams = useSearchParams();
     const editParam = searchParams.get('edit');
+    const { activeWorkspace } = useAuth();
+    const { createTemplate } = useBriefTemplates();
 
-    const { templates, fetchTemplates, isLoading, createTemplate } = useBriefTemplates();
+    const list = useListState<{ isActive: ActiveFilter | undefined }>({
+        initialFilters: { isActive: undefined },
+    });
+
+    const [templates, setTemplates] = useState<BriefTemplate[]>([]);
+    const [meta, setMeta] = useState({ total: 0, totalPages: 1 });
+    const [isLoading, setIsLoading] = useState(true);
+
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [newTplName, setNewTplName] = useState('');
     const [isCreating, setIsCreating] = useState(false);
-
-    // If a template is selected, we show the builder instead of the list
     const [editingTemplate, setEditingTemplate] = useState<BriefTemplate | null>(null);
 
-    useEffect(() => {
-        if (!editingTemplate) {
-            fetchTemplates();
+    const loadTemplates = useCallback(async () => {
+        if (!activeWorkspace?.id || editingTemplate) return;
+        setIsLoading(true);
+        try {
+            const res = await briefTemplatesApi.getAll(activeWorkspace.id, list.query);
+            setTemplates(res.data);
+            setMeta({ total: res.total, totalPages: res.totalPages });
+        } catch (error) {
+            console.error('Error loading templates', error);
+        } finally {
+            setIsLoading(false);
         }
-    }, [fetchTemplates, editingTemplate]);
+    }, [activeWorkspace?.id, list.query, editingTemplate]);
+
+    useEffect(() => {
+        loadTemplates();
+    }, [loadTemplates]);
 
     // Open template from ?edit= query param once templates load
     useEffect(() => {
         if (editParam && templates.length > 0 && !editingTemplate) {
-            const found = templates.find(t => t.id === editParam);
+            const found = templates.find((t) => t.id === editParam);
             if (found) setEditingTemplate(found);
         }
     }, [editParam, templates, editingTemplate]);
 
-
     const handleCreateTemplate = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!newTplName) return;
-
         setIsCreating(true);
         try {
             const res = await createTemplate({
                 name: newTplName,
                 description: 'Plantilla personalizada',
                 schema: [],
-                isActive: true
+                isActive: true,
             });
-
-            if (res && res.id) {
+            if (res?.id) {
                 toast.success('Plantilla creada correctamente');
                 setNewTplName('');
                 setIsDialogOpen(false);
-                setEditingTemplate(res); // Go straight to edit mode
+                setEditingTemplate(res);
             }
         } catch (err: unknown) {
-            const error = err as Error;
-            toast.error(error.message || 'Error al crear plantilla');
+            toast.error((err as Error).message || 'Error al crear plantilla');
         } finally {
             setIsCreating(false);
         }
     };
 
+    // ── Builder view ──────────────────────────────────────────────────────────
     if (editingTemplate) {
         return (
             <div className="p-6 md:p-10 h-full flex flex-col">
                 <div className="mb-6 flex items-center justify-between">
-                    <Button variant="ghost" size="sm" onClick={() => setEditingTemplate(null)} className="-ml-3 text-zinc-500">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setEditingTemplate(null)}
+                        className="-ml-3 text-zinc-500"
+                    >
                         <ArrowLeft className="w-4 h-4 mr-2" /> Volver a Plantillas
                     </Button>
                 </div>
-                <BriefBuilder
-                    template={editingTemplate}
-                    onClose={() => setEditingTemplate(null)}
-                />
+                <BriefBuilder template={editingTemplate} onClose={() => setEditingTemplate(null)} />
             </div>
         );
     }
 
+    // ── Columns ───────────────────────────────────────────────────────────────
     const columns: ColumnDef<BriefTemplate>[] = [
         {
             key: 'name',
@@ -143,9 +180,11 @@ export default function BriefTemplatesPage() {
         <div className="p-6 md:p-10 max-w-6xl mx-auto space-y-8">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">Plantillas de Brief</h1>
+                    <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
+                        Plantillas de Brief
+                    </h1>
                     <p className="text-zinc-500 dark:text-zinc-400 mt-1 max-w-2xl">
-                        Crea cuestionarios estandarizados que tus clientes deberán llenar al iniciar un nuevo trato. Automáticamente se adjuntarán a su propuesta.
+                        Crea cuestionarios estandarizados que tus clientes deberán llenar al iniciar un nuevo trato.
                     </p>
                 </div>
 
@@ -174,7 +213,12 @@ export default function BriefTemplatesPage() {
                                 />
                             </div>
                             <div className="flex justify-end gap-3 pt-4">
-                                <Button variant="outline" type="button" onClick={() => setIsDialogOpen(false)} disabled={isCreating}>
+                                <Button
+                                    variant="outline"
+                                    type="button"
+                                    onClick={() => setIsDialogOpen(false)}
+                                    disabled={isCreating}
+                                >
                                     Cancelar
                                 </Button>
                                 <Button type="submit" disabled={!newTplName || isCreating}>
@@ -186,21 +230,43 @@ export default function BriefTemplatesPage() {
                 </Dialog>
             </div>
 
-            <div className="bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-sm overflow-hidden">
-                <DataTable
-                    data={templates}
-                    columns={columns}
-                    isLoading={isLoading}
-                    emptyIcon={<FileText className="w-10 h-10 text-zinc-300 dark:text-zinc-700" />}
-                    emptyTitle="No tienes plantillas creadas"
-                    emptyDescription="Acelera tus ventas teniendo formatos de cuestionarios listos para que tus clientes llenen. Empieza creando tu primera plantilla."
-                    emptyAction={
-                        <Button variant="outline" onClick={() => setIsDialogOpen(true)} className="mt-4">
-                            <Plus className="w-4 h-4 mr-2" /> Crear mi primera plantilla
-                        </Button>
-                    }
-                />
-            </div>
+            <DataTable
+                data={templates}
+                columns={columns}
+                isLoading={isLoading}
+                emptyIcon={<FileText className="w-10 h-10 text-zinc-300 dark:text-zinc-700" />}
+                emptyTitle="No tienes plantillas creadas"
+                emptyDescription="Acelera tus ventas teniendo formatos de cuestionarios listos para que tus clientes llenen."
+                emptyAction={
+                    <Button variant="outline" onClick={() => setIsDialogOpen(true)} className="mt-4">
+                        <Plus className="w-4 h-4 mr-2" /> Crear mi primera plantilla
+                    </Button>
+                }
+                toolbar={
+                    <>
+                        <AppSearch
+                            value={list.search}
+                            onChange={list.setSearch}
+                            placeholder="Buscar plantillas..."
+                            className="w-56"
+                        />
+                        <AppFilterTabs
+                            options={ACTIVE_OPTIONS}
+                            value={list.filters.isActive}
+                            onChange={(v) => list.setFilter('isActive', v)}
+                        />
+                    </>
+                }
+                footer={
+                    <AppPagination
+                        page={list.page}
+                        totalPages={meta.totalPages}
+                        total={meta.total}
+                        limit={20}
+                        onPageChange={list.setPage}
+                    />
+                }
+            />
         </div>
     );
 }

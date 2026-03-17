@@ -1,24 +1,26 @@
 import api from '@/lib/api';
 import { Client, CreateClientDto, UpdateClientDto } from './types';
+import { PaginatedResponse, ListQuery, toQueryString } from '@/types/pagination';
 
 export const clientsApi = {
-    getAll: async (): Promise<Client[]> => {
-        return api.get('/clients').then(res => res.data);
+    getAll: async (query?: Partial<ListQuery>): Promise<PaginatedResponse<Client>> => {
+        const qs = query ? toQueryString({ page: 1, limit: 20, ...query }) : '';
+        return api.get(`/clients${qs ? `?${qs}` : ''}`).then((res) => res.data);
     },
 
     getOne: async (id: string): Promise<Client> => {
-        return api.get(`/clients/${id}`).then(res => res.data);
+        return api.get(`/clients/${id}`).then((res) => res.data);
     },
 
     create: async (dto: CreateClientDto): Promise<Client> => {
-        return api.post('/clients', dto).then(res => res.data);
+        return api.post('/clients', dto).then((res) => res.data);
     },
 
     update: async (id: string, dto: UpdateClientDto): Promise<Client> => {
-        return api.patch(`/clients/${id}`, dto).then(res => res.data);
+        return api.patch(`/clients/${id}`, dto).then((res) => res.data);
     },
 
     delete: async (id: string): Promise<void> => {
-        return api.delete(`/clients/${id}`).then(res => res.data);
+        return api.delete(`/clients/${id}`).then((res) => res.data);
     },
 };

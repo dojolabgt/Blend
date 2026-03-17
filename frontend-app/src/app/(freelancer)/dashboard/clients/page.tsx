@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { clientsApi } from '@/features/clients/api';
-import { Client } from '@/features/clients/types';
+import { Client, ClientType } from '@/features/clients/types';
 import { DashboardShell } from '@/components/layout/DashboardShell';
 import { Button } from '@/components/ui/button';
 import { Users, UserPlus, Mail, Phone, Building2, User, Edit2, Trash2 } from 'lucide-react';
@@ -11,28 +11,46 @@ import { ClientModal } from './_components/ClientModal';
 import { toast } from 'sonner';
 import { useWorkspaceSettings } from '@/hooks/use-workspace-settings';
 import { DataTable, ColumnDef } from '@/components/common/DataTable';
+import { useListState } from '@/hooks/use-list-state';
+import { AppSearch } from '@/components/common/AppSearch';
+import { AppFilterTabs, FilterOption } from '@/components/common/AppFilterTabs';
+import { AppPagination } from '@/components/common/AppPagination';
+
+const TYPE_OPTIONS: FilterOption<ClientType>[] = [
+    { label: 'Todos', value: undefined },
+    { label: 'Persona', value: 'person' },
+    { label: 'Empresa', value: 'company' },
+];
 
 export default function ClientsPage() {
     const { t } = useWorkspaceSettings();
+
+    const list = useListState<{ type: ClientType | undefined }>({
+        initialFilters: { type: undefined },
+    });
+
     const [clients, setClients] = useState<Client[]>([]);
+    const [meta, setMeta] = useState({ total: 0, totalPages: 1 });
     const [isLoading, setIsLoading] = useState(true);
     const [modalOpen, setModalOpen] = useState(false);
     const [editingClient, setEditingClient] = useState<Client | null>(null);
 
-    useEffect(() => {
-        loadClients();
-    }, []);
-
-    const loadClients = async () => {
+    const loadClients = useCallback(async () => {
+        setIsLoading(true);
         try {
-            const data = await clientsApi.getAll();
-            setClients(data);
+            const res = await clientsApi.getAll(list.query);
+            setClients(res.data);
+            setMeta({ total: res.total, totalPages: res.totalPages });
         } catch (error) {
             console.error('Error loading clients', error);
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [list.query]);
+
+    useEffect(() => {
+        loadClients();
+    }, [loadClients]);
 
     const handleEdit = (client: Client) => {
         setEditingClient(client);
@@ -102,11 +120,8 @@ export default function ClientsPage() {
             render: (client) => {
                 const raw = client.phone || client.whatsapp;
                 if (!raw) return <span className="text-muted-foreground text-sm">—</span>;
-                // Format: prefix|number → display as "+502 5555-1234"
                 const parts = raw.split('|');
-                const display = parts.length === 2
-                    ? `${parts[0]} ${parts[1]}`
-                    : raw;
+                const display = parts.length === 2 ? `${parts[0]} ${parts[1]}` : raw;
                 return (
                     <div className="flex items-center text-sm text-muted-foreground gap-1.5">
                         <Phone className="w-3.5 h-3.5 shrink-0" />
@@ -119,9 +134,7 @@ export default function ClientsPage() {
             key: 'country',
             header: t('clientModal.countryForm') || 'País',
             render: (client) => (
-                <span className="text-sm text-muted-foreground">
-                    {client.country || '—'}
-                </span>
+                <span className="text-sm text-muted-foreground">{client.country || '—'}</span>
             ),
         },
         {
@@ -163,6 +176,30 @@ export default function ClientsPage() {
                     <Button variant="outline" className="rounded-full" onClick={handleCreate}>
                         {t('clients.emptyBtn')}
                     </Button>
+                }
+                toolbar={
+                    <>
+                        <AppSearch
+                            value={list.search}
+                            onChange={list.setSearch}
+                            placeholder="Buscar por nombre o email..."
+                            className="w-64"
+                        />
+                        <AppFilterTabs
+                            options={TYPE_OPTIONS}
+                            value={list.filters.type}
+                            onChange={(v) => list.setFilter('type', v)}
+                        />
+                    </>
+                }
+                footer={
+                    <AppPagination
+                        page={list.page}
+                        totalPages={meta.totalPages}
+                        total={meta.total}
+                        limit={20}
+                        onPageChange={list.setPage}
+                    />
                 }
                 actions={(client) => [
                     {

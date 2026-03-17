@@ -6,6 +6,7 @@ import {
   Patch,
   Body,
   Param,
+  Query,
   UseGuards,
   HttpCode,
   HttpStatus,
@@ -14,6 +15,7 @@ import { DealsService } from './deals.service';
 import { CreateDealDto } from './dto/create-deal.dto';
 import { UpdateDealDto } from './dto/update-deal.dto';
 import { CreateBriefTemplateDto } from './dto/create-brief-template.dto';
+import { DealsQueryDto, BriefTemplatesQueryDto } from './dto/deals-query.dto';
 import { CreateQuotationDto } from './dto/create-quotation.dto';
 import { UpdateQuotationDto } from './dto/update-quotation.dto';
 import { AddQuotationItemDto } from './dto/add-quotation-item.dto';
@@ -41,8 +43,11 @@ export class DealsController {
   }
 
   @Get()
-  findAll(@Param('workspaceId') workspaceId: string) {
-    return this.dealsService.findAll(workspaceId);
+  findAll(
+    @Param('workspaceId') workspaceId: string,
+    @Query() query: DealsQueryDto,
+  ) {
+    return this.dealsService.findAll(workspaceId, query);
   }
 
   // ─── BRIEF TEMPLATES (must be above /:id routes) ─────────────────────────
@@ -56,8 +61,11 @@ export class DealsController {
   }
 
   @Get('brief-templates')
-  findAllBriefTemplates(@Param('workspaceId') workspaceId: string) {
-    return this.dealsService.findAllBriefTemplates(workspaceId);
+  findAllBriefTemplates(
+    @Param('workspaceId') workspaceId: string,
+    @Query() query: BriefTemplatesQueryDto,
+  ) {
+    return this.dealsService.findAllBriefTemplates(workspaceId, query);
   }
 
   @Get('brief-templates/:id')

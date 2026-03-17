@@ -7,6 +7,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Client } from './client.entity';
 import { CreateClientDto, UpdateClientDto } from './dto/client.dto';
+import { ClientsQueryDto } from './dto/clients-query.dto';
+import { paginate, PaginatedResponse } from '../common/dto/pagination.dto';
 import { Workspace, WorkspacePlan } from '../workspaces/workspace.entity';
 
 @Injectable()
@@ -39,11 +41,35 @@ export class ClientsService {
     return this.clientRepo.save(client);
   }
 
-  async findAll(workspaceId: string): Promise<Client[]> {
-    return this.clientRepo.find({
-      where: { workspaceId },
-      order: { createdAt: 'DESC' },
-    });
+  async findAll(
+    workspaceId: string,
+    query: ClientsQueryDto,
+  ): Promise<PaginatedResponse<Client>> {
+    const { search, type, sortBy = 'createdAt', sortOrder = 'desc' } = query;
+
+    const qb = this.clientRepo
+      .createQueryBuilder('client')
+      .where('client.workspaceId = :workspaceId', { workspaceId });
+
+    if (search) {
+      qb.andWhere(
+        '(client.name ILIKE :search OR client.email ILIKE :search)',
+        { search: `%${search}%` },
+      );
+    }
+
+    if (type) {
+      qb.andWhere('client.type = :type', { type });
+    }
+
+    const allowedSort = ['name', 'email', 'createdAt'];
+    const orderField = allowedSort.includes(sortBy) ? sortBy : 'createdAt';
+    qb.orderBy(`client.${orderField}`, sortOrder.toUpperCase() as 'ASC' | 'DESC')
+      .skip(query.skip)
+      .take(query.limit);
+
+    const [data, total] = await qb.getManyAndCount();
+    return paginate(data, total, query);
   }
 
   async findOne(workspaceId: string, id: string): Promise<Client> {

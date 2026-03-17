@@ -28,24 +28,24 @@ export function NavItem({ item, onClick }: NavItemProps) {
             href={item.href}
             onClick={onClick}
             className={cn(
-                'flex items-center gap-2.5 py-2 px-3 text-sm rounded-xl transition-all duration-200',
+                'flex items-center gap-2.5 py-2 px-3 text-[13px] rounded-xl transition-all duration-200',
                 isActive
-                    ? 'bg-white dark:bg-zinc-800 shadow-sm text-gray-900 dark:text-white font-medium'
-                    : 'text-gray-400 dark:text-zinc-500 font-medium hover:bg-white/70 dark:hover:bg-white/5 hover:text-gray-700 dark:hover:text-zinc-300'
+                    ? 'bg-gray-100 dark:bg-white/[0.08] text-gray-900 dark:text-white font-semibold'
+                    : 'text-gray-600 dark:text-white/60 font-medium hover:bg-gray-50 dark:hover:bg-white/[0.05] hover:text-gray-900 dark:hover:text-white/85'
             )}
         >
             <item.icon
                 className={cn(
                     'h-4 w-4 shrink-0 transition-colors',
                     isActive
-                        ? 'text-gray-700 dark:text-zinc-200'
-                        : 'text-gray-400 dark:text-zinc-500'
+                        ? 'text-gray-700 dark:text-white/85'
+                        : 'text-gray-500 dark:text-white/50'
                 )}
                 aria-hidden="true"
             />
             <span className="flex-1 truncate">{item.label}</span>
             {item.badge !== undefined && item.badge > 0 && (
-                <span className="bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-zinc-300 rounded-full text-[10px] px-2 py-0.5 leading-none font-semibold">
+                <span className="bg-gray-200 dark:bg-white/10 text-gray-600 dark:text-white/65 rounded-full text-[10px] px-2 py-0.5 leading-none font-semibold">
                     {item.badge > 99 ? '99+' : item.badge}
                 </span>
             )}

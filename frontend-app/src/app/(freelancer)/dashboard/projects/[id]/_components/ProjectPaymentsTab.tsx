@@ -8,7 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Plus, Trash2, BadgeCheck } from 'lucide-react';
 import { toast } from 'sonner';
-import { cn, formatCurrency } from '@/lib/utils';
+import { cn } from '@/lib/utils';
+
+const fmt = (val: number) => Number(val).toLocaleString('es-GT', { minimumFractionDigits: 2 });
 import {
     AlertDialog,
     AlertDialogAction,
@@ -164,7 +166,7 @@ export function ProjectPaymentsTab({ project, isOwner, isViewer, onUpdate }: Pro
                     <p className="text-sm text-zinc-500">
                         Total del proyecto:{' '}
                         <span className="font-semibold text-zinc-900 dark:text-white">
-                            {currencySymbol}{formatCurrency(paymentPlan.totalAmount).replace('$', '')}
+                            {currencySymbol}{fmt(paymentPlan.totalAmount)}
                         </span>
                     </p>
                 </div>
@@ -199,7 +201,7 @@ export function ProjectPaymentsTab({ project, isOwner, isViewer, onUpdate }: Pro
                                 {milestone.percentage ? `${milestone.percentage}%` : '—'}
                             </div>
                             <div className="col-span-3 text-right font-semibold text-sm text-zinc-900 dark:text-white">
-                                {currencySymbol}{formatCurrency(milestone.amount).replace('$', '')}
+                                {currencySymbol}{fmt(milestone.amount)}
                             </div>
                             <div className="col-span-2 text-center text-xs text-zinc-500">
                                 {milestone.dueDate ? new Date(milestone.dueDate).toLocaleDateString('es-GT') : '—'}
@@ -246,7 +248,7 @@ export function ProjectPaymentsTab({ project, isOwner, isViewer, onUpdate }: Pro
                                                 {split.percentage && <span className="text-[11px] text-zinc-400 px-1.5 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800">{split.percentage}%</span>}
                                             </div>
                                             <div className="flex items-center gap-3">
-                                                <span className="font-semibold text-zinc-900 dark:text-white">{currencySymbol}{formatCurrency(Number(split.amount)).replace('$', '')}</span>
+                                                <span className="font-semibold text-zinc-900 dark:text-white">{currencySymbol}{fmt(Number(split.amount))}</span>
                                                 {isOwner && (
                                                     <button
                                                         onClick={() => handleDeleteSplit(milestone.id, split.id)}

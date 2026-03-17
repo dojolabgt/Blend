@@ -61,6 +61,12 @@ export interface DataTableProps<T extends { id: string }> {
     /** Navigate / open a detail view on row click */
     onRowClick?: (row: T) => void;
 
+    /** Rendered above the table (search, filters) — visible even during loading/empty states */
+    toolbar?: React.ReactNode;
+
+    /** Rendered below the table (pagination) — only visible when there is data */
+    footer?: React.ReactNode;
+
     className?: string;
 }
 
@@ -77,17 +83,35 @@ export function DataTable<T extends { id: string }>({
     emptyAction,
     actions,
     onRowClick,
+    toolbar,
+    footer,
     className,
 }: DataTableProps<T>) {
+    const hasActions = !!actions;
+
+    const toolbarSlot = toolbar ? (
+        <div className="px-4 py-3 border-b border-border/50 flex items-center gap-3 flex-wrap">
+            {toolbar}
+        </div>
+    ) : null;
+
+    const footerSlot = footer ? (
+        <div className="px-5 py-3 border-t border-border/50">
+            {footer}
+        </div>
+    ) : null;
+
     // ── Loading state ──────────────────────────────────────────────────────
     if (isLoading) {
         return (
             <div className={cn('bg-card border rounded-2xl overflow-hidden shadow-sm', className)}>
+                {toolbarSlot}
                 <div className="p-8 space-y-4">
                     {Array.from({ length: skeletonRows }).map((_, i) => (
                         <Skeleton key={i} className="h-14 w-full rounded-xl" />
                     ))}
                 </div>
+                {footerSlot}
             </div>
         );
     }
@@ -95,37 +119,35 @@ export function DataTable<T extends { id: string }>({
     // ── Empty state ────────────────────────────────────────────────────────
     if (data.length === 0) {
         return (
-            <div
-                className={cn(
-                    'bg-card border rounded-2xl overflow-hidden shadow-sm flex flex-col items-center justify-center p-20 text-center',
-                    className
-                )}
-            >
-                {emptyIcon && (
-                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 text-primary">
-                        {emptyIcon}
-                    </div>
-                )}
-                <h3 className="text-lg font-semibold">{emptyTitle}</h3>
-                {emptyDescription && (
-                    <p className="text-muted-foreground max-w-xs mt-1 mb-6">{emptyDescription}</p>
-                )}
-                {emptyAction && !emptyDescription && <div className="mt-6">{emptyAction}</div>}
-                {emptyAction && emptyDescription && <div>{emptyAction}</div>}
+            <div className={cn('bg-card border rounded-2xl overflow-hidden shadow-sm', className)}>
+                {toolbarSlot}
+                <div className="flex flex-col items-center justify-center p-20 text-center">
+                    {emptyIcon && (
+                        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 text-primary">
+                            {emptyIcon}
+                        </div>
+                    )}
+                    <h3 className="text-lg font-semibold">{emptyTitle}</h3>
+                    {emptyDescription && (
+                        <p className="text-muted-foreground max-w-xs mt-1 mb-6">{emptyDescription}</p>
+                    )}
+                    {emptyAction && !emptyDescription && <div className="mt-6">{emptyAction}</div>}
+                    {emptyAction && emptyDescription && <div>{emptyAction}</div>}
+                </div>
+                {footerSlot}
             </div>
         );
     }
-
-    const hasActions = !!actions;
 
     // ── Table ──────────────────────────────────────────────────────────────
     return (
         <div className={cn(
             'bg-card border rounded-2xl overflow-hidden shadow-sm',
-            // Override Shadcn default p-2 cells with more breathing room
             '[&_th]:px-5 [&_th]:py-3 [&_td]:px-5 [&_td]:py-3',
             className
         )}>
+            {toolbarSlot}
+
             <Table>
                 <TableHeader className="bg-muted/50">
                     <TableRow>
@@ -155,9 +177,7 @@ export function DataTable<T extends { id: string }>({
                             ))}
 
                             {hasActions && (
-                                <TableCell
-                                    onClick={(e) => e.stopPropagation()} // Don't trigger row click
-                                >
+                                <TableCell onClick={(e) => e.stopPropagation()}>
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
                                             <Button
@@ -198,6 +218,8 @@ export function DataTable<T extends { id: string }>({
                     ))}
                 </TableBody>
             </Table>
+
+            {footerSlot}
         </div>
     );
 }

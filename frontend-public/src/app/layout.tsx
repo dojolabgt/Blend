@@ -9,6 +9,7 @@ import { useSettings } from "@/hooks/useSettings"; // Use the hook instead of di
 import { getImageUrl } from "@/lib/image-utils";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { TopLoader } from "@/components/ui/top-loader";
+import { SmoothScrollProvider } from "@/components/common/SmoothScrollProvider";
 
 const inter = Inter({
     variable: "--font-inter",
@@ -38,7 +39,7 @@ export default function RootLayout({
         if (!settings) return;
 
         // Update page title
-        document.title = settings.appName || "Dashboard App";
+        document.title = settings.appName || "Hi Krew";
 
         /* 
         El favicon ahora siempre es el de Hi Krew
@@ -61,7 +62,7 @@ export default function RootLayout({
     }, [settings]);
 
     return (
-        <html lang="en" className="scroll-smooth">
+        <html lang="es" className="scroll-smooth">
             <head>
                 <link rel="icon" href="/HiKrewLogo.png" sizes="any" id="favicon" />
             </head>
@@ -69,10 +70,12 @@ export default function RootLayout({
                 className={`${inter.variable} ${generalSans.variable} ${geistMono.variable} font-body antialiased`}
             >
                 <TopLoader />
-                <ErrorBoundary>
-                    {children}
-                    <Toaster position="top-left" richColors />
-                </ErrorBoundary>
+                <SmoothScrollProvider>
+                    <ErrorBoundary>
+                        {children}
+                        <Toaster position="top-left" richColors />
+                    </ErrorBoundary>
+                </SmoothScrollProvider>
             </body>
         </html>
     );

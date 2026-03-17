@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { getImageUrl } from '@/lib/utils';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { LogOut, User as UserIcon, Settings, ChevronDown } from 'lucide-react';
+import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 import {
@@ -30,7 +31,8 @@ export function TopHeader() {
     const initials = (user.firstName?.[0] || user.email[0]).toUpperCase();
 
     return (
-        <header className="sticky top-0 z-30 hidden md:flex h-14 w-full items-center justify-end px-5 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-gray-200/60 dark:border-zinc-800/50 shrink-0">
+        <header className="sticky top-0 z-30 hidden md:flex h-16 w-full items-center justify-end gap-1 px-5 bg-white dark:bg-[#111111] border-b border-gray-200/80 dark:border-white/[0.06] shrink-0">
+            <ThemeToggle />
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <button className="flex items-center gap-2.5 pl-2 pr-3 py-1.5 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 transition-all duration-200 outline-none group">

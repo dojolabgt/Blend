@@ -1,12 +1,20 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { FolderKanban } from 'lucide-react';
 import { DashboardShell } from '@/components/layout/DashboardShell';
-import { useProjects } from '@/hooks/use-projects';
+import { projectsApi } from '@/features/projects/api';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { DataTable, ColumnDef } from '@/components/common/DataTable';
+import { useListState } from '@/hooks/use-list-state';
+import { AppSearch } from '@/components/common/AppSearch';
+import { AppFilterTabs, FilterOption } from '@/components/common/AppFilterTabs';
+import { AppPagination } from '@/components/common/AppPagination';
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+type ProjectStatus = 'ACTIVE' | 'COMPLETED';
 
 const STATUS_STYLES: Record<string, string> = {
     ACTIVE: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-400',
@@ -18,6 +26,12 @@ const STATUS_LABEL: Record<string, string> = {
     COMPLETED: 'Completado',
 };
 
+const STATUS_OPTIONS: FilterOption<ProjectStatus>[] = [
+    { label: 'Todos', value: undefined },
+    { label: 'Activos', value: 'ACTIVE' },
+    { label: 'Completados', value: 'COMPLETED' },
+];
+
 function StatusBadge({ status }: { status: string }) {
     const key = status?.toUpperCase() ?? 'ACTIVE';
     return (
@@ -27,27 +41,48 @@ function StatusBadge({ status }: { status: string }) {
     );
 }
 
+interface ProjectItem {
+    id: string;
+    name: string;
+    status: string;
+    workspace?: { id: string; name?: string; businessName?: string };
+    deal?: { client?: { name?: string } };
+    collaborators?: unknown[];
+    createdAt: string;
+    [key: string]: unknown;
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
 export default function ProjectsPage() {
     const { activeWorkspace } = useAuth();
-    const { projects, fetchProjects, isLoading } = useProjects();
     const router = useRouter();
 
-    useEffect(() => {
-        if (activeWorkspace) {
-            fetchProjects();
-        }
-    }, [activeWorkspace, fetchProjects]);
+    const list = useListState<{ status: ProjectStatus | undefined }>({
+        initialFilters: { status: undefined },
+    });
 
-    interface ProjectItem {
-        id: string;
-        name: string;
-        status: string;
-        workspace?: { id: string; name?: string; businessName?: string };
-        deal?: { client?: { name?: string } };
-        collaborators?: unknown[];
-        createdAt: string;
-        [key: string]: unknown;
-    }
+    const [projects, setProjects] = useState<ProjectItem[]>([]);
+    const [meta, setMeta] = useState({ total: 0, totalPages: 1 });
+    const [isLoading, setIsLoading] = useState(true);
+
+    const loadProjects = useCallback(async () => {
+        if (!activeWorkspace?.id) return;
+        setIsLoading(true);
+        try {
+            const res = await projectsApi.getAll(activeWorkspace.id, list.query);
+            setProjects(res.data as ProjectItem[]);
+            setMeta({ total: res.total, totalPages: res.totalPages });
+        } catch (error) {
+            console.error('Error loading projects', error);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [activeWorkspace?.id, list.query]);
+
+    useEffect(() => {
+        loadProjects();
+    }, [loadProjects]);
 
     const getClientName = (project: ProjectItem) => project.deal?.client?.name ?? '—';
 
@@ -69,9 +104,7 @@ export default function ProjectsPage() {
                                 </span>
                             )}
                         </div>
-                        <div className="text-xs text-muted-foreground">
-                            {getClientName(project)}
-                        </div>
+                        <div className="text-xs text-muted-foreground">{getClientName(project)}</div>
                     </div>
                 );
             },
@@ -103,7 +136,6 @@ export default function ProjectsPage() {
 
     return (
         <DashboardShell>
-            {/* Header */}
             <div className="flex justify-between items-center mb-6">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight">Proyectos</h1>
@@ -114,12 +146,36 @@ export default function ProjectsPage() {
             </div>
 
             <DataTable
-                data={projects as ProjectItem[]}
+                data={projects}
                 columns={columns}
                 isLoading={isLoading}
                 emptyIcon={<FolderKanban className="w-8 h-8" />}
                 emptyTitle="Sin proyectos activos"
                 emptyDescription="No tienes proyectos en ejecución. Cuando una propuesta se marque como Ganada, se convertirá en un proyecto automáticamente."
+                toolbar={
+                    <>
+                        <AppSearch
+                            value={list.search}
+                            onChange={list.setSearch}
+                            placeholder="Buscar proyectos..."
+                            className="w-56"
+                        />
+                        <AppFilterTabs
+                            options={STATUS_OPTIONS}
+                            value={list.filters.status}
+                            onChange={(v) => list.setFilter('status', v)}
+                        />
+                    </>
+                }
+                footer={
+                    <AppPagination
+                        page={list.page}
+                        totalPages={meta.totalPages}
+                        total={meta.total}
+                        limit={20}
+                        onPageChange={list.setPage}
+                    />
+                }
                 onRowClick={(project) => router.push(`/dashboard/projects/${project.id}`)}
             />
         </DashboardShell>

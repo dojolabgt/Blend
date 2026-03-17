@@ -1,9 +1,10 @@
 'use client';
 
 import { ChevronsUpDown } from 'lucide-react';
-import { cn, getImageUrl } from '@/lib/utils';
+import { getImageUrl } from '@/lib/utils';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ThemeToggle } from '@/components/common/ThemeToggle';
 
 export function MobileHeader() {
     const { user, activeWorkspace, activeWorkspaceId, switchWorkspace } = useAuth();
@@ -17,35 +18,34 @@ export function MobileHeader() {
     const userInitial = (user?.firstName?.[0] || user?.email?.[0] || '?').toUpperCase();
 
     return (
-        <header className="sticky top-0 z-30 flex md:hidden h-14 items-center justify-between px-4 bg-gradient-to-r from-gray-50 to-gray-100/80 dark:from-zinc-900 dark:to-zinc-950 border-b border-gray-200/60 dark:border-zinc-800/50 shrink-0">
+        <header className="sticky top-0 z-30 flex md:hidden h-14 items-center justify-between px-4 bg-white dark:bg-[#111111] border-b border-gray-200/80 dark:border-white/[0.06] shrink-0">
 
             {/* Left: workspace branding */}
             <div className="flex items-center gap-2.5 min-w-0">
-                <Avatar className="w-7 h-7 rounded-lg shrink-0 ring-1 ring-gray-200 dark:ring-zinc-700 shadow-sm">
+                <Avatar className="w-9 h-9 rounded-xl shrink-0 ring-1 ring-gray-200 dark:ring-white/[0.12] shadow-sm">
                     <AvatarImage src={getImageUrl(displayLogo)} alt={businessName} className="object-cover" />
                     <AvatarFallback
-                        className="rounded-lg text-[11px] font-bold bg-gray-800 dark:bg-zinc-700 text-white"
+                        className="rounded-xl text-[13px] font-bold bg-zinc-900 dark:bg-zinc-800 text-white"
                         style={brandColorStyle}
                     >
                         {initials}
                     </AvatarFallback>
                 </Avatar>
                 <div className="min-w-0">
-                    <p className="font-semibold text-[14px] text-gray-900 dark:text-white tracking-tight truncate leading-tight">
+                    <p className="font-bold text-[15px] text-gray-900 dark:text-white tracking-tight truncate leading-tight">
                         {businessName}
                     </p>
                     {isProOrPremium && activeWorkspace?.businessName && (
-                        <p className="text-[10px] text-gray-400 dark:text-zinc-500 leading-tight truncate">
+                        <p className="text-[11px] text-gray-500 dark:text-white/50 leading-tight truncate">
                             Hi Krew
                         </p>
                     )}
                 </div>
 
-                {/* Workspace switcher */}
                 {user?.workspaceMembers && user.workspaceMembers.length > 1 && (
                     <div className="relative shrink-0 ml-0.5">
                         <select
-                            className="appearance-none bg-transparent text-gray-400 text-xs pl-1 pr-4 py-1 cursor-pointer outline-none"
+                            className="appearance-none bg-transparent text-gray-500 text-xs pl-1 pr-4 py-1 cursor-pointer outline-none"
                             value={activeWorkspaceId || ''}
                             onChange={(e) => switchWorkspace(e.target.value)}
                         >
@@ -55,18 +55,21 @@ export function MobileHeader() {
                                 </option>
                             ))}
                         </select>
-                        <ChevronsUpDown className="absolute right-0 top-1/2 -translate-y-1/2 h-3 w-3 text-gray-400 pointer-events-none" />
+                        <ChevronsUpDown className="absolute right-0 top-1/2 -translate-y-1/2 h-3 w-3 text-gray-500 pointer-events-none" />
                     </div>
                 )}
             </div>
 
-            {/* Right: user avatar */}
-            <Avatar className="h-8 w-8 ring-1 ring-gray-200 dark:ring-zinc-700 shrink-0">
-                <AvatarImage src={getImageUrl(user?.profileImage)} alt="Perfil" className="object-cover" />
-                <AvatarFallback className="bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-zinc-300 font-bold text-[11px] uppercase">
-                    {userInitial}
-                </AvatarFallback>
-            </Avatar>
+            {/* Right: theme toggle + user avatar */}
+            <div className="flex items-center gap-1.5 shrink-0">
+                <ThemeToggle />
+                <Avatar className="h-8 w-8 ring-1 ring-gray-200 dark:ring-white/[0.12] shrink-0">
+                    <AvatarImage src={getImageUrl(user?.profileImage)} alt="Perfil" className="object-cover" />
+                    <AvatarFallback className="bg-gray-200 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 font-bold text-[11px] uppercase">
+                        {userInitial}
+                    </AvatarFallback>
+                </Avatar>
+            </div>
 
         </header>
     );

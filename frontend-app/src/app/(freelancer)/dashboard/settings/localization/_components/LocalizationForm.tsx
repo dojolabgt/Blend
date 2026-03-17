@@ -19,22 +19,11 @@ import {
     FormLabel,
     FormMessage,
 } from '@/components/ui/form';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
 import { AppSelect, SelectOption } from '@/components/common/AppSelect';
-import { PrimaryButton } from '@/components/common/PrimaryButton';
 
 import paisData from '@/data/localization/pais.json';
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface CurrencyEntry {
     code: string;
@@ -43,7 +32,7 @@ interface CurrencyEntry {
     isDefault: boolean;
 }
 
-// ─── Config Data ─────────────────────────────────────────────────────────────
+// ─── Config Data ──────────────────────────────────────────────────────────────
 
 const LANGUAGES: SelectOption[] = [
     { value: 'en-US', label: 'English (US)' },
@@ -127,47 +116,22 @@ const ALL_CURRENCIES: CurrencyEntry[] = [
     { code: 'AED', name: 'Dírham UAE', symbol: 'د.إ', isDefault: false },
 ];
 
-// ─── Schema ───────────────────────────────────────────────────────────────────
-
-type LocalizationFormValues = {
-    country: string;
-    language: string;
-    timezone: string;
-    firstDayOfWeek: string;
-    dateFormat: string;
-    timeFormat: string;
-    numberFormat: string;
-    currencyFormat: string;
-};
-
-interface LocalizationFormProps {
-    initialData: Workspace | null;
-    onUpdate: (updatedData: Workspace) => void;
-}
-
-// ─── Preview helpers ──────────────────────────────────────────────────────────
+// ─── Preview helpers ───────────────────────────────────────────────────────────
 
 function previewDate(fmt: string) {
     const map: Record<string, string> = {
-        'MM/DD/YYYY': '12/25/2024',
-        'DD/MM/YYYY': '25/12/2024',
-        'YYYY-MM-DD': '2024-12-25',
-        'DD MMM YYYY': '25 Dec 2024',
+        'MM/DD/YYYY': '12/25/2024', 'DD/MM/YYYY': '25/12/2024',
+        'YYYY-MM-DD': '2024-12-25', 'DD MMM YYYY': '25 Dec 2024',
         'MMMM DD, YYYY': 'December 25, 2024',
     };
     return map[fmt] ?? '12/25/2024';
 }
 
-function previewTime(fmt: string) {
-    return fmt === '24h' ? '15:30' : '3:30 PM';
-}
+function previewTime(fmt: string) { return fmt === '24h' ? '15:30' : '3:30 PM'; }
 
 function previewNumber(fmt: string) {
     const map: Record<string, string> = {
-        EU: '1.234,56',
-        FR: '1\u00a0234,56',
-        CH: "1'234.56",
-        US: '1,234.56',
+        EU: '1.234,56', FR: '1\u00a0234,56', CH: "1'234.56", US: '1,234.56',
     };
     return map[fmt] ?? '1,234.56';
 }
@@ -175,13 +139,31 @@ function previewNumber(fmt: string) {
 function previewCurrency(fmt: string, numFmt: string) {
     const num = previewNumber(numFmt);
     const map: Record<string, string> = {
-        'symbol-right': `${num} $`,
-        'code-left': `USD ${num}`,
-        'code-right': `${num} USD`,
-        'symbol-left': `$${num}`,
+        'symbol-right': `${num} $`, 'code-left': `USD ${num}`,
+        'code-right': `${num} USD`, 'symbol-left': `$${num}`,
     };
     return map[fmt] ?? `$${num}`;
 }
+
+// ─── Schema ────────────────────────────────────────────────────────────────────
+
+type LocalizationFormValues = {
+    country: string; language: string; timezone: string;
+    firstDayOfWeek: string; dateFormat: string; timeFormat: string;
+    numberFormat: string; currencyFormat: string;
+};
+
+interface LocalizationFormProps {
+    initialData: Workspace | null;
+    onUpdate: (updatedData: Workspace) => void;
+}
+
+// ─── Select trigger dark override ─────────────────────────────────────────────
+
+const selectClass = 'dark:bg-white/[0.05] dark:border-white/[0.08]';
+const labelClass = 'text-[12px] font-medium text-gray-700 dark:text-white/75';
+const sectionHeaderClass = 'px-6 py-5 border-b border-gray-100 dark:border-white/[0.05] flex items-center gap-2.5';
+const iconBoxClass = 'w-8 h-8 rounded-xl bg-gray-100 dark:bg-white/[0.06] flex items-center justify-center shrink-0';
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -242,9 +224,7 @@ export function LocalizationForm({ initialData, onUpdate }: LocalizationFormProp
     function removeCurrency(code: string) {
         setCurrencies(prev => {
             const next = prev.filter(c => c.code !== code);
-            if (prev.find(c => c.code === code)?.isDefault && next.length > 0) {
-                next[0].isDefault = true;
-            }
+            if (prev.find(c => c.code === code)?.isDefault && next.length > 0) next[0].isDefault = true;
             return next;
         });
     }
@@ -256,10 +236,7 @@ export function LocalizationForm({ initialData, onUpdate }: LocalizationFormProp
     async function onSubmit(data: LocalizationFormValues) {
         setIsLoading(true);
         try {
-            const updatedProfile = await workspacesApi.updateWorkspace({
-                ...data,
-                currencies,
-            } as Partial<Workspace>);
+            const updatedProfile = await workspacesApi.updateWorkspace({ ...data, currencies } as Partial<Workspace>);
             toast.success(t('localization.successSave'));
             onUpdate(updatedProfile);
         } catch (error) {
@@ -272,33 +249,34 @@ export function LocalizationForm({ initialData, onUpdate }: LocalizationFormProp
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
 
-                {/* ── Ubicación ──────────────────────────────────────── */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-base">
-                            <Globe className="w-4 h-4 text-primary" />
-                            {t('localization.cardTitleLoc')}
-                        </CardTitle>
-                        <CardDescription>
-                            {t('localization.cardDescLoc')}
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* ── Ubicación ── */}
+                <div className="rounded-2xl border border-gray-100 dark:border-white/[0.06] bg-white dark:bg-[#1a1a1a] overflow-hidden">
+                    <div className={sectionHeaderClass}>
+                        <div className={iconBoxClass}>
+                            <Globe className="h-4 w-4 text-gray-500 dark:text-white/50" />
+                        </div>
+                        <div>
+                            <h3 className="text-[14px] font-semibold text-gray-900 dark:text-white">{t('localization.cardTitleLoc')}</h3>
+                            <p className="text-[12px] text-gray-500 dark:text-white/50 mt-0.5">{t('localization.cardDescLoc')}</p>
+                        </div>
+                    </div>
+                    <div className="px-6 py-5">
+                        <div className="max-w-xs">
                             <FormField
                                 control={form.control}
                                 name="country"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>{t('localization.countryLabel')}</FormLabel>
+                                        <FormLabel className={labelClass}>{t('localization.countryLabel')}</FormLabel>
                                         <FormControl>
                                             <AppSelect
                                                 value={field.value}
                                                 onValueChange={field.onChange}
                                                 options={countryOptions}
                                                 placeholder={t('localization.countryPlaceholder')}
+                                                className={selectClass}
                                             />
                                         </FormControl>
                                         <FormMessage />
@@ -306,34 +284,30 @@ export function LocalizationForm({ initialData, onUpdate }: LocalizationFormProp
                                 )}
                             />
                         </div>
-                    </CardContent>
-                </Card>
+                    </div>
+                </div>
 
-                {/* ── Idioma y Región ────────────────────────────────── */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-base">
-                            <Globe className="w-4 h-4 text-primary" />
-                            {t('localization.cardTitleLang')}
-                        </CardTitle>
-                        <CardDescription>
-                            {t('localization.cardDescLang')}
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* ── Idioma y Región ── */}
+                <div className="rounded-2xl border border-gray-100 dark:border-white/[0.06] bg-white dark:bg-[#1a1a1a] overflow-hidden">
+                    <div className={sectionHeaderClass}>
+                        <div className={iconBoxClass}>
+                            <Globe className="h-4 w-4 text-gray-500 dark:text-white/50" />
+                        </div>
+                        <div>
+                            <h3 className="text-[14px] font-semibold text-gray-900 dark:text-white">{t('localization.cardTitleLang')}</h3>
+                            <p className="text-[12px] text-gray-500 dark:text-white/50 mt-0.5">{t('localization.cardDescLang')}</p>
+                        </div>
+                    </div>
+                    <div className="px-6 py-5">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                             <FormField
                                 control={form.control}
                                 name="language"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>{t('localization.langLabel')}</FormLabel>
+                                        <FormLabel className={labelClass}>{t('localization.langLabel')}</FormLabel>
                                         <FormControl>
-                                            <AppSelect
-                                                value={field.value}
-                                                onValueChange={field.onChange}
-                                                options={LANGUAGES}
-                                            />
+                                            <AppSelect value={field.value} onValueChange={field.onChange} options={LANGUAGES} className={selectClass} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -344,13 +318,9 @@ export function LocalizationForm({ initialData, onUpdate }: LocalizationFormProp
                                 name="firstDayOfWeek"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>{t('localization.startWeekLabel')}</FormLabel>
+                                        <FormLabel className={labelClass}>{t('localization.startWeekLabel')}</FormLabel>
                                         <FormControl>
-                                            <AppSelect
-                                                value={field.value}
-                                                onValueChange={field.onChange}
-                                                options={FIRST_DAY_OPTIONS}
-                                            />
+                                            <AppSelect value={field.value} onValueChange={field.onChange} options={FIRST_DAY_OPTIONS} className={selectClass} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -361,47 +331,39 @@ export function LocalizationForm({ initialData, onUpdate }: LocalizationFormProp
                                 name="timezone"
                                 render={({ field }) => (
                                     <FormItem className="sm:col-span-2">
-                                        <FormLabel>{t('localization.timezoneLabel')}</FormLabel>
+                                        <FormLabel className={labelClass}>{t('localization.timezoneLabel')}</FormLabel>
                                         <FormControl>
-                                            <AppSelect
-                                                value={field.value}
-                                                onValueChange={field.onChange}
-                                                options={TIMEZONES}
-                                            />
+                                            <AppSelect value={field.value} onValueChange={field.onChange} options={TIMEZONES} className={selectClass} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
                         </div>
-                    </CardContent>
-                </Card>
+                    </div>
+                </div>
 
-                {/* ── Formatos ──────────────────────────────────────── */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-base">
-                            <Hash className="w-4 h-4 text-primary" />
-                            {t('localization.cardTitleFormats')}
-                        </CardTitle>
-                        <CardDescription>
-                            {t('localization.cardDescFormats')}
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* ── Formatos ── */}
+                <div className="rounded-2xl border border-gray-100 dark:border-white/[0.06] bg-white dark:bg-[#1a1a1a] overflow-hidden">
+                    <div className={sectionHeaderClass}>
+                        <div className={iconBoxClass}>
+                            <Hash className="h-4 w-4 text-gray-500 dark:text-white/50" />
+                        </div>
+                        <div>
+                            <h3 className="text-[14px] font-semibold text-gray-900 dark:text-white">{t('localization.cardTitleFormats')}</h3>
+                            <p className="text-[12px] text-gray-500 dark:text-white/50 mt-0.5">{t('localization.cardDescFormats')}</p>
+                        </div>
+                    </div>
+                    <div className="px-6 py-5 space-y-5">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                             <FormField
                                 control={form.control}
                                 name="dateFormat"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>{t('localization.dateFormatLabel')}</FormLabel>
+                                        <FormLabel className={labelClass}>{t('localization.dateFormatLabel')}</FormLabel>
                                         <FormControl>
-                                            <AppSelect
-                                                value={field.value}
-                                                onValueChange={field.onChange}
-                                                options={DATE_FORMATS}
-                                            />
+                                            <AppSelect value={field.value} onValueChange={field.onChange} options={DATE_FORMATS} className={selectClass} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -412,13 +374,9 @@ export function LocalizationForm({ initialData, onUpdate }: LocalizationFormProp
                                 name="timeFormat"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>{t('localization.timeFormatLabel')}</FormLabel>
+                                        <FormLabel className={labelClass}>{t('localization.timeFormatLabel')}</FormLabel>
                                         <FormControl>
-                                            <AppSelect
-                                                value={field.value}
-                                                onValueChange={field.onChange}
-                                                options={TIME_FORMATS}
-                                            />
+                                            <AppSelect value={field.value} onValueChange={field.onChange} options={TIME_FORMATS} className={selectClass} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -429,13 +387,9 @@ export function LocalizationForm({ initialData, onUpdate }: LocalizationFormProp
                                 name="numberFormat"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>{t('localization.numberFormatLabel')}</FormLabel>
+                                        <FormLabel className={labelClass}>{t('localization.numberFormatLabel')}</FormLabel>
                                         <FormControl>
-                                            <AppSelect
-                                                value={field.value}
-                                                onValueChange={field.onChange}
-                                                options={NUMBER_FORMATS}
-                                            />
+                                            <AppSelect value={field.value} onValueChange={field.onChange} options={NUMBER_FORMATS} className={selectClass} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -446,13 +400,9 @@ export function LocalizationForm({ initialData, onUpdate }: LocalizationFormProp
                                 name="currencyFormat"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>{t('localization.currencyFormatLabel')}</FormLabel>
+                                        <FormLabel className={labelClass}>{t('localization.currencyFormatLabel')}</FormLabel>
                                         <FormControl>
-                                            <AppSelect
-                                                value={field.value}
-                                                onValueChange={field.onChange}
-                                                options={CURRENCY_FORMATS}
-                                            />
+                                            <AppSelect value={field.value} onValueChange={field.onChange} options={CURRENCY_FORMATS} className={selectClass} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -461,36 +411,41 @@ export function LocalizationForm({ initialData, onUpdate }: LocalizationFormProp
                         </div>
 
                         {/* Live preview */}
-                        <div className="rounded-lg border border-border/60 bg-muted/30 p-4">
-                            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                        <div className="rounded-xl border border-gray-100 dark:border-white/[0.06] bg-gray-50 dark:bg-white/[0.03] p-4">
+                            <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-500 dark:text-white/40 mb-3">
                                 {t('localization.previewTitle')}
                             </p>
-                            <div className="grid grid-cols-2 gap-x-8 gap-y-1.5 text-sm">
-                                <span className="text-muted-foreground">{t('localization.previewDate')}</span>
-                                <span className="font-medium">{previewDate(watchDate)}</span>
-                                <span className="text-muted-foreground">{t('localization.previewTime')}</span>
-                                <span className="font-medium">{previewTime(watchTime)}</span>
-                                <span className="text-muted-foreground">{t('localization.previewNum')}</span>
-                                <span className="font-medium">{previewNumber(watchNum)}</span>
-                                <span className="text-muted-foreground">{t('localization.previewCurr')}</span>
-                                <span className="font-medium">{previewCurrency(watchCurr, watchNum)}</span>
+                            <div className="grid grid-cols-2 gap-x-6 gap-y-2">
+                                {[
+                                    [t('localization.previewDate'), previewDate(watchDate)],
+                                    [t('localization.previewTime'), previewTime(watchTime)],
+                                    [t('localization.previewNum'), previewNumber(watchNum)],
+                                    [t('localization.previewCurr'), previewCurrency(watchCurr, watchNum)],
+                                ].map(([label, value]) => (
+                                    <React.Fragment key={label}>
+                                        <span className="text-[12px] text-gray-500 dark:text-white/50">{label}</span>
+                                        <span className="text-[12px] font-semibold text-gray-900 dark:text-white">{value}</span>
+                                    </React.Fragment>
+                                ))}
                             </div>
                         </div>
-                    </CardContent>
-                </Card>
+                    </div>
+                </div>
 
-                {/* ── Monedas ────────────────────────────────────────── */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-base">
-                            <span className="text-primary font-semibold text-sm">$</span>
-                            {t('localization.cardTitleCurrencies')}
-                        </CardTitle>
-                        <CardDescription>
-                            {t('localization.cardDescCurrencies')}
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
+                {/* ── Monedas ── */}
+                <div className="rounded-2xl border border-gray-100 dark:border-white/[0.06] bg-white dark:bg-[#1a1a1a] overflow-hidden">
+                    <div className={sectionHeaderClass}>
+                        <div className={iconBoxClass}>
+                            <span className="text-[14px] font-bold text-gray-500 dark:text-white/50">$</span>
+                        </div>
+                        <div>
+                            <h3 className="text-[14px] font-semibold text-gray-900 dark:text-white">{t('localization.cardTitleCurrencies')}</h3>
+                            <p className="text-[12px] text-gray-500 dark:text-white/50 mt-0.5">{t('localization.cardDescCurrencies')}</p>
+                        </div>
+                    </div>
+
+                    <div className="px-6 py-5 space-y-4">
+                        {/* Add currency row */}
                         <div className="flex gap-2">
                             <div className="flex-1 max-w-xs">
                                 <AppSelect
@@ -498,30 +453,30 @@ export function LocalizationForm({ initialData, onUpdate }: LocalizationFormProp
                                     onValueChange={setSelectedCurrencyCode}
                                     options={availableCurrencyOptions}
                                     placeholder={t('localization.addCurrencyPlaceholder')}
+                                    className={selectClass}
                                 />
                             </div>
-                            <Button
+                            <button
                                 type="button"
-                                variant="outline"
-                                size="sm"
                                 onClick={addCurrency}
                                 disabled={!selectedCurrencyCode}
-                                className="gap-1.5 h-10"
+                                className="flex items-center gap-1.5 h-10 px-4 rounded-xl border border-gray-200 dark:border-white/[0.08] text-[13px] font-semibold text-gray-700 dark:text-white/75 hover:bg-gray-50 dark:hover:bg-white/[0.05] transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
                             >
                                 <Plus className="w-3.5 h-3.5" />
                                 {t('localization.btnAdd')}
-                            </Button>
+                            </button>
                         </div>
 
+                        {/* Currency table */}
                         {currencies.length > 0 ? (
-                            <div className="rounded-lg border border-border/50 overflow-hidden">
+                            <div className="rounded-xl border border-gray-100 dark:border-white/[0.06] overflow-hidden">
                                 <table className="w-full text-sm">
                                     <thead>
-                                        <tr className="bg-muted/40 border-b border-border/40">
-                                            <th className="text-left px-4 py-2.5 font-medium text-muted-foreground text-xs uppercase tracking-wide">{t('localization.colCode')}</th>
-                                            <th className="text-left px-4 py-2.5 font-medium text-muted-foreground text-xs uppercase tracking-wide">{t('localization.colCurrency')}</th>
-                                            <th className="text-left px-4 py-2.5 font-medium text-muted-foreground text-xs uppercase tracking-wide">{t('localization.colSymbol')}</th>
-                                            <th className="text-left px-4 py-2.5 font-medium text-muted-foreground text-xs uppercase tracking-wide">{t('localization.colDefault')}</th>
+                                        <tr className="border-b border-gray-100 dark:border-white/[0.05] bg-gray-50 dark:bg-white/[0.03]">
+                                            <th className="text-left px-4 py-2.5 text-[10px] font-semibold tracking-widest text-gray-500 dark:text-white/40 uppercase">{t('localization.colCode')}</th>
+                                            <th className="text-left px-4 py-2.5 text-[10px] font-semibold tracking-widest text-gray-500 dark:text-white/40 uppercase">{t('localization.colCurrency')}</th>
+                                            <th className="text-left px-4 py-2.5 text-[10px] font-semibold tracking-widest text-gray-500 dark:text-white/40 uppercase">{t('localization.colSymbol')}</th>
+                                            <th className="text-left px-4 py-2.5 text-[10px] font-semibold tracking-widest text-gray-500 dark:text-white/40 uppercase">{t('localization.colDefault')}</th>
                                             <th className="px-4 py-2.5" />
                                         </tr>
                                     </thead>
@@ -529,43 +484,39 @@ export function LocalizationForm({ initialData, onUpdate }: LocalizationFormProp
                                         {currencies.map(c => (
                                             <tr
                                                 key={c.code}
-                                                className={`border-b border-border/30 last:border-0 transition-colors ${c.isDefault ? 'bg-primary/5' : 'hover:bg-muted/20'}`}
+                                                className={`border-b border-gray-50 dark:border-white/[0.04] last:border-0 transition-colors ${c.isDefault ? 'bg-gray-50 dark:bg-white/[0.03]' : 'hover:bg-gray-50/50 dark:hover:bg-white/[0.02]'}`}
                                             >
                                                 <td className="px-4 py-3">
-                                                    <span className="font-mono font-semibold text-xs tracking-wider">{c.code}</span>
+                                                    <span className="font-mono font-bold text-[12px] tracking-wider text-gray-900 dark:text-white">{c.code}</span>
                                                 </td>
-                                                <td className="px-4 py-3 text-foreground">{c.name}</td>
-                                                <td className="px-4 py-3 font-medium">{c.symbol}</td>
+                                                <td className="px-4 py-3 text-[13px] text-gray-700 dark:text-white/70">{c.name}</td>
+                                                <td className="px-4 py-3 text-[13px] font-semibold text-gray-900 dark:text-white">{c.symbol}</td>
                                                 <td className="px-4 py-3">
                                                     {c.isDefault ? (
-                                                        <Badge variant="default" className="gap-1 text-xs py-0.5">
+                                                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-900 dark:text-white bg-gray-200 dark:bg-white/10 px-2.5 py-1 rounded-full">
                                                             <Check className="w-3 h-3" />
                                                             {t('localization.badgeDefault')}
-                                                        </Badge>
+                                                        </span>
                                                     ) : (
-                                                        <Button
+                                                        <button
                                                             type="button"
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            className="h-7 px-2 text-xs text-muted-foreground gap-1"
+                                                            className="flex items-center gap-1 text-[12px] text-gray-500 dark:text-white/40 hover:text-gray-900 dark:hover:text-white/80 transition-colors"
                                                             onClick={() => setDefault(c.code)}
                                                         >
                                                             <Star className="w-3 h-3" />
                                                             {t('localization.btnSetDefault')}
-                                                        </Button>
+                                                        </button>
                                                     )}
                                                 </td>
                                                 <td className="px-4 py-3 text-right">
-                                                    <Button
+                                                    <button
                                                         type="button"
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                                                        className="p-1.5 rounded-lg text-red-400 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed"
                                                         onClick={() => removeCurrency(c.code)}
                                                         disabled={currencies.length === 1}
                                                     >
                                                         <Trash2 className="w-3.5 h-3.5" />
-                                                    </Button>
+                                                    </button>
                                                 </td>
                                             </tr>
                                         ))}
@@ -573,27 +524,26 @@ export function LocalizationForm({ initialData, onUpdate }: LocalizationFormProp
                                 </table>
                             </div>
                         ) : (
-                            <div className="rounded-lg border border-dashed border-border/60 p-8 text-center">
-                                <p className="text-sm text-muted-foreground">
+                            <div className="rounded-xl border border-dashed border-gray-200 dark:border-white/[0.08] p-8 text-center">
+                                <p className="text-[13px] text-gray-500 dark:text-white/40">
                                     {t('localization.emptyCurrencies')}
                                 </p>
                             </div>
                         )}
-                    </CardContent>
-                    <CardFooter className="justify-between border-t border-border/40 pt-6">
-                        <p className="text-xs text-muted-foreground">{t('localization.footerNote')}</p>
-                        <PrimaryButton compact type="submit" disabled={isLoading}>
-                            {isLoading ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    {t('localization.btnSaving')}
-                                </>
-                            ) : (
-                                t('localization.btnSave')
-                            )}
-                        </PrimaryButton>
-                    </CardFooter>
-                </Card>
+                    </div>
+
+                    <div className="px-6 py-4 border-t border-gray-100 dark:border-white/[0.05] flex items-center justify-between">
+                        <p className="text-[11px] text-gray-500 dark:text-white/50">{t('localization.footerNote')}</p>
+                        <button
+                            type="submit"
+                            disabled={isLoading}
+                            className="flex items-center gap-2 h-9 px-5 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-[13px] font-semibold hover:bg-gray-700 dark:hover:bg-white/90 transition-colors disabled:opacity-40"
+                        >
+                            {isLoading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                            {isLoading ? t('localization.btnSaving') : t('localization.btnSave')}
+                        </button>
+                    </div>
+                </div>
 
             </form>
         </Form>

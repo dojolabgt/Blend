@@ -4,41 +4,61 @@ import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { billingApi } from '@/features/billing/api';
 import { BillingStatus, BillingSubscription } from '@/features/billing/types';
-import { DashboardShell } from '@/components/layout/DashboardShell';
 import { useWorkspaceSettings } from '@/hooks/use-workspace-settings';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
 import { toast } from 'sonner';
-import { PrimaryButton } from '@/components/common/PrimaryButton';
-import { Sparkles, CheckCircle2, XCircle, Clock, Loader2 } from 'lucide-react';
+import { Sparkles, CheckCircle2, XCircle, Clock, Loader2, Check, Zap } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
 
-const STATUS_LABEL: Record<string, { labelKey: string; color: string }> = {
-    pending: { labelKey: 'billing.statusPending', color: 'text-amber-600 bg-amber-50 border-amber-200' },
-    active: { labelKey: 'billing.statusActive', color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
-    past_due: { labelKey: 'billing.statusPastDue', color: 'text-red-600 bg-red-50 border-red-200' },
-    cancelled: { labelKey: 'billing.statusCancelled', color: 'text-zinc-500 bg-zinc-50 border-zinc-200' },
-    unable_to_start: { labelKey: 'billing.statusUnableToStart', color: 'text-red-600 bg-red-50 border-red-200' },
-};
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function formatPrice(cents: number): string {
-    return `Q${(cents / 100).toFixed(2).replace(/\.00$/, '')}`;
+function formatUSD(cents: number): string {
+    const dollars = cents / 100;
+    return dollars % 1 === 0 ? `$${dollars}` : `$${dollars.toFixed(2)}`;
 }
 
 function formatDate(dateStr: string | null): string {
     if (!dateStr) return '—';
     return format(new Date(dateStr), "d 'de' MMMM, yyyy", { locale: es });
 }
+
+const STATUS_LABEL: Record<string, { labelKey: string; color: string }> = {
+    pending:          { labelKey: 'billing.statusPending',        color: 'text-amber-600 bg-amber-50 dark:text-amber-400 dark:bg-amber-900/20 border-amber-200 dark:border-amber-500/20' },
+    active:           { labelKey: 'billing.statusActive',         color: 'text-emerald-700 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-500/20' },
+    past_due:         { labelKey: 'billing.statusPastDue',        color: 'text-red-600 bg-red-50 dark:text-red-400 dark:bg-red-900/20 border-red-200 dark:border-red-500/20' },
+    cancelled:        { labelKey: 'billing.statusCancelled',      color: 'text-gray-500 bg-gray-50 dark:text-white/40 dark:bg-white/[0.05] border-gray-200 dark:border-white/[0.08]' },
+    unable_to_start:  { labelKey: 'billing.statusUnableToStart',  color: 'text-red-600 bg-red-50 dark:text-red-400 dark:bg-red-900/20 border-red-200 dark:border-red-500/20' },
+};
+
+// ─── Plan definitions ─────────────────────────────────────────────────────────
+
+const FREE_FEATURES = [
+    'Hasta 3 deals activos',
+    'Gestión de clientes',
+    'Brief digital',
+    '1 usuario',
+];
+
+const PRO_FEATURES = [
+    'Deals ilimitados',
+    'Cotizaciones A/B',
+    'Branding personalizado',
+    'Planes de pago con hitos',
+    'Integración Recurrente',
+    'Gestión de proyectos y tareas',
+];
+
+const PREMIUM_FEATURES = [
+    'Todo lo de Pro',
+    'Colaboradores ilimitados',
+    'Red de workspaces',
+    'Splits de ingresos',
+    'Soporte prioritario',
+];
+
+// ─── Component ────────────────────────────────────────────────────────────────
 
 export default function BillingPage() {
     const { t } = useWorkspaceSettings();
@@ -53,10 +73,7 @@ export default function BillingPage() {
     useEffect(() => {
         async function load() {
             try {
-                const [s, h] = await Promise.all([
-                    billingApi.getStatus(),
-                    billingApi.getHistory(),
-                ]);
+                const [s, h] = await Promise.all([billingApi.getStatus(), billingApi.getHistory()]);
                 setStatus(s);
                 setHistory(h);
             } catch {
@@ -67,12 +84,8 @@ export default function BillingPage() {
         }
         load();
 
-        // Show toast based on return from Recurrente checkout
-        if (searchParams?.get('success')) {
-            toast.success(t('billing.toastProReady'));
-        } else if (searchParams?.get('cancelled')) {
-            toast.info(t('billing.toastCancelled'));
-        }
+        if (searchParams?.get('success')) toast.success(t('billing.toastProReady'));
+        else if (searchParams?.get('cancelled')) toast.info(t('billing.toastCancelled'));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchParams]);
 
@@ -93,10 +106,9 @@ export default function BillingPage() {
         try {
             await billingApi.cancel();
             toast.success(t('billing.successCancel'));
-            const updated = await billingApi.getStatus();
-            setStatus(updated);
-            const newHistory = await billingApi.getHistory();
-            setHistory(newHistory);
+            const [s, h] = await Promise.all([billingApi.getStatus(), billingApi.getHistory()]);
+            setStatus(s);
+            setHistory(h);
         } catch {
             toast.error(t('billing.errCancel'));
         } finally {
@@ -104,32 +116,12 @@ export default function BillingPage() {
         }
     };
 
-    const planKey = status?.plan || 'free';
-    const isProOrPremium = planKey === 'pro' || planKey === 'premium';
-    const activeSubStatus = status?.subscription?.status;
-    const isPendingCancel = activeSubStatus === 'cancelled' && status?.planExpiresAt != null && new Date(status.planExpiresAt) > new Date();
-    const filteredHistory = history.filter(sub => !['pending', 'unable_to_start'].includes(sub.status));
-
-    // Calculate approximate prorated days for UI display
-    let remainingValueText = null;
-    if (planKey === 'pro' && status?.subscription?.currentPeriodEnd) {
-        const end = new Date(status.subscription.currentPeriodEnd).getTime();
-        const now = Date.now();
-        if (end > now) {
-            const daysLeft = Math.ceil((end - now) / (1000 * 60 * 60 * 24));
-            remainingValueText = `${t('billing.remainingDaysPre')}${daysLeft}${t('billing.remainingDaysPost')}`;
-        }
-    }
-
     const handleDevOverride = async (plan: 'pro' | 'premium') => {
         setIsSubscribing(true);
         try {
             await billingApi.devOverride(plan);
             toast.success('¡Suscripción forzada (DEV)!');
-            const [s, h] = await Promise.all([
-                billingApi.getStatus(),
-                billingApi.getHistory(),
-            ]);
+            const [s, h] = await Promise.all([billingApi.getStatus(), billingApi.getHistory()]);
             setStatus(s);
             setHistory(h);
         } catch {
@@ -139,398 +131,305 @@ export default function BillingPage() {
         }
     };
 
+    const planKey = status?.plan || 'free';
+    const isProOrPremium = planKey === 'pro' || planKey === 'premium';
+    const activeSubStatus = status?.subscription?.status;
+    const isPendingCancel = activeSubStatus === 'cancelled' && status?.planExpiresAt != null && new Date(status.planExpiresAt) > new Date();
+    const filteredHistory = history.filter(s => !['pending', 'unable_to_start'].includes(s.status));
+
     return (
-        <DashboardShell>
-            {/* Page Header */}
+        <div className="px-6 py-6 max-w-3xl">
             <div className="mb-6">
-                <h1 className="text-xl font-semibold tracking-tight">{t('billing.title')}</h1>
-                <p className="text-sm text-muted-foreground mt-0.5">
-                    {t('billing.desc')}
-                </p>
+                <h1 className="text-[18px] font-bold text-gray-900 dark:text-white tracking-tight">{t('billing.title')}</h1>
+                <p className="text-[13px] text-gray-500 dark:text-white/50 mt-0.5">{t('billing.desc')}</p>
             </div>
 
-            <div className="space-y-8">
+            <div className="space-y-6">
 
-                {/* --- 1. CURRENT PLAN CARD --- */}
-                <Card className="bg-gradient-to-br from-zinc-50 to-white dark:from-zinc-900 dark:to-zinc-900/50 overflow-hidden relative border-zinc-200 dark:border-zinc-800">
-                    {/* Decorative Background Icon */}
-                    <div className="absolute -top-10 -right-10 opacity-[0.03] dark:opacity-[0.02] pointer-events-none">
-                        <Sparkles className="w-64 h-64" />
-                    </div>
-                    <CardContent className="p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+                {/* ── Current Plan ── */}
+                <div className="rounded-2xl border border-gray-100 dark:border-white/[0.06] bg-white dark:bg-[#1a1a1a] overflow-hidden">
+                    <div className="px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         {isLoading ? (
-                            <div className="space-y-3 w-full">
-                                <Skeleton className="h-5 w-24" />
-                                <Skeleton className="h-8 w-40" />
-                                <Skeleton className="h-4 w-64" />
+                            <div className="space-y-2 w-full">
+                                <Skeleton className="h-4 w-20 dark:bg-white/[0.07]" />
+                                <Skeleton className="h-8 w-36 dark:bg-white/[0.07]" />
+                                <Skeleton className="h-3 w-56 dark:bg-white/[0.07]" />
                             </div>
                         ) : (
                             <>
                                 <div>
-                                    <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3 flex items-center gap-2">
-                                        <span className="w-2 h-2 rounded-full bg-primary/40 block"></span>
+                                    <p className="text-[10px] font-bold tracking-widest text-gray-500 dark:text-white/40 uppercase mb-2">
                                         {t('billing.currentPlan')}
                                     </p>
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <span className="text-3xl font-extrabold tracking-tight capitalize text-zinc-900 dark:text-zinc-100">
+                                    <div className="flex items-center gap-2.5 mb-2">
+                                        <span className="text-[26px] font-black tracking-tight text-gray-900 dark:text-white capitalize">
                                             Hi Krew {planKey}
                                         </span>
                                         {planKey === 'premium' ? (
-                                            <Badge className="bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20 py-1 px-3 shadow-sm rounded-full">
-                                                <Sparkles className="w-3.5 h-3.5 mr-1.5" /> Premium
-                                            </Badge>
+                                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-500/20 px-2.5 py-1 rounded-full">
+                                                <Sparkles className="w-3 h-3" /> Premium
+                                            </span>
                                         ) : planKey === 'pro' ? (
-                                            <Badge className="bg-violet-100 text-violet-700 border-violet-200 dark:bg-violet-500/10 dark:text-violet-400 dark:border-violet-500/20 py-1 px-3 shadow-sm rounded-full">
-                                                <Sparkles className="w-3.5 h-3.5 mr-1.5" /> Pro
-                                            </Badge>
+                                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-violet-700 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-500/20 px-2.5 py-1 rounded-full">
+                                                <Sparkles className="w-3 h-3" /> Pro
+                                            </span>
                                         ) : (
-                                            <Badge className="bg-zinc-100 text-zinc-600 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700 py-1 px-3 shadow-sm rounded-full">
+                                            <span className="text-[11px] font-semibold text-gray-500 dark:text-white/40 bg-gray-100 dark:bg-white/[0.06] border border-gray-200 dark:border-white/[0.08] px-2.5 py-1 rounded-full">
                                                 Free
-                                            </Badge>
+                                            </span>
                                         )}
                                     </div>
-
                                     {isProOrPremium && status?.planExpiresAt ? (
-                                        <p className="text-sm font-medium text-muted-foreground flex items-center gap-1.5 mt-3">
-                                            <Clock className="w-4 h-4 opacity-70" />
-                                            {t('billing.cycleEnds')} <span className="text-foreground ml-1">{formatDate(status.planExpiresAt)}</span>
+                                        <p className="text-[12px] text-gray-500 dark:text-white/50 flex items-center gap-1.5">
+                                            <Clock className="w-3.5 h-3.5" />
+                                            {t('billing.cycleEnds')} <span className="text-gray-700 dark:text-white/70 ml-1">{formatDate(status.planExpiresAt)}</span>
                                         </p>
                                     ) : (
-                                        <p className="text-sm text-muted-foreground mt-2 max-w-lg leading-relaxed">
-                                            {t('billing.freeDesc')}
-                                        </p>
+                                        <p className="text-[12px] text-gray-500 dark:text-white/50">{t('billing.freeDesc')}</p>
+                                    )}
+                                    {isPendingCancel && (
+                                        <span className="mt-2 inline-block text-[11px] font-semibold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-500/20 px-2.5 py-1 rounded-full">
+                                            {t('billing.cancelling')}
+                                        </span>
                                     )}
                                 </div>
-
                                 {isProOrPremium && activeSubStatus === 'active' && (
-                                    <div className="flex-shrink-0">
-                                        <Button
-                                            variant="outline"
-                                            onClick={handleCancel}
-                                            disabled={isCancelling}
-                                            className="w-full md:w-auto text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30 border-red-200 dark:border-red-900/30 transition-colors"
-                                        >
-                                            {isCancelling && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                            {t('billing.btnCancel')}
-                                        </Button>
-                                    </div>
-                                )}
-                                {isPendingCancel && (
-                                    <div className="flex-shrink-0">
-                                        <Badge variant="outline" className="text-amber-600 border-amber-300 bg-amber-50">
-                                            {t('billing.cancelling')}
-                                        </Badge>
-                                    </div>
+                                    <button
+                                        onClick={handleCancel}
+                                        disabled={isCancelling}
+                                        className="flex items-center gap-2 h-9 px-5 rounded-xl border border-red-200 dark:border-red-900/40 text-[13px] font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors disabled:opacity-40 shrink-0"
+                                    >
+                                        {isCancelling && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                                        {t('billing.btnCancel')}
+                                    </button>
                                 )}
                             </>
                         )}
-                    </CardContent>
-                </Card>
+                    </div>
+                </div>
 
-                {/* --- 2. UPGRADE PLANS SECTION --- */}
+                {/* ── Plan Cards ── */}
                 {!isLoading && (
-                    <div className="space-y-6">
-                        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                    <div className="space-y-5">
+                        {/* Header + toggle */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div>
-                                <h2 className="text-xl font-bold tracking-tight">{t('billing.choosePlan')}</h2>
-                                <p className="text-sm text-muted-foreground mt-1">{t('billing.choosePlanDesc')}</p>
+                                <h2 className="text-[15px] font-bold text-gray-900 dark:text-white">{t('billing.choosePlan')}</h2>
+                                <p className="text-[12px] text-gray-500 dark:text-white/50 mt-0.5">{t('billing.choosePlanDesc')}</p>
                             </div>
-
-                            {/* Toggle Mensual/Anual */}
-                            <div className="flex items-center bg-zinc-100/80 dark:bg-zinc-800/80 p-1.5 rounded-full border shadow-inner self-start md:self-end">
+                            {/* Monthly / Yearly toggle */}
+                            <div className="flex items-center bg-gray-100 dark:bg-white/[0.06] p-1 rounded-xl border border-gray-200 dark:border-white/[0.08] self-start sm:self-auto shrink-0">
                                 <button
                                     onClick={() => setIsYearly(false)}
-                                    className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all duration-300 ${!isYearly ? 'bg-white dark:bg-zinc-700 shadow-md text-zinc-900 dark:text-zinc-100 scale-105' : 'text-muted-foreground hover:text-zinc-700 dark:hover:text-zinc-300'}`}
+                                    className={cn(
+                                        'px-4 py-1.5 rounded-lg text-[12px] font-semibold transition-all duration-200',
+                                        !isYearly
+                                            ? 'bg-white dark:bg-white/[0.1] text-gray-900 dark:text-white shadow-sm'
+                                            : 'text-gray-500 dark:text-white/40 hover:text-gray-700 dark:hover:text-white/65'
+                                    )}
                                 >
                                     {t('billing.monthly')}
                                 </button>
                                 <button
                                     onClick={() => setIsYearly(true)}
-                                    className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all duration-300 flex items-center gap-2 ${isYearly ? 'bg-white dark:bg-zinc-700 shadow-md text-zinc-900 dark:text-zinc-100 scale-105' : 'text-muted-foreground hover:text-zinc-700 dark:hover:text-zinc-300'}`}
+                                    className={cn(
+                                        'flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-[12px] font-semibold transition-all duration-200',
+                                        isYearly
+                                            ? 'bg-white dark:bg-white/[0.1] text-gray-900 dark:text-white shadow-sm'
+                                            : 'text-gray-500 dark:text-white/40 hover:text-gray-700 dark:hover:text-white/65'
+                                    )}
                                 >
                                     {t('billing.yearly')}
-                                    <span className="text-[11px] text-emerald-700 dark:text-emerald-400 font-extrabold bg-emerald-100 dark:bg-emerald-500/20 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-500/20">
+                                    <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-1.5 py-0.5 rounded-full">
                                         {t('billing.save16')}
                                     </span>
                                 </button>
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-6 lg:gap-8 mt-4">
-                            {/* FREE PLAN */}
-                            <Card className="flex flex-col relative transition-all duration-300">
-                                <CardHeader className="pb-5">
-                                    <CardTitle className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Free</CardTitle>
-                                    <CardDescription className="min-h-[40px] text-sm leading-relaxed">
-                                        {t('billing.freeSub')}
-                                    </CardDescription>
-                                </CardHeader>
+                        {/* Cards grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
 
-                                <CardContent className="flex flex-col flex-grow pb-8">
-                                    <div className="mb-6 space-y-1">
-                                        <div className="flex items-end gap-1">
-                                            <span className="text-4xl font-extrabold tracking-tight text-foreground">
-                                                $0
-                                            </span>
-                                        </div>
-                                        <p className="text-sm font-medium text-muted-foreground h-5 mt-1">
-                                            {t('billing.freeForever')}
-                                        </p>
-                                    </div>
-
-                                    <ul className="space-y-4 mb-8 flex-grow">
-                                        {[
-                                            t('billing.featFree1'),
-                                            t('billing.featFree2'),
-                                            t('billing.featFree3'),
-                                        ].map((feat) => (
-                                            <li key={feat} className="flex items-start gap-3 text-sm text-muted-foreground">
-                                                <CheckCircle2 className="w-5 h-5 text-zinc-400 flex-shrink-0" />
-                                                <span className="pt-0.5">{feat}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </CardContent>
-
-                                <CardFooter className="pt-0">
-                                    <Button
-                                        variant="outline"
-                                        className="w-full h-12 text-zinc-500 bg-transparent border-border dark:border-zinc-800 rounded-xl"
-                                        disabled={true}
-                                    >
-                                        {t('billing.yourPlan')}
-                                    </Button>
-                                </CardFooter>
-                            </Card>
-
-                            {/* PRO PLAN */}
-                            <Card className="border-2 border-violet-500/20 dark:border-violet-500/30 bg-violet-50/30 dark:bg-violet-950/10 overflow-hidden flex flex-col relative transition-all duration-300 shadow-sm hover:shadow-md hover:border-violet-500/40">
-                                {/* Badge overlay */}
-                                <div className="absolute top-0 inset-x-0 bg-violet-600 text-white text-[11px] font-bold uppercase tracking-widest py-1.5 text-center shadow-sm z-20">
-                                    {t('billing.mostPopular')}
+                            {/* ── FREE ── */}
+                            <div className="flex flex-col rounded-2xl p-6 bg-gray-50 dark:bg-white/[0.03] border border-gray-100 dark:border-white/[0.06]">
+                                <p className="text-[10px] font-bold tracking-widest text-gray-400 dark:text-white/30 uppercase mb-4">Free</p>
+                                <div className="flex items-baseline gap-1.5 mb-1">
+                                    <span className="text-[40px] font-black leading-none tracking-tight text-gray-900 dark:text-white">$0</span>
                                 </div>
+                                <p className="text-[12px] text-gray-400 dark:text-white/30 mb-6">para siempre</p>
+                                <div className="h-px bg-gray-100 dark:bg-white/[0.06] mb-5" />
+                                <ul className="space-y-2.5 mb-6 flex-1">
+                                    {FREE_FEATURES.map(f => (
+                                        <li key={f} className="flex items-center gap-2.5 text-[12px] text-gray-600 dark:text-white/55">
+                                            <div className="w-4 h-4 rounded-full bg-gray-100 dark:bg-white/[0.07] flex items-center justify-center shrink-0">
+                                                <Check className="h-2.5 w-2.5 text-gray-400 dark:text-white/40" strokeWidth={3} />
+                                            </div>
+                                            {f}
+                                        </li>
+                                    ))}
+                                </ul>
+                                <button
+                                    disabled
+                                    className="w-full h-10 rounded-xl text-[13px] font-semibold bg-gray-100 dark:bg-white/[0.06] text-gray-400 dark:text-white/30 cursor-default"
+                                >
+                                    {planKey === 'free' ? t('billing.yourPlan') : t('billing.freeSub')}
+                                </button>
+                            </div>
 
-                                <CardHeader className="pt-10 pb-5 relative z-10">
-                                    <CardTitle className="text-xl font-bold flex items-center gap-2 text-violet-700 dark:text-violet-400">
-                                        Pro <Sparkles className="w-4 h-4 text-violet-500" />
-                                    </CardTitle>
-                                    <CardDescription className="min-h-[40px] text-sm leading-relaxed">
-                                        {t('billing.proSub')}
-                                    </CardDescription>
-                                </CardHeader>
-
-                                <CardContent className="flex flex-col flex-grow pb-8 relative z-10">
-                                    <div className="mb-6 space-y-1">
-                                        {status?.prices ? (
-                                            <>
-                                                <div className="flex items-end gap-1">
-                                                    <span className="text-4xl font-extrabold tracking-tight text-foreground">
-                                                        {isYearly ? formatPrice(status.prices.yearly / 12) : formatPrice(status.prices.monthly)}
-                                                    </span>
-                                                    <span className="text-sm font-medium text-muted-foreground mb-1.5">/ mes</span>
-                                                </div>
-                                                <p className="text-sm font-medium text-violet-600/80 dark:text-violet-400/80 h-5 mt-1">
-                                                    {isYearly ? `${t('billing.billedYearly')} (${formatPrice(status.prices.yearly)})` : t('billing.billedMonthly')}
-                                                </p>
-                                            </>
-                                        ) : (
-                                            <Skeleton className="h-10 w-32" />
+                            {/* ── PRO (featured) ── */}
+                            <div className="relative flex flex-col rounded-2xl p-6 bg-white text-gray-900 shadow-xl shadow-black/10 dark:shadow-black/40 border border-gray-100 md:-mt-3 md:mb-3">
+                                {/* Popular badge */}
+                                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
+                                    <span className="inline-flex items-center gap-1.5 bg-gray-900 text-white text-[10px] font-bold tracking-widest uppercase px-3.5 py-1.5 rounded-full border border-white/[0.12]">
+                                        <Zap className="h-2.5 w-2.5 fill-white" strokeWidth={0} />
+                                        Popular
+                                    </span>
+                                </div>
+                                <p className="text-[10px] font-bold tracking-widest text-gray-400 uppercase mb-4 mt-1">Pro</p>
+                                <div className="flex items-baseline gap-1.5 mb-1">
+                                    {status?.prices ? (
+                                        <span className="text-[40px] font-black leading-none tracking-tight text-gray-900">
+                                            {isYearly ? formatUSD(Math.round(status.prices.pro.yearly / 12)) : formatUSD(status.prices.pro.monthly)}
+                                        </span>
+                                    ) : <Skeleton className="h-10 w-20" />}
+                                    <span className="text-[13px] text-gray-400">/ mes</span>
+                                </div>
+                                <p className="text-[12px] text-gray-400 mb-6">
+                                    {isYearly ? `${formatUSD(status?.prices?.pro.yearly ?? 0)} / año` : t('billing.billedMonthly')}
+                                </p>
+                                <div className="h-px bg-gray-100 mb-5" />
+                                <ul className="space-y-2.5 mb-6 flex-1">
+                                    {PRO_FEATURES.map(f => (
+                                        <li key={f} className="flex items-center gap-2.5 text-[12px] text-gray-700">
+                                            <div className="w-4 h-4 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+                                                <Check className="h-2.5 w-2.5 text-gray-500" strokeWidth={3} />
+                                            </div>
+                                            {f}
+                                        </li>
+                                    ))}
+                                </ul>
+                                {planKey === 'pro' ? (
+                                    <button disabled className="w-full h-10 rounded-xl text-[13px] font-semibold bg-gray-100 text-gray-400 cursor-default">
+                                        {t('billing.yourPlan')}
+                                    </button>
+                                ) : planKey === 'premium' ? (
+                                    <button disabled className="w-full h-10 rounded-xl text-[13px] font-semibold bg-gray-100 text-gray-400 cursor-default">
+                                        {t('billing.includedPremium')}
+                                    </button>
+                                ) : (
+                                    <div className="space-y-2">
+                                        <button
+                                            onClick={() => handleSubscribe('pro', isYearly ? 'year' : 'month')}
+                                            disabled={isSubscribing}
+                                            className="w-full h-10 rounded-xl text-[13px] font-semibold bg-gray-900 text-white hover:bg-gray-700 transition-colors disabled:opacity-40 flex items-center justify-center gap-2"
+                                        >
+                                            {isSubscribing && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                                            {t('billing.upgradePro')}
+                                        </button>
+                                        {process.env.NODE_ENV === 'development' && (
+                                            <button onClick={() => handleDevOverride('pro')} disabled={isSubscribing} className="w-full h-8 rounded-xl text-[11px] font-semibold border border-gray-200 text-gray-400 hover:bg-gray-50 transition-colors">
+                                                [DEV] Activar Inmediato
+                                            </button>
                                         )}
                                     </div>
+                                )}
+                            </div>
 
-                                    <ul className="space-y-4 mb-8 flex-grow">
-                                        {[
-                                            t('billing.featPro1'),
-                                            t('billing.featPro2'),
-                                            t('billing.featPro3'),
-                                            t('billing.featPro4'),
-                                        ].map((feat) => (
-                                            <li key={feat} className="flex items-start gap-3 text-sm text-muted-foreground font-medium">
-                                                <CheckCircle2 className="w-5 h-5 text-violet-600 flex-shrink-0" />
-                                                <span className="pt-0.5">{feat}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </CardContent>
-
-                                <CardFooter className="pt-0 flex flex-col space-y-3 relative z-10">
-                                    {planKey === 'pro' ? (
-                                        <Button
-                                            className="w-full h-12 text-md bg-zinc-100 hover:bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-zinc-300 font-bold rounded-xl shadow-sm transition-all"
-                                            disabled={true}
+                            {/* ── PREMIUM ── */}
+                            <div className="flex flex-col rounded-2xl p-6 bg-gray-50 dark:bg-white/[0.03] border border-gray-100 dark:border-white/[0.06]">
+                                <p className="text-[10px] font-bold tracking-widest text-gray-400 dark:text-white/30 uppercase mb-4">Premium</p>
+                                <div className="flex items-baseline gap-1.5 mb-1">
+                                    {status?.prices ? (
+                                        <span className="text-[40px] font-black leading-none tracking-tight text-gray-900 dark:text-white">
+                                            {isYearly ? formatUSD(Math.round(status.prices.premium.yearly / 12)) : formatUSD(status.prices.premium.monthly)}
+                                        </span>
+                                    ) : <Skeleton className="h-10 w-20 dark:bg-white/[0.07]" />}
+                                    <span className="text-[13px] text-gray-400 dark:text-white/30">/ mes</span>
+                                </div>
+                                <p className="text-[12px] text-gray-400 dark:text-white/30 mb-6">
+                                    {isYearly ? `${formatUSD(status?.prices?.premium.yearly ?? 0)} / año` : t('billing.billedMonthly')}
+                                </p>
+                                <div className="h-px bg-gray-100 dark:bg-white/[0.06] mb-5" />
+                                <ul className="space-y-2.5 mb-6 flex-1">
+                                    {PREMIUM_FEATURES.map(f => (
+                                        <li key={f} className="flex items-center gap-2.5 text-[12px] text-gray-600 dark:text-white/55">
+                                            <div className="w-4 h-4 rounded-full bg-gray-100 dark:bg-white/[0.07] flex items-center justify-center shrink-0">
+                                                <Check className="h-2.5 w-2.5 text-gray-400 dark:text-white/40" strokeWidth={3} />
+                                            </div>
+                                            {f}
+                                        </li>
+                                    ))}
+                                </ul>
+                                {planKey === 'premium' ? (
+                                    <button disabled className="w-full h-10 rounded-xl text-[13px] font-semibold bg-gray-100 dark:bg-white/[0.06] text-gray-400 dark:text-white/30 cursor-default">
+                                        {t('billing.yourPlan')}
+                                    </button>
+                                ) : (
+                                    <div className="space-y-2">
+                                        <button
+                                            onClick={() => handleSubscribe('premium', isYearly ? 'year' : 'month')}
+                                            disabled={isSubscribing}
+                                            className="w-full h-10 rounded-xl text-[13px] font-semibold bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-700 dark:hover:bg-white/90 transition-colors disabled:opacity-40 flex items-center justify-center gap-2"
                                         >
-                                            {t('billing.yourPlan')}
-                                        </Button>
-                                    ) : planKey === 'premium' ? (
-                                        <Button
-                                            className="w-full h-12 text-md bg-zinc-100 hover:bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-zinc-300 font-bold rounded-xl shadow-sm transition-all"
-                                            disabled={true}
-                                        >
-                                            {t('billing.includedPremium')}
-                                        </Button>
-                                    ) : (
-                                        <>
-                                            <PrimaryButton
-                                                className="w-full bg-violet-600 hover:bg-violet-700"
-                                                onClick={() => handleSubscribe('pro', isYearly ? 'year' : 'month')}
-                                                disabled={isSubscribing}
-                                            >
-                                                {isSubscribing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                                {t('billing.upgradePro')}
-                                            </PrimaryButton>
-                                            {process.env.NODE_ENV === 'development' && (
-                                                <Button
-                                                    variant="outline"
-                                                    className="w-full h-10 text-xs rounded-xl"
-                                                    onClick={() => handleDevOverride('pro')}
-                                                    disabled={isSubscribing}
-                                                >
-                                                    [DEV] Activar Inmediato
-                                                </Button>
-                                            )}
-                                        </>
-                                    )}
-                                </CardFooter>
-                            </Card>
-
-                            {/* PREMIUM PLAN */}
-                            <Card className="flex flex-col relative transition-all duration-300">
-                                <CardHeader className="pb-5 relative z-10">
-                                    <CardTitle className="text-xl font-bold flex items-center gap-2 text-amber-600 dark:text-amber-400">
-                                        Premium
-                                    </CardTitle>
-                                    <CardDescription className="min-h-[40px] text-sm leading-relaxed">
-                                        {t('billing.premiumSub')}
-                                    </CardDescription>
-                                </CardHeader>
-
-                                <CardContent className="flex flex-col flex-grow pb-8 relative z-10">
-                                    <div className="mb-6 space-y-1">
-                                        {status?.prices ? (
-                                            <>
-                                                <div className="flex items-end gap-1">
-                                                    <span className="text-4xl font-extrabold tracking-tight text-foreground">
-                                                        {isYearly ? formatPrice(status.prices.yearly / 12) : formatPrice(status.prices.monthly)}
-                                                    </span>
-                                                    <span className="text-sm font-medium text-muted-foreground mb-1.5">/ mes</span>
-                                                </div>
-                                                <p className="text-sm font-medium text-amber-600/80 dark:text-amber-400/80 h-5 mt-1">
-                                                    {isYearly ? `${t('billing.billedYearly')} (${formatPrice(status.prices.yearly)})` : t('billing.billedMonthly')}
-                                                </p>
-                                            </>
-                                        ) : (
-                                            <Skeleton className="h-10 w-32" />
+                                            {isSubscribing && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                                            {planKey === 'pro' ? t('billing.upgradePremium') : t('billing.buyPremium')}
+                                        </button>
+                                        {process.env.NODE_ENV === 'development' && (
+                                            <button onClick={() => handleDevOverride('premium')} disabled={isSubscribing} className="w-full h-8 rounded-xl text-[11px] font-semibold border border-gray-100 dark:border-white/[0.08] text-gray-400 dark:text-white/30 hover:bg-gray-50 dark:hover:bg-white/[0.04] transition-colors">
+                                                [DEV] Activar Inmediato
+                                            </button>
                                         )}
                                     </div>
+                                )}
+                            </div>
 
-                                    <ul className="space-y-4 mb-8 flex-grow">
-                                        {[
-                                            t('billing.featPremium1'),
-                                            t('billing.featPremium2'),
-                                            t('billing.featPremium3'),
-                                            t('billing.featPremium4'),
-                                        ].map((feat, i) => (
-                                            <li key={feat} className={`flex items-start gap-3 text-sm ${i === 0 ? 'font-semibold text-foreground mb-2' : 'text-muted-foreground'}`}>
-                                                <CheckCircle2 className={`w-5 h-5 flex-shrink-0 ${i === 0 ? 'text-amber-500' : 'text-amber-400/80'}`} />
-                                                <span className="pt-0.5">{feat}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </CardContent>
-
-                                <CardFooter className="pt-0 flex flex-col space-y-3 relative z-10">
-                                    {remainingValueText && (
-                                        <p className="text-xs font-medium text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-2 rounded-md text-center">
-                                            {remainingValueText}
-                                        </p>
-                                    )}
-                                    {planKey === 'premium' ? (
-                                        <Button
-                                            variant="outline"
-                                            className="w-full h-12 text-zinc-500 bg-transparent border-border dark:border-zinc-800 rounded-xl"
-                                            disabled={true}
-                                        >
-                                            {t('billing.yourPlan')}
-                                        </Button>
-                                    ) : (
-                                        <>
-                                            <PrimaryButton
-                                                className="w-full bg-amber-600 hover:bg-amber-700"
-                                                onClick={() => handleSubscribe('premium', isYearly ? 'year' : 'month')}
-                                                disabled={isSubscribing}
-                                            >
-                                                {isSubscribing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                                {planKey === 'pro' ? t('billing.upgradePremium') : t('billing.buyPremium')}
-                                            </PrimaryButton>
-                                            {process.env.NODE_ENV === 'development' && (
-                                                <Button
-                                                    variant="outline"
-                                                    className="w-full h-10 text-xs rounded-xl"
-                                                    onClick={() => handleDevOverride('premium')}
-                                                    disabled={isSubscribing}
-                                                >
-                                                    [DEV] Activar Inmediato
-                                                </Button>
-                                            )}
-                                        </>
-                                    )}
-                                </CardFooter>
-                            </Card>
                         </div>
 
+                        <p className="text-center text-[11px] text-gray-400 dark:text-white/30">
+                            Precios en USD · Sin contratos · Cancela cuando quieras
+                        </p>
                     </div>
                 )}
 
-                {/* --- 3. BILLING HISTORY --- */}
+                {/* ── Billing History ── */}
                 {filteredHistory.length > 0 && (
-                    <Card>
-                        <CardHeader className="p-6 pb-4 border-b border-border/50">
-                            <CardTitle>{t('billing.history')}</CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-0">
-                            <div className="divide-y divide-border/50">
-                                {filteredHistory.map((sub) => {
-                                    const st = STATUS_LABEL[sub.status] ?? { labelKey: sub.status, color: '' };
-                                    return (
-                                        <div key={sub.id} className="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-colors">
-                                            <div>
-                                                <p className="text-sm font-semibold capitalize flex items-center gap-2">
-                                                    Hi Krew {(sub as unknown as { plan?: string }).plan || 'Pro'}
-                                                    <span className="text-muted-foreground font-normal text-xs uppercase tracking-wider">
-                                                        ({sub.interval === 'month' ? t('billing.monthly') : t('billing.yearly')})
-                                                    </span>
-                                                </p>
-                                                <p className="text-sm text-muted-foreground mt-1">
-                                                    {formatDate(sub.createdAt)}
-                                                </p>
-                                            </div>
-                                            <Badge className={`text-xs px-2.5 py-1 border ${st.color}`}>
-                                                {sub.status === 'active' && <CheckCircle2 className="w-3.5 h-3.5 mr-1" />}
-                                                {sub.status === 'cancelled' && <XCircle className="w-3.5 h-3.5 mr-1" />}
-                                                {t(st.labelKey)}
-                                            </Badge>
+                    <div className="rounded-2xl border border-gray-100 dark:border-white/[0.06] bg-white dark:bg-[#1a1a1a] overflow-hidden">
+                        <div className="px-6 py-4 border-b border-gray-100 dark:border-white/[0.05]">
+                            <h3 className="text-[14px] font-semibold text-gray-900 dark:text-white">{t('billing.history')}</h3>
+                        </div>
+                        <div className="divide-y divide-gray-50 dark:divide-white/[0.04]">
+                            {filteredHistory.map((sub) => {
+                                const st = STATUS_LABEL[sub.status] ?? { labelKey: sub.status, color: '' };
+                                return (
+                                    <div key={sub.id} className="px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                        <div>
+                                            <p className="text-[13px] font-semibold text-gray-900 dark:text-white capitalize flex items-center gap-2">
+                                                Hi Krew {(sub as unknown as { plan?: string }).plan || 'Pro'}
+                                                <span className="text-[10px] font-medium text-gray-400 dark:text-white/40 uppercase tracking-wider">
+                                                    {sub.interval === 'month' ? t('billing.monthly') : t('billing.yearly')}
+                                                </span>
+                                            </p>
+                                            <p className="text-[12px] text-gray-500 dark:text-white/40 mt-0.5">{formatDate(sub.createdAt)}</p>
                                         </div>
-                                    );
-                                })}
-                            </div>
-                        </CardContent>
-                    </Card>
-                )}
-
-                {isLoading && (
-                    <div className="space-y-4 pt-4">
-                        <Skeleton className="h-48 w-full rounded-xl" />
-                        <Skeleton className="h-32 w-full rounded-xl" />
+                                        <span className={cn('inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full border shrink-0', st.color)}>
+                                            {sub.status === 'active' && <CheckCircle2 className="w-3 h-3" />}
+                                            {sub.status === 'cancelled' && <XCircle className="w-3 h-3" />}
+                                            {t(st.labelKey)}
+                                        </span>
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
                 )}
 
                 {isLoading && (
-                    <div className="space-y-4 pt-4">
-                        <Skeleton className="h-48 w-full rounded-xl" />
-                        <Skeleton className="h-32 w-full rounded-xl" />
+                    <div className="space-y-4">
+                        <Skeleton className="h-24 w-full rounded-2xl dark:bg-white/[0.05]" />
+                        <Skeleton className="h-64 w-full rounded-2xl dark:bg-white/[0.05]" />
                     </div>
                 )}
             </div>
-        </DashboardShell>
+        </div>
     );
 }

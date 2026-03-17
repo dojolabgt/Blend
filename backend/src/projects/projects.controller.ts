@@ -5,6 +5,7 @@ import {
   Body,
   Param,
   Delete,
+  Query,
   UseGuards,
   HttpCode,
   HttpStatus,
@@ -13,6 +14,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ProjectsService } from './projects.service';
 import { ProjectRole } from './entities/project-collaborator.entity';
 import { CreateMilestoneSplitDto } from '../deals/dto/milestone-split.dto';
+import { ProjectsQueryDto } from './dto/projects-query.dto';
 
 @Controller('workspaces/:workspaceId/projects')
 @UseGuards(JwtAuthGuard)
@@ -20,8 +22,11 @@ export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
   @Get()
-  findAll(@Param('workspaceId') workspaceId: string) {
-    return this.projectsService.findAll(workspaceId);
+  findAll(
+    @Param('workspaceId') workspaceId: string,
+    @Query() query: ProjectsQueryDto,
+  ) {
+    return this.projectsService.findAll(workspaceId, query);
   }
 
   @Get(':id')

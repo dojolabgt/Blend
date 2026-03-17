@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/features/auth/context/auth-context";
 import { ServiceWorkerProvider } from "@/components/layout/ServiceWorkerProvider";
+import { ThemeProvider } from "@/components/common/ThemeProvider";
 
 export const metadata: Metadata = {
     title: 'Hi Krew',
@@ -39,12 +40,14 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="es">
+        <html lang="es" suppressHydrationWarning>
             <body className="antialiased font-sans">
-                <AuthProvider>
-                    <ServiceWorkerProvider />
-                    {children}
-                </AuthProvider>
+                <ThemeProvider>
+                    <AuthProvider>
+                        <ServiceWorkerProvider />
+                        {children}
+                    </AuthProvider>
+                </ThemeProvider>
             </body>
         </html>
     );

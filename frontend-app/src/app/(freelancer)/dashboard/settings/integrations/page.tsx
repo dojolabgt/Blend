@@ -6,13 +6,12 @@ import { workspacesApi } from '@/features/workspaces/api';
 import { RecurrenteForm } from '../branding/_components/RecurrenteForm';
 import { IntegrationCard } from './_components/IntegrationCard';
 import { Skeleton } from '@/components/ui/skeleton';
-import { DashboardShell } from '@/components/layout/DashboardShell';
 import {
     Sheet,
     SheetContent,
-    SheetDescription,
     SheetHeader,
     SheetTitle,
+    SheetDescription,
 } from '@/components/ui/sheet';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useWorkspaceSettings } from '@/hooks/use-workspace-settings';
@@ -20,7 +19,7 @@ import { Gt, Sv } from '@next-languages/flags';
 
 const recurrenteLogoSrc = '/integrations/recurrente-logo.png';
 
-export default function SettingsPage() {
+export default function IntegrationsPage() {
     const { t } = useWorkspaceSettings();
     const { activeWorkspace } = useAuth();
     const isProOrPremium = activeWorkspace?.plan === 'pro' || activeWorkspace?.plan === 'premium';
@@ -46,150 +45,158 @@ export default function SettingsPage() {
     }, []);
 
     return (
-        <DashboardShell>
-            <div className="space-y-12 w-full py-2">
-                {/* Header */}
-                <div className="mb-6">
-                    <h1 className="text-xl font-semibold tracking-tight">{t('integrations.title')}</h1>
-                    <p className="text-sm text-muted-foreground mt-0.5">
-                        {t('integrations.titleDesc')}
-                    </p>
-                </div>
+        <div className="px-6 py-6">
 
-                {/* Cards */}
-                <div className="w-full">
-                    <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4 flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-primary/40 block"></span>
-                        {t('integrations.availableOptions')}
-                    </p>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {isLoading ? (
-                            <>
-                                <Skeleton className="h-[180px] w-full rounded-2xl" />
-                                <Skeleton className="h-[180px] w-full rounded-2xl" />
-                                <Skeleton className="h-[180px] w-full rounded-2xl" />
-                            </>
-                        ) : (
-                            <>
-                                <IntegrationCard
-                                    logo={
-                                        <Image
-                                            src={recurrenteLogoSrc}
-                                            alt="Recurrente"
-                                            width={44}
-                                            height={44}
-                                            className="object-contain dark:invert"
-                                        />
-                                    }
-                                    name="Recurrente"
-                                    description={t('integrations.recurrenteDesc')}
-                                    isConfigured={isConfigured ?? false}
-                                    onConfigure={() => setSheetOpen(true)}
-                                    proOnly
-                                    userIsPro={isProOrPremium}
-                                    badges={[
-                                        <div key="gt" className="w-[20px] rounded-[3px] overflow-hidden shadow-sm border border-zinc-200 dark:border-zinc-800 flex bg-white mix-blend-multiply dark:mix-blend-normal">
-                                            <Gt className="w-full h-auto" />
-                                        </div>,
-                                        <div key="sv" className="w-[20px] rounded-[3px] overflow-hidden shadow-sm border border-zinc-200 dark:border-zinc-800 flex bg-white mix-blend-multiply dark:mix-blend-normal">
-                                            <Sv className="w-full h-auto" />
-                                        </div>,
-                                    ]}
-                                    disabledReason={!isRecurrenteSupported ? t('integrations.notSupportedCountry') : undefined}
-                                />
-                                <IntegrationCard
-                                    logo={
-                                        <Image
-                                            src="/integrations/drive-logo.png"
-                                            alt="Google Drive"
-                                            width={44}
-                                            height={44}
-                                            className="object-contain"
-                                        />
-                                    }
-                                    name="Google Drive"
-                                    description={t('integrations.driveDesc')}
-                                    isConfigured={false}
-                                    onConfigure={() => { }}
-                                    comingSoon
-                                    proOnly
-                                    userIsPro={isProOrPremium}
-                                />
-                                <IntegrationCard
-                                    logo={
-                                        <Image
-                                            src="/integrations/rest-api.png"
-                                            alt="API Access"
-                                            width={44}
-                                            height={44}
-                                            className="object-contain dark:invert"
-                                        />
-                                    }
-                                    name="Krew API"
-                                    description={t('integrations.apiDesc')}
-                                    isConfigured={false}
-                                    onConfigure={() => { }}
-                                    comingSoon
-                                    proOnly
-                                    userIsPro={isProOrPremium}
-                                />
-                                <IntegrationCard
-                                    logo={
-                                        <Image
-                                            src="/integrations/n8n.png"
-                                            alt="n8n"
-                                            width={44}
-                                            height={44}
-                                            className="object-contain"
-                                        />
-                                    }
-                                    name="n8n Templates"
-                                    description={t('integrations.n8nDesc')}
-                                    isConfigured={false}
-                                    onConfigure={() => { }}
-                                    comingSoon
-                                    proOnly
-                                    userIsPro={isProOrPremium}
-                                />
-                            </>
-                        )}
-                    </div>
-                </div>
+            {/* Header */}
+            <div className="mb-8">
+                <h1 className="text-[18px] font-bold text-gray-900 dark:text-white tracking-tight">
+                    {t('integrations.title')}
+                </h1>
+                <p className="text-[13px] text-gray-500 dark:text-white/50 mt-0.5 leading-snug">
+                    {t('integrations.titleDesc')}
+                </p>
             </div>
 
-            {/* Sheet for Recurrente config */}
-            <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-                <SheetContent className="sm:max-w-md overflow-y-auto px-6 py-8 border-l border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-[#0A0A0A]">
-                    <SheetHeader className="mb-8">
-                        <div className="flex flex-col gap-4">
-                            <div className="w-12 h-12 rounded-xl bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-100 dark:border-zinc-800 shadow-sm flex items-center justify-center p-2.5">
+            {/* Section label */}
+            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-white/40 mb-4 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-gray-300 dark:bg-white/20 shrink-0" />
+                {t('integrations.availableOptions')}
+            </p>
+
+            {/* Cards grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {isLoading ? (
+                    <>
+                        <Skeleton className="h-[200px] w-full rounded-2xl dark:bg-white/[0.05]" />
+                        <Skeleton className="h-[200px] w-full rounded-2xl dark:bg-white/[0.05]" />
+                        <Skeleton className="h-[200px] w-full rounded-2xl dark:bg-white/[0.05]" />
+                        <Skeleton className="h-[200px] w-full rounded-2xl dark:bg-white/[0.05]" />
+                    </>
+                ) : (
+                    <>
+                        <IntegrationCard
+                            logo={
                                 <Image
                                     src={recurrenteLogoSrc}
                                     alt="Recurrente"
-                                    width={32}
-                                    height={32}
+                                    width={44}
+                                    height={44}
+                                    className="object-contain dark:invert"
+                                />
+                            }
+                            name="Recurrente"
+                            description={t('integrations.recurrenteDesc')}
+                            isConfigured={isConfigured ?? false}
+                            onConfigure={() => setSheetOpen(true)}
+                            proOnly
+                            userIsPro={isProOrPremium}
+                            badges={[
+                                <div key="gt" className="w-5 rounded-[3px] overflow-hidden border border-gray-200 dark:border-white/[0.1]">
+                                    <Gt className="w-full h-auto" />
+                                </div>,
+                                <div key="sv" className="w-5 rounded-[3px] overflow-hidden border border-gray-200 dark:border-white/[0.1]">
+                                    <Sv className="w-full h-auto" />
+                                </div>,
+                            ]}
+                            disabledReason={!isRecurrenteSupported ? t('integrations.notSupportedCountry') : undefined}
+                        />
+                        <IntegrationCard
+                            logo={
+                                <Image
+                                    src="/integrations/drive-logo.png"
+                                    alt="Google Drive"
+                                    width={44}
+                                    height={44}
+                                    className="object-contain"
+                                />
+                            }
+                            name="Google Drive"
+                            description={t('integrations.driveDesc')}
+                            isConfigured={false}
+                            onConfigure={() => {}}
+                            comingSoon
+                            proOnly
+                            userIsPro={isProOrPremium}
+                        />
+                        <IntegrationCard
+                            logo={
+                                <Image
+                                    src="/integrations/rest-api.png"
+                                    alt="API Access"
+                                    width={44}
+                                    height={44}
+                                    className="object-contain dark:invert"
+                                />
+                            }
+                            name="Krew API"
+                            description={t('integrations.apiDesc')}
+                            isConfigured={false}
+                            onConfigure={() => {}}
+                            comingSoon
+                            proOnly
+                            userIsPro={isProOrPremium}
+                        />
+                        <IntegrationCard
+                            logo={
+                                <Image
+                                    src="/integrations/n8n.png"
+                                    alt="n8n"
+                                    width={44}
+                                    height={44}
+                                    className="object-contain"
+                                />
+                            }
+                            name="n8n Templates"
+                            description={t('integrations.n8nDesc')}
+                            isConfigured={false}
+                            onConfigure={() => {}}
+                            comingSoon
+                            proOnly
+                            userIsPro={isProOrPremium}
+                        />
+                    </>
+                )}
+            </div>
+
+            {/* Sheet: Recurrente config */}
+            <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+                <SheetContent className="sm:max-w-md overflow-y-auto border-l border-gray-100 dark:border-white/[0.06] bg-white dark:bg-[#111111]">
+                    <SheetHeader className="px-6 pt-6 pb-5 border-b border-gray-100 dark:border-white/[0.06]">
+                        <div className="flex items-center gap-3 mb-3">
+                            <div className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-white/[0.06] border border-gray-100 dark:border-white/[0.08] flex items-center justify-center p-2">
+                                <Image
+                                    src={recurrenteLogoSrc}
+                                    alt="Recurrente"
+                                    width={28}
+                                    height={28}
                                     className="object-contain dark:invert"
                                 />
                             </div>
                             <div>
-                                <SheetTitle className="text-xl tracking-tight text-left">{t('integrations.configRecurrente')}</SheetTitle>
-                                <SheetDescription className="text-left mt-1.5 leading-relaxed text-zinc-500 dark:text-zinc-400">
-                                    {t('integrations.configRecurrenteDesc')}
-                                </SheetDescription>
+                                <SheetTitle className="text-[15px] font-bold text-gray-900 dark:text-white tracking-tight text-left">
+                                    {t('integrations.configRecurrente')}
+                                </SheetTitle>
+                                <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-white/40 mt-0.5">
+                                    Recurrente · Pagos recurrentes
+                                </p>
                             </div>
                         </div>
+                        <SheetDescription className="text-[13px] text-gray-500 dark:text-white/50 leading-relaxed text-left">
+                            {t('integrations.configRecurrenteDesc')}
+                        </SheetDescription>
                     </SheetHeader>
 
-                    <RecurrenteForm
-                        isConfigured={isConfigured ?? false}
-                        onUpdateStatus={(status) => {
-                            setIsConfigured(status);
-                            if (status) setSheetOpen(false);
-                        }}
-                    />
+                    <div className="px-6 py-5">
+                        <RecurrenteForm
+                            isConfigured={isConfigured ?? false}
+                            onUpdateStatus={(status) => {
+                                setIsConfigured(status);
+                                if (status) setSheetOpen(false);
+                            }}
+                        />
+                    </div>
                 </SheetContent>
             </Sheet>
-        </DashboardShell>
+        </div>
     );
 }

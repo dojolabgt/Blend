@@ -19,13 +19,18 @@ export interface BillingSubscription {
     updatedAt: string;
 }
 
+export interface PlanPrices {
+    monthly: number; // USD cents
+    yearly: number;  // USD cents
+}
+
 export interface BillingStatus {
     plan: 'free' | 'pro' | 'premium';
     planExpiresAt: string | null;
     subscription: BillingSubscription | null;
     prices: {
-        monthly: number;
-        yearly: number;
+        pro: PlanPrices;
+        premium: PlanPrices;
     };
 }
 

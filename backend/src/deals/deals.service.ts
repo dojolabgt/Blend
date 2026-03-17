@@ -32,6 +32,8 @@ import {
   UpdateMilestoneDto,
   CreateMilestoneDto,
 } from './dto/payment-plan.dto';
+import { DealsQueryDto, BriefTemplatesQueryDto } from './dto/deals-query.dto';
+import { paginate, PaginatedResponse } from '../common/dto/pagination.dto';
 
 // ─── Slug generator ────────────────────────────────────────────────────────
 function generateSlug(name: string): string {
@@ -133,8 +135,19 @@ export class DealsService {
     return await this.dealsRepository.save(deal);
   }
 
-  async findAll(workspaceId: string): Promise<Deal[]> {
-    return this.dealsRepository
+  async findAll(
+    workspaceId: string,
+    query: DealsQueryDto = new DealsQueryDto(),
+  ): Promise<PaginatedResponse<Deal>> {
+    const {
+      search,
+      status,
+      clientId,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+    } = query;
+
+    const qb = this.dealsRepository
       .createQueryBuilder('deal')
       .leftJoinAndSelect('deal.client', 'client')
       .leftJoinAndSelect('deal.brief', 'brief')
@@ -142,9 +155,31 @@ export class DealsService {
       .leftJoinAndSelect('deal.paymentPlan', 'paymentPlan')
       .leftJoinAndSelect('deal.workspace', 'workspace')
       .leftJoinAndSelect('deal.project', 'project')
-      .where('deal.workspace_id = :workspaceId', { workspaceId })
-      .orderBy('deal.createdAt', 'DESC')
-      .getMany();
+      .where('deal.workspace_id = :workspaceId', { workspaceId });
+
+    if (search) {
+      qb.andWhere('deal.name ILIKE :search', { search: `%${search}%` });
+    }
+
+    if (status) {
+      qb.andWhere('deal.status = :status', { status });
+    }
+
+    if (clientId) {
+      qb.andWhere('client.id = :clientId', { clientId });
+    }
+
+    const allowedSort = ['name', 'createdAt', 'status'];
+    const orderField = allowedSort.includes(sortBy) ? sortBy : 'createdAt';
+    qb.orderBy(
+      `deal.${orderField}`,
+      sortOrder.toUpperCase() as 'ASC' | 'DESC',
+    )
+      .skip(query.skip)
+      .take(query.limit);
+
+    const [data, total] = await qb.getManyAndCount();
+    return paginate(data, total, query);
   }
 
   async findOne(workspaceId: string, dealId: string): Promise<Deal> {
@@ -780,11 +815,36 @@ export class DealsService {
     return await this.briefTemplatesRepository.save(template);
   }
 
-  async findAllBriefTemplates(workspaceId: string): Promise<BriefTemplate[]> {
-    return this.briefTemplatesRepository.find({
-      where: { workspace: { id: workspaceId } },
-      order: { createdAt: 'DESC' },
-    });
+  async findAllBriefTemplates(
+    workspaceId: string,
+    query: BriefTemplatesQueryDto = new BriefTemplatesQueryDto(),
+  ): Promise<PaginatedResponse<BriefTemplate>> {
+    const { search, isActive, sortBy = 'createdAt', sortOrder = 'desc' } =
+      query;
+
+    const qb = this.briefTemplatesRepository
+      .createQueryBuilder('template')
+      .where('template.workspace_id = :workspaceId', { workspaceId });
+
+    if (search) {
+      qb.andWhere('template.name ILIKE :search', { search: `%${search}%` });
+    }
+
+    if (isActive !== undefined) {
+      qb.andWhere('template.isActive = :isActive', { isActive });
+    }
+
+    const allowedSort = ['name', 'createdAt'];
+    const orderField = allowedSort.includes(sortBy) ? sortBy : 'createdAt';
+    qb.orderBy(
+      `template.${orderField}`,
+      sortOrder.toUpperCase() as 'ASC' | 'DESC',
+    )
+      .skip(query.skip)
+      .take(query.limit);
+
+    const [data, total] = await qb.getManyAndCount();
+    return paginate(data, total, query);
   }
 
   async findOneBriefTemplate(

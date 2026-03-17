@@ -39,6 +39,7 @@ export function DealBuilder({ dealId }: DealBuilderProps) {
     const [activeStep, setActiveStep] = useState<DealStep>('brief');
     const [isLoading, setIsLoading] = useState(true);
     const [showWonDialog, setShowWonDialog] = useState(false);
+    const [showLostDialog, setShowLostDialog] = useState(false);
 
     const loadDeal = useCallback(async () => {
         setIsLoading(true);
@@ -89,6 +90,21 @@ export function DealBuilder({ dealId }: DealBuilderProps) {
         if (data) setDeal(data);
     }, [dealId, fetchDeal]);
 
+    const STATUS_LABEL: Record<string, string> = {
+        DRAFT: 'Borrador', SENT: 'Enviado', VIEWED: 'Visto',
+        NEGOTIATING: 'Negociando', WON: 'Ganado', LOST: 'Perdido',
+    };
+
+    const handleStatusChange = async (status: string) => {
+        if (status === 'WON') { setShowWonDialog(true); return; }
+        if (status === 'LOST') { setShowLostDialog(true); return; }
+        const updated = await updateDeal(dealId, { status });
+        if (updated) {
+            setDeal(updated);
+            toast.success(`Estado actualizado: ${STATUS_LABEL[status] ?? status}`);
+        }
+    };
+
     const handleWon = async () => {
         const updated = await updateDeal(dealId, { status: 'WON', currentStep: 'won' });
         if (updated) {
@@ -97,6 +113,15 @@ export function DealBuilder({ dealId }: DealBuilderProps) {
             toast.success('¡Trato marcado como Ganado! 🎉');
         }
         setShowWonDialog(false);
+    };
+
+    const handleLost = async () => {
+        const updated = await updateDeal(dealId, { status: 'LOST' });
+        if (updated) {
+            setDeal(updated);
+            toast.error('Trato marcado como Perdido.');
+        }
+        setShowLostDialog(false);
     };
 
 
@@ -128,6 +153,7 @@ export function DealBuilder({ dealId }: DealBuilderProps) {
                         deal={deal}
                         activeStep={activeStep}
                         onStepChange={handleStepChange}
+                        onStatusChange={handleStatusChange}
                         updateDeal={updateDeal}
                     />
                 </div>
@@ -161,6 +187,27 @@ export function DealBuilder({ dealId }: DealBuilderProps) {
                             onClick={handleWon}
                         >
                             Sí, marcar como Ganado 🎉
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            {/* LOST Confirmation Dialog */}
+            <AlertDialog open={showLostDialog} onOpenChange={setShowLostDialog}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>¿Marcar como Perdido?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Marcarás este trato como <strong>Perdido</strong>. Podrás seguir consultándolo pero no habrá acciones comerciales activas. ¿Deseas continuar?
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction
+                            className="bg-rose-600 hover:bg-rose-700"
+                            onClick={handleLost}
+                        >
+                            Sí, marcar como Perdido
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
