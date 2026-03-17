@@ -10,16 +10,16 @@ const APP_URL = process.env.NEXT_PUBLIC_DASHBOARD_URL || '';
 
 export function Header() {
     return (
-        <div className="fixed top-4 inset-x-0 z-50 flex justify-center px-4">
+        <div className="fixed top-4 inset-x-4 z-50 flex justify-center pointer-events-none">
             <motion.div
-                className="w-full max-w-3xl flex items-center justify-between px-5 h-14 rounded-2xl bg-[#111]/90 backdrop-blur-xl border border-white/[0.08] shadow-lg shadow-black/50"
+                className="w-full max-w-3xl flex items-center justify-between px-4 sm:px-6 h-14 rounded-2xl bg-[#111]/90 backdrop-blur-xl border border-white/[0.08] shadow-lg shadow-black/50 pointer-events-auto transition-all duration-300"
                 initial={{ opacity: 0, y: -16, scale: 0.97 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ duration: 0.5, ease: "easeOut" }}
             >
                 <Link href="/" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
                     <Image src="/HiKrewLogo.png" alt="Hi Krew" width={24} height={24} className="object-contain" />
-                    <span className="font-bold text-[15px] text-white tracking-tight">Hi Krew</span>
+                    <span className="hidden sm:inline-block font-bold text-[15px] text-white tracking-tight">Hi Krew</span>
                 </Link>
 
                 <nav className="hidden md:flex items-center gap-0.5">
