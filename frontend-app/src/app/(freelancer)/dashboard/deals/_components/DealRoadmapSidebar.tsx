@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useRouter } from 'next/navigation';
+import { type DealStatus } from '@/hooks/use-deals';
 
 // ─── Status config ────────────────────────────────────────────────────────────
 
@@ -57,7 +58,7 @@ interface SidebarProps {
     deal: DealData;
     activeStep: DealStep;
     onStepChange: (step: DealStep) => void;
-    onStatusChange?: (status: string) => void;
+    onStatusChange?: (status: DealStatus) => void;
     updateDeal?: (dealId: string, partial: Record<string, unknown>) => Promise<unknown>;
 }
 

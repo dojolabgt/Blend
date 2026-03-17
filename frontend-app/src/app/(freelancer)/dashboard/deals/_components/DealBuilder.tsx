@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { DealRoadmapSidebar } from './DealRoadmapSidebar';
 import { DealCanvas } from './DealCanvas';
-import { useDeals } from '@/hooks/use-deals';
+import { useDeals, type DealStatus } from '@/hooks/use-deals';
 import { toast } from 'sonner';
 import {
     AlertDialog,
@@ -95,7 +95,7 @@ export function DealBuilder({ dealId }: DealBuilderProps) {
         NEGOTIATING: 'Negociando', WON: 'Ganado', LOST: 'Perdido',
     };
 
-    const handleStatusChange = async (status: string) => {
+    const handleStatusChange = async (status: DealStatus) => {
         if (status === 'WON') { setShowWonDialog(true); return; }
         if (status === 'LOST') { setShowLostDialog(true); return; }
         const updated = await updateDeal(dealId, { status });
