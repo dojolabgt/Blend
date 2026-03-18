@@ -81,11 +81,11 @@ export class BillingService {
       }
     }
 
-    const frontendUrl = this.configService.getOrThrow<string>(
-      'FRONTEND_PUBLIC_URL',
+    const dashboardUrl = this.configService.getOrThrow<string>(
+      'NEXT_PUBLIC_DASHBOARD_URL',
     );
-    const successUrl = `${frontendUrl}/dashboard/billing?success=1`;
-    const cancelUrl = `${frontendUrl}/dashboard/billing?cancelled=1`;
+    const successUrl = `${dashboardUrl}/dashboard/settings/billing?success=1`;
+    const cancelUrl = `${dashboardUrl}/dashboard/settings/billing?cancelled=1`;
 
     const checkout = await this.recurrenteHiKrewService.createSubscriptionCheckout(
       workspaceId,
@@ -203,6 +203,38 @@ export class BillingService {
     }
 
     this.logger.log(`Subscription cancelled for workspace ${workspaceId}`);
+  }
+
+  /**
+   * Verifies a checkout with Recurrente and activates the subscription if paid.
+   * Used as a fallback when the webhook doesn't fire (e.g. local development).
+   */
+  async verifyCheckout(
+    workspaceId: string,
+    checkoutId: string,
+  ): Promise<{ alreadyActive: boolean }> {
+    const subscription = await this.subscriptionRepo.findOne({
+      where: { recurrenteCheckoutId: checkoutId, workspaceId },
+    });
+
+    if (!subscription) {
+      throw new NotFoundException(
+        'No se encontró una suscripción para este checkout',
+      );
+    }
+
+    if (subscription.status === 'active') {
+      return { alreadyActive: true };
+    }
+
+    const checkoutData = await this.recurrenteHiKrewService.fetchCheckout(checkoutId);
+
+    if (!checkoutData || checkoutData['status'] !== 'paid') {
+      return { alreadyActive: false };
+    }
+
+    await this.handleCheckoutPaid(checkoutData);
+    return { alreadyActive: false };
   }
 
   /**

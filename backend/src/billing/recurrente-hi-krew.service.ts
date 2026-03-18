@@ -100,7 +100,7 @@ export class RecurrenteHiKrewService {
       ],
       success_url: successUrl,
       cancel_url: cancelUrl,
-      custom_info: {
+      metadata: {
         workspaceId,
         context: 'krew_billing',
         plan: planType,
@@ -129,6 +129,28 @@ export class RecurrenteHiKrewService {
       throw new InternalServerErrorException(
         'No se pudo crear el checkout de suscripción',
       );
+    }
+  }
+
+  /**
+   * Fetches a checkout from Recurrente by ID to verify its payment status.
+   */
+  async fetchCheckout(checkoutId: string): Promise<Record<string, unknown> | null> {
+    try {
+      const res = await fetch(`${RECURRENTE_API}/checkouts/${checkoutId}`, {
+        method: 'GET',
+        headers: this.authHeaders,
+      });
+      if (res.status === 404) return null;
+      if (!res.ok) {
+        const text = await res.text();
+        this.logger.error(`Recurrente fetch checkout error: ${res.status} ${text}`);
+        return null;
+      }
+      return res.json() as Promise<Record<string, unknown>>;
+    } catch (error) {
+      this.logger.error('Network error fetching Recurrente checkout', error);
+      return null;
     }
   }
 

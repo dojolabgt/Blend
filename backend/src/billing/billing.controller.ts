@@ -7,6 +7,7 @@ import {
   HttpStatus,
   UseGuards,
   Request,
+  Query,
 } from '@nestjs/common';
 import { BillingService } from './billing.service';
 import { SubscribeDto } from './dto/subscribe.dto';
@@ -54,6 +55,18 @@ export class BillingController {
   @HttpCode(HttpStatus.NO_CONTENT)
   cancel(@Request() req: AuthRequest) {
     return this.billingService.cancelSubscription(req.workspaceId);
+  }
+
+  /**
+   * Verifies a checkout with Recurrente and activates the subscription if paid.
+   * Fallback for when the webhook doesn't fire (e.g. local development).
+   */
+  @Get('verify-checkout')
+  verifyCheckout(
+    @Request() req: AuthRequest,
+    @Query('checkout_id') checkoutId: string,
+  ) {
+    return this.billingService.verifyCheckout(req.workspaceId, checkoutId);
   }
 
   /**

@@ -40,6 +40,15 @@ export const billingApi = {
     },
 
     /**
+     * Verifies a checkout with Recurrente and activates the subscription if paid.
+     * Fallback for when the webhook doesn't fire (e.g. local development).
+     */
+    verifyCheckout: async (checkoutId: string): Promise<{ alreadyActive: boolean }> => {
+        const response = await api.get<{ alreadyActive: boolean }>(`/billing/verify-checkout?checkout_id=${checkoutId}`);
+        return response.data;
+    },
+
+    /**
      * Returns the billing history for the authenticated freelancer.
      */
     getHistory: async (): Promise<BillingSubscription[]> => {

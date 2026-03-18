@@ -72,6 +72,17 @@ export default function BillingPage() {
 
     useEffect(() => {
         async function load() {
+            const checkoutId = searchParams?.get('checkout_id');
+            const isSuccess = !!searchParams?.get('success');
+
+            if (isSuccess && checkoutId) {
+                try {
+                    await billingApi.verifyCheckout(checkoutId);
+                } catch {
+                    // best-effort — webhook may have already handled it
+                }
+            }
+
             try {
                 const [s, h] = await Promise.all([billingApi.getStatus(), billingApi.getHistory()]);
                 setStatus(s);
