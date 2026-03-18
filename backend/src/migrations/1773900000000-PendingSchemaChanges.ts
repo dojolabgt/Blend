@@ -4,35 +4,30 @@ export class PendingSchemaChanges1773900000000 implements MigrationInterface {
     name = 'PendingSchemaChanges1773900000000'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`ALTER TYPE "public"."quotation_items_chargetype_enum" RENAME TO "quotation_items_chargetype_enum_old"`);
-        await queryRunner.query(`CREATE TYPE "public"."quotation_items_chargetype_enum" AS ENUM('ONE_TIME', 'HOURLY', 'RECURRING')`);
-        await queryRunner.query(`ALTER TABLE "quotation_items" ALTER COLUMN "chargeType" DROP DEFAULT`);
-        await queryRunner.query(`ALTER TABLE "quotation_items" ALTER COLUMN "chargeType" TYPE "public"."quotation_items_chargetype_enum" USING "chargeType"::"text"::"public"."quotation_items_chargetype_enum"`);
-        await queryRunner.query(`ALTER TABLE "quotation_items" ALTER COLUMN "chargeType" SET DEFAULT 'ONE_TIME'`);
-        await queryRunner.query(`DROP TYPE "public"."quotation_items_chargetype_enum_old"`);
-        await queryRunner.query(`ALTER TYPE "public"."quotation_items_unittype_enum" RENAME TO "quotation_items_unittype_enum_old"`);
-        await queryRunner.query(`CREATE TYPE "public"."quotation_items_unittype_enum" AS ENUM('HOUR', 'PROJECT', 'MONTH', 'UNIT')`);
-        await queryRunner.query(`ALTER TABLE "quotation_items" ALTER COLUMN "unitType" DROP DEFAULT`);
-        await queryRunner.query(`ALTER TABLE "quotation_items" ALTER COLUMN "unitType" TYPE "public"."quotation_items_unittype_enum" USING "unitType"::"text"::"public"."quotation_items_unittype_enum"`);
-        await queryRunner.query(`ALTER TABLE "quotation_items" ALTER COLUMN "unitType" SET DEFAULT 'UNIT'`);
-        await queryRunner.query(`DROP TYPE "public"."quotation_items_unittype_enum_old"`);
-        await queryRunner.query(`ALTER TABLE "client_portal_invites" ALTER COLUMN "usedAt" SET DEFAULT NULL`);
+        await queryRunner.query(`
+            CREATE TABLE IF NOT EXISTS "client_portal_invites" (
+                "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
+                "client_id" uuid NOT NULL,
+                "token" character varying NOT NULL,
+                "expiresAt" TIMESTAMP WITH TIME ZONE NOT NULL,
+                "usedAt" TIMESTAMP WITH TIME ZONE DEFAULT NULL,
+                "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
+                CONSTRAINT "UQ_782b53c7d3d82220f17719ca95b" UNIQUE ("token"),
+                CONSTRAINT "PK_783c3c6493ab37bd241b39bbad0" PRIMARY KEY ("id")
+            )
+        `);
+        await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_039261f18f554b5935e58361f6" ON "client_portal_invites" ("client_id")`);
+        await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_782b53c7d3d82220f17719ca95" ON "client_portal_invites" ("token")`);
+        await queryRunner.query(`
+            ALTER TABLE "client_portal_invites"
+            ADD CONSTRAINT "FK_039261f18f554b5935e58361f67"
+            FOREIGN KEY ("client_id") REFERENCES "clients"("id") ON DELETE CASCADE
+        `);
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`ALTER TABLE "client_portal_invites" ALTER COLUMN "usedAt" DROP DEFAULT`);
-        await queryRunner.query(`CREATE TYPE "public"."quotation_items_unittype_enum_old" AS ENUM('HOUR', 'PROJECT', 'MONTH', 'UNIT')`);
-        await queryRunner.query(`ALTER TABLE "quotation_items" ALTER COLUMN "unitType" DROP DEFAULT`);
-        await queryRunner.query(`ALTER TABLE "quotation_items" ALTER COLUMN "unitType" TYPE "public"."quotation_items_unittype_enum_old" USING "unitType"::"text"::"public"."quotation_items_unittype_enum_old"`);
-        await queryRunner.query(`ALTER TABLE "quotation_items" ALTER COLUMN "unitType" SET DEFAULT 'UNIT'`);
-        await queryRunner.query(`DROP TYPE "public"."quotation_items_unittype_enum"`);
-        await queryRunner.query(`ALTER TYPE "public"."quotation_items_unittype_enum_old" RENAME TO "quotation_items_unittype_enum"`);
-        await queryRunner.query(`CREATE TYPE "public"."quotation_items_chargetype_enum_old" AS ENUM('ONE_TIME', 'HOURLY', 'RECURRING')`);
-        await queryRunner.query(`ALTER TABLE "quotation_items" ALTER COLUMN "chargeType" DROP DEFAULT`);
-        await queryRunner.query(`ALTER TABLE "quotation_items" ALTER COLUMN "chargeType" TYPE "public"."quotation_items_chargetype_enum_old" USING "chargeType"::"text"::"public"."quotation_items_chargetype_enum_old"`);
-        await queryRunner.query(`ALTER TABLE "quotation_items" ALTER COLUMN "chargeType" SET DEFAULT 'ONE_TIME'`);
-        await queryRunner.query(`DROP TYPE "public"."quotation_items_chargetype_enum"`);
-        await queryRunner.query(`ALTER TYPE "public"."quotation_items_chargetype_enum_old" RENAME TO "quotation_items_chargetype_enum"`);
+        await queryRunner.query(`ALTER TABLE "client_portal_invites" DROP CONSTRAINT "FK_039261f18f554b5935e58361f67"`);
+        await queryRunner.query(`DROP TABLE IF EXISTS "client_portal_invites"`);
     }
 
 }
