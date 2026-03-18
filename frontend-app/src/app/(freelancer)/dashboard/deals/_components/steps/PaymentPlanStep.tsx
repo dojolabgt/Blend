@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { usePaymentPlan } from '@/hooks/use-payment-plan';
+import { useWorkspaceSettings } from '@/hooks/use-workspace-settings';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Plus, Trash2, AlertCircle, CheckCircle2, AlertTriangle, BadgeCheck } from 'lucide-react';
@@ -33,12 +34,7 @@ const MILESTONE_STATUS_STYLES: Record<string, string> = {
     OVERDUE: 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400',
     CANCELLED: 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500',
 };
-const MILESTONE_STATUS_LABELS: Record<string, string> = {
-    PENDING: 'Pendiente',
-    PAID: 'Pagado',
-    OVERDUE: 'Vencido',
-    CANCELLED: 'Cancelado',
-};
+// Labels are computed inside the component using t()
 
 interface NewMilestone {
     name: string;
@@ -64,6 +60,14 @@ interface FieldErrors {
 
 export function PaymentPlanStep({ dealId, quotations, currency, readonly, deal }: PaymentPlanStepProps) {
     const { plan: paymentPlan, fetchPaymentPlan, createOrUpdatePlan: createPaymentPlan, addMilestone, updateMilestone: updateMilestoneApi, deleteMilestone } = usePaymentPlan(dealId, deal?.workspace?.id || deal?.workspaceId);
+    const { t } = useWorkspaceSettings();
+
+    const MILESTONE_STATUS_LABELS: Record<string, string> = {
+        PENDING: t('payment.milestoneStatusPending'),
+        PAID: t('payment.milestoneStatusPaid'),
+        OVERDUE: t('payment.milestoneStatusOverdue'),
+        CANCELLED: t('payment.milestoneStatusCancelled'),
+    };
     const [milestones, setMilestones] = useState<NewMilestone[]>([emptyMilestone()]);
     const [isSaving, setIsSaving] = useState(false);
     const [isAddingToExisting, setIsAddingToExisting] = useState(false);
@@ -136,14 +140,14 @@ export function PaymentPlanStep({ dealId, quotations, currency, readonly, deal }
     const validate = (): boolean => {
         const newErrors: FieldErrors[] = milestones.map(m => {
             const e: FieldErrors = {};
-            if (!m.name.trim()) e.name = 'El nombre del hito es requerido.';
+            if (!m.name.trim()) e.name = t('payment.nameRequired');
             if (!m.amount || Number(m.amount) <= 0) {
                 e.amount = !m.amount
-                    ? 'Ingresa el monto del hito.'
-                    : 'El monto debe ser mayor a cero.';
+                    ? t('payment.amountRequired')
+                    : t('payment.amountPositive');
             }
             if (m.percentage && (Number(m.percentage) < 0 || Number(m.percentage) > 100)) {
-                e.percentage = 'El porcentaje debe estar entre 0 y 100.';
+                e.percentage = t('payment.percentageRange');
             }
             return e;
         });
@@ -155,8 +159,8 @@ export function PaymentPlanStep({ dealId, quotations, currency, readonly, deal }
             const errorCount = newErrors.filter(e => Object.keys(e).length > 0).length;
             setSubmitError(
                 errorCount === 1
-                    ? 'Hay un hito con información incompleta. Revísalo antes de guardar.'
-                    : `Hay ${errorCount} hitos con información incompleta. Revísalos antes de guardar.`
+                    ? t('payment.incompleteOneMilestone')
+                    : t('payment.incompleteMilestones').replace('{count}', String(errorCount))
             );
         }
 
@@ -166,7 +170,9 @@ export function PaymentPlanStep({ dealId, quotations, currency, readonly, deal }
             const diff = Math.abs(planTotal - quotationTotal);
             if (diff > 0.01) {
                 setSubmitError(
-                    `El total del plan (${fmt(planTotal)}) no coincide con la cotización (${fmt(quotationTotal)}). Ajusta los montos o el porcentaje para que sumen correctamente.`
+                    t('payment.totalMismatch')
+                        .replace('{plan}', fmt(planTotal))
+                        .replace('{quotation}', fmt(quotationTotal))
                 );
                 // Not blocking — warn only
             }
@@ -194,11 +200,11 @@ export function PaymentPlanStep({ dealId, quotations, currency, readonly, deal }
         });
         setIsSaving(false);
         if (result) {
-            toast.success('Plan de cobro guardado exitosamente');
+            toast.success(t('payment.planSaved'));
             setMilestones([emptyMilestone()]);
             setFieldErrors([{}]);
         } else {
-            setSubmitError('Ocurrió un error al guardar el plan. Intenta de nuevo.');
+            setSubmitError(t('payment.planSaveError'));
         }
     };
 
@@ -212,12 +218,12 @@ export function PaymentPlanStep({ dealId, quotations, currency, readonly, deal }
     const handleAddToExisting = async () => {
         const m = milestones[0];
         const errs: FieldErrors = {};
-        if (!m.name.trim()) errs.name = 'Escribe el nombre del hito.';
+        if (!m.name.trim()) errs.name = t('payment.nameRequiredAlt');
         if (!m.amount || Number(m.amount) <= 0) {
-            errs.amount = !m.amount ? 'Ingresa el monto del hito.' : 'El monto debe ser mayor a cero.';
+            errs.amount = !m.amount ? t('payment.amountRequired') : t('payment.amountPositive');
         }
         if (m.percentage && (Number(m.percentage) < 0 || Number(m.percentage) > 100)) {
-            errs.percentage = 'El porcentaje debe estar entre 0 y 100.';
+            errs.percentage = t('payment.percentageRange');
         }
         setAddExistingErrors(errs);
         if (Object.keys(errs).length > 0) return;
@@ -232,13 +238,13 @@ export function PaymentPlanStep({ dealId, quotations, currency, readonly, deal }
         });
         setIsAddingToExisting(false);
         if (result) {
-            toast.success('Hito agregado al plan');
+            toast.success(t('payment.milestoneAdded'));
             setMilestones([emptyMilestone()]);
             setAddExistingErrors({});
             // Refetch so the milestones list reflects the new entry
             await fetchPaymentPlan();
         } else {
-            toast.error('No se pudo agregar el hito. Intenta de nuevo.');
+            toast.error(t('payment.milestoneAddError'));
         }
     };
 
@@ -247,7 +253,7 @@ export function PaymentPlanStep({ dealId, quotations, currency, readonly, deal }
         await deleteMilestone(deleteMilestoneId);
         setDeleteMilestoneId(null);
         await fetchPaymentPlan();
-        toast.success('Hito eliminado');
+        toast.success(t('payment.milestoneDeleted'));
     };
 
     // Fix 2.6 — mark milestone as paid / unpaid
@@ -260,7 +266,7 @@ export function PaymentPlanStep({ dealId, quotations, currency, readonly, deal }
         setMarkPaidId(null);
         setIsMarkingPaid(false);
         await fetchPaymentPlan();
-        toast.success(newStatus === 'PAID' ? 'Hito marcado como pagado' : 'Hito regresado a pendiente');
+        toast.success(newStatus === 'PAID' ? t('payment.milestoneMarkedPaid') : t('payment.milestoneMarkedPending'));
     };
 
 
@@ -278,9 +284,9 @@ export function PaymentPlanStep({ dealId, quotations, currency, readonly, deal }
                 <div className="space-y-4">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h3 className="font-semibold text-zinc-900 dark:text-white">Plan de Cobro</h3>
+                            <h3 className="font-semibold text-zinc-900 dark:text-white">{t('payment.planTitle')}</h3>
                             <p className="text-sm text-zinc-500">
-                                Total del plan:{' '}
+                                {t('payment.planTotal')}{' '}
                                 <span className="font-semibold text-zinc-900 dark:text-white">
                                     {fmt(paymentPlan.totalAmount)}
                                 </span>
@@ -289,7 +295,9 @@ export function PaymentPlanStep({ dealId, quotations, currency, readonly, deal }
                         {quotationTotal && Math.abs(existingPlanTotal - quotationTotal) > 0.01 && (
                             <div className="flex items-center gap-1.5 text-xs text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-3 py-1.5 rounded-lg border border-amber-200 dark:border-amber-800">
                                 <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                                El total del plan ({fmt(existingPlanTotal)}) difiere de la cotización ({fmt(quotationTotal)})
+                                {t('payment.existingMismatch')
+                                    .replace('{plan}', fmt(existingPlanTotal))
+                                    .replace('{quotation}', fmt(quotationTotal))}
                             </div>
                         )}
                     </div>
@@ -297,10 +305,10 @@ export function PaymentPlanStep({ dealId, quotations, currency, readonly, deal }
                     {/* Milestones list */}
                     <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden">
                         <div className="grid grid-cols-12 gap-2 px-4 py-2 bg-zinc-50 dark:bg-zinc-900/60 border-b border-zinc-200 dark:border-zinc-800 text-xs font-medium text-zinc-500 uppercase tracking-wider">
-                            <div className="col-span-4">Hito</div>
+                            <div className="col-span-4">{t('payment.milestoneHeader')}</div>
                             <div className="col-span-2 text-center">%</div>
-                            <div className="col-span-3 text-right">Monto</div>
-                            <div className="col-span-2 text-center">Fecha</div>
+                            <div className="col-span-3 text-right">{t('payment.amountHeader')}</div>
+                            <div className="col-span-2 text-center">{t('payment.dueDateLabel')}</div>
                             <div className="col-span-1" />
                         </div>
 
@@ -340,7 +348,7 @@ export function PaymentPlanStep({ dealId, quotations, currency, readonly, deal }
                                                         ? 'text-emerald-500 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-900/20 dark:hover:bg-emerald-900/40'
                                                         : 'text-zinc-400 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20'
                                                 )}
-                                                title={milestone.status === 'PAID' ? 'Marcar como pendiente' : 'Marcar como pagado'}
+                                                title={milestone.status === 'PAID' ? t('payment.markAsPendingTitle') : t('payment.markAsPaidTitle')}
                                             >
                                                 <BadgeCheck className="w-3.5 h-3.5" />
                                             </button>
@@ -348,7 +356,7 @@ export function PaymentPlanStep({ dealId, quotations, currency, readonly, deal }
                                             <button
                                                 onClick={() => setDeleteMilestoneId(milestone.id)}
                                                 className="p-1.5 rounded-lg hover:bg-rose-100 dark:hover:bg-rose-900/30 text-rose-500"
-                                                title="Eliminar hito"
+                                                title={t('payment.deleteHitoTitle')}
                                             >
                                                 <Trash2 className="w-3.5 h-3.5" />
                                             </button>
@@ -365,16 +373,16 @@ export function PaymentPlanStep({ dealId, quotations, currency, readonly, deal }
                         {!readonly && (
                             <div className="border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/20">
                                 <div className="px-4 py-3">
-                                    <p className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 mb-3">Agregar hito al plan</p>
+                                    <p className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 mb-3">{t('payment.addMilestoneTitle')}</p>
 
                                     <div className="grid grid-cols-12 gap-2 items-start">
                                         {/* Name */}
                                         <div className="col-span-4 space-y-1">
                                             <label className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider">
-                                                Nombre <span className="text-rose-500">*</span>
+                                                {t('payment.nameLabelShort')} <span className="text-rose-500">*</span>
                                             </label>
                                             <Input
-                                                placeholder="Ej. Segunda entrega"
+                                                placeholder={t('payment.namePlaceholderSecond')}
                                                 className={cn(
                                                     'h-9 text-sm rounded-xl',
                                                     addExistingErrors.name && 'border-rose-400 focus-visible:ring-rose-400'
@@ -424,7 +432,7 @@ export function PaymentPlanStep({ dealId, quotations, currency, readonly, deal }
                                         {/* Amount */}
                                         <div className="col-span-3 space-y-1">
                                             <label className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider">
-                                                Monto <span className="text-rose-500">*</span>
+                                                {t('payment.amountHeader')} <span className="text-rose-500">*</span>
                                             </label>
                                             <Input
                                                 type="number"
@@ -450,7 +458,7 @@ export function PaymentPlanStep({ dealId, quotations, currency, readonly, deal }
 
                                         {/* Due date */}
                                         <div className="col-span-2 space-y-1">
-                                            <label className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider">Fecha límite</label>
+                                            <label className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider">{t('payment.dueDateLabel')}</label>
                                             <Input
                                                 type="date"
                                                 className="h-9 text-sm rounded-xl"
@@ -466,7 +474,7 @@ export function PaymentPlanStep({ dealId, quotations, currency, readonly, deal }
                                                 className="h-9 w-9 p-0 rounded-xl"
                                                 onClick={handleAddToExisting}
                                                 disabled={isAddingToExisting}
-                                                title="Agregar hito"
+                                                title={t('payment.addMilestoneBtn')}
                                             >
                                                 {isAddingToExisting
                                                     ? <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -477,7 +485,7 @@ export function PaymentPlanStep({ dealId, quotations, currency, readonly, deal }
 
                                     {quotationTotal && (
                                         <p className="text-[11px] text-zinc-400 mt-2">
-                                            💡 Ingresa el % y el monto se calculará automáticamente desde {fmt(quotationTotal)}.
+                                            {t('payment.autoCalcHintFrom').replace('{amount}', fmt(quotationTotal))}
                                         </p>
                                     )}
                                 </div>
@@ -490,15 +498,15 @@ export function PaymentPlanStep({ dealId, quotations, currency, readonly, deal }
                 <AlertDialog open={!!deleteMilestoneId} onOpenChange={o => !o && setDeleteMilestoneId(null)}>
                     <AlertDialogContent>
                         <AlertDialogHeader>
-                            <AlertDialogTitle>¿Eliminar este hito?</AlertDialogTitle>
+                            <AlertDialogTitle>{t('payment.deleteConfirmTitle')}</AlertDialogTitle>
                             <AlertDialogDescription>
-                                Esta acción eliminará el hito del plan de cobro de forma permanente.
+                                {t('payment.deleteConfirmDesc')}
                             </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
                             <AlertDialogAction className="bg-rose-600 hover:bg-rose-700" onClick={handleDeleteMilestone}>
-                                Eliminar
+                                {t('common.delete')}
                             </AlertDialogAction>
                         </AlertDialogFooter>
                     </AlertDialogContent>
@@ -510,19 +518,19 @@ export function PaymentPlanStep({ dealId, quotations, currency, readonly, deal }
                         <AlertDialogHeader>
                             <AlertDialogTitle>
                                 {paymentPlan?.milestones?.find((m: { id: string; status: string }) => m.id === markPaidId)?.status === 'PAID'
-                                    ? '¿Marcar como Pendiente?'
-                                    : '¿Confirmar pago recibido?'}
+                                    ? t('payment.markPendingTitle')
+                                    : t('payment.markPaidTitle')}
                             </AlertDialogTitle>
                             <AlertDialogDescription>
                                 {paymentPlan?.milestones?.find((m: { id: string; status: string }) => m.id === markPaidId)?.status === 'PAID'
-                                    ? 'El hito regresará al estado Pendiente.'
-                                    : 'Confirma que ya recibiste el pago de este hito. Esta acción puede revertirse.'}
+                                    ? t('payment.markPendingDesc')
+                                    : t('payment.markPaidDesc')}
                             </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
                             <AlertDialogAction onClick={handleMarkAsPaid} disabled={isMarkingPaid}>
-                                {isMarkingPaid ? 'Guardando...' : 'Confirmar'}
+                                {isMarkingPaid ? t('common.saving') : t('common.confirm')}
                             </AlertDialogAction>
                         </AlertDialogFooter>
                     </AlertDialogContent>
@@ -536,12 +544,12 @@ export function PaymentPlanStep({ dealId, quotations, currency, readonly, deal }
     return (
         <div className="space-y-6">
             <div className="bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl p-5">
-                <h3 className="font-semibold text-zinc-900 dark:text-white mb-1">Crear Plan de Cobro</h3>
+                <h3 className="font-semibold text-zinc-900 dark:text-white mb-1">{t('payment.createPlanTitle')}</h3>
 
                 {/* Quotation selector */}
                 {quotations.length > 0 && (
                     <div className="mb-5">
-                        <p className="text-xs text-zinc-500 font-medium mb-2">Basado en cotización</p>
+                        <p className="text-xs text-zinc-500 font-medium mb-2">{t('payment.basedOnQuotation')}</p>
                         <div className="flex gap-2 flex-wrap">
                             {quotations.map((q) => (
                                 <button
@@ -560,7 +568,7 @@ export function PaymentPlanStep({ dealId, quotations, currency, readonly, deal }
                         </div>
                         {quotationTotal !== null && (
                             <p className="text-[11px] text-zinc-400 mt-2">
-                                💡 Ingresa el % y el monto del hito se calculará automáticamente desde {fmt(quotationTotal)}.
+                                {t('payment.autoCalcHintFrom').replace('{amount}', fmt(quotationTotal))}
                             </p>
                         )}
                     </div>
@@ -586,10 +594,10 @@ export function PaymentPlanStep({ dealId, quotations, currency, readonly, deal }
                                     {/* Name */}
                                     <div className="col-span-4 space-y-1">
                                         <label className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider">
-                                            Nombre del hito <span className="text-rose-500">*</span>
+                                            {t('payment.nameLabel')} <span className="text-rose-500">*</span>
                                         </label>
                                         <Input
-                                            placeholder="Ej. Anticipo"
+                                            placeholder={t('payment.namePlaceholder')}
                                             className={cn(
                                                 'h-9 text-sm rounded-xl',
                                                 errs.name && 'border-rose-400 focus-visible:ring-rose-400'
@@ -608,7 +616,7 @@ export function PaymentPlanStep({ dealId, quotations, currency, readonly, deal }
                                     {/* Percentage */}
                                     <div className="col-span-2 space-y-1">
                                         <label className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider">
-                                            Porcentaje
+                                            {t('payment.percentageLabel')}
                                         </label>
                                         <div className="relative">
                                             <Input
@@ -635,7 +643,7 @@ export function PaymentPlanStep({ dealId, quotations, currency, readonly, deal }
                                     {/* Amount */}
                                     <div className="col-span-3 space-y-1">
                                         <label className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider">
-                                            Monto <span className="text-rose-500">*</span>
+                                            {t('payment.amountHeader')} <span className="text-rose-500">*</span>
                                         </label>
                                         <Input
                                             type="number"
@@ -659,7 +667,7 @@ export function PaymentPlanStep({ dealId, quotations, currency, readonly, deal }
                                     {/* Due date */}
                                     <div className="col-span-2 space-y-1">
                                         <label className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider">
-                                            Fecha límite
+                                            {t('payment.dueDateLabel')}
                                         </label>
                                         <Input
                                             type="date"
@@ -675,7 +683,7 @@ export function PaymentPlanStep({ dealId, quotations, currency, readonly, deal }
                                             <button
                                                 onClick={() => handleRemoveMilestone(idx)}
                                                 className="p-2 text-rose-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors"
-                                                title="Eliminar hito"
+                                                                    title={t('payment.deleteHitoTitle')}
                                             >
                                                 <Trash2 className="w-4 h-4" />
                                             </button>
@@ -692,7 +700,7 @@ export function PaymentPlanStep({ dealId, quotations, currency, readonly, deal }
                         className="text-zinc-500 text-xs hover:text-zinc-700"
                         onClick={handleAddMilestone}
                     >
-                        <Plus className="w-3.5 h-3.5 mr-1" /> Agregar otro hito
+                        <Plus className="w-3.5 h-3.5 mr-1" /> {t('payment.addAnotherMilestone')}
                     </Button>
                 </div>
 
@@ -701,13 +709,13 @@ export function PaymentPlanStep({ dealId, quotations, currency, readonly, deal }
                     {/* Totals */}
                     <div className="flex items-center justify-between">
                         <div className="text-sm text-zinc-500">
-                            Total del plan:{' '}
+                            {t('payment.totalLabel')}{' '}
                             <span className="font-semibold text-zinc-900 dark:text-white">
                                 {fmt(planDraftTotal)}
                             </span>
                             {quotationTotal && (
                                 <span className="text-xs text-zinc-400 ml-2">
-                                    / cotización: {fmt(quotationTotal)}
+                                    {t('payment.quotationSuffix')} {fmt(quotationTotal)}
                                 </span>
                             )}
                         </div>
@@ -720,7 +728,7 @@ export function PaymentPlanStep({ dealId, quotations, currency, readonly, deal }
                                     ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
                                     : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
                             )}>
-                                {((planDraftTotal / quotationTotal) * 100).toFixed(1)}% cubierto
+                                {((planDraftTotal / quotationTotal) * 100).toFixed(1)}% {t('payment.covered')}
                             </span>
                         )}
                     </div>
@@ -730,10 +738,12 @@ export function PaymentPlanStep({ dealId, quotations, currency, readonly, deal }
                         <div className="flex items-start gap-2 text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-3 py-2.5 rounded-lg border border-amber-200 dark:border-amber-800">
                             <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
                             <span>
-                                El plan cubre {fmt(planDraftTotal)} pero la cotización es de {fmt(quotationTotal!)}.{' '}
+                                {t('payment.mismatchCovers')
+                                    .replace('{plan}', fmt(planDraftTotal))
+                                    .replace('{quotation}', fmt(quotationTotal!))}{' '}
                                 {planDraftTotal < quotationTotal!
-                                    ? `Falta ${fmt(quotationTotal! - planDraftTotal)} por distribuir.`
-                                    : `Hay ${fmt(planDraftTotal - quotationTotal!)} de más.`}
+                                    ? t('payment.missingToDistribute').replace('{amount}', fmt(quotationTotal! - planDraftTotal))
+                                    : t('payment.excessAmount').replace('{amount}', fmt(planDraftTotal - quotationTotal!))}
                             </span>
                         </div>
                     )}
@@ -750,7 +760,7 @@ export function PaymentPlanStep({ dealId, quotations, currency, readonly, deal }
                     {!submitError && !hasQuotationMismatch && planDraftTotal > 0 && (
                         <div className="flex items-center gap-2 text-xs text-emerald-600 dark:text-emerald-400">
                             <CheckCircle2 className="w-3.5 h-3.5" />
-                            <span>El plan está listo para guardar.</span>
+                            <span>{t('payment.planReady')}</span>
                         </div>
                     )}
 
@@ -759,7 +769,7 @@ export function PaymentPlanStep({ dealId, quotations, currency, readonly, deal }
                         disabled={isSaving}
                         className="w-full rounded-xl h-10"
                     >
-                        {isSaving ? 'Guardando...' : 'Guardar Plan de Cobro'}
+                        {isSaving ? t('payment.savingBtn') : t('payment.saveBtn')}
                     </Button>
                 </div>
             </div>

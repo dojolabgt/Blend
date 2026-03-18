@@ -21,4 +21,13 @@ export const workspacesApi = {
 
     updateRecurrenteKeys: (data: { publicKey: string, privateKey: string }) =>
         api.post<void>(`/workspaces/current/recurrente`, data).then(res => res.data),
+
+    getGoogleDriveStatus: () =>
+        api.get<{ connected: boolean; email?: string }>('/workspaces/current/google-drive/status').then(res => res.data),
+
+    getGoogleDriveAuthUrl: () =>
+        api.get<{ url: string }>('/workspaces/current/google-drive/auth-url').then(res => res.data),
+
+    disconnectGoogleDrive: () =>
+        api.delete('/workspaces/current/google-drive').then(res => res.data),
 };

@@ -21,6 +21,8 @@ import { DealsModule } from './deals/deals.module';
 import { ConnectionsModule } from './connections/connections.module';
 import { ProjectsModule } from './projects/projects.module';
 import { AdminModule } from './admin/admin.module';
+import { PortalModule } from './portal/portal.module';
+import { GoogleDriveModule } from './google-drive/google-drive.module';
 
 @Module({
   imports: [
@@ -33,6 +35,7 @@ import { AdminModule } from './admin/admin.module';
         PORT: Joi.number().default(4000),
         FRONTEND_URL: Joi.string().required(),
         FRONTEND_PUBLIC_URL: Joi.string().required(),
+        NEXT_PUBLIC_DASHBOARD_URL: Joi.string().optional(),
         DATABASE_HOST: Joi.string().required(),
         DATABASE_PORT: Joi.number().default(5432),
         DATABASE_USER: Joi.string().required(),
@@ -54,6 +57,11 @@ import { AdminModule } from './admin/admin.module';
         MAIL_USER: Joi.string().allow('').optional(),
         MAIL_PASSWORD: Joi.string().allow('').optional(),
         MAIL_FROM: Joi.string().required(),
+        // Google OAuth (shared for Drive + Auth)
+        GOOGLE_CLIENT_ID: Joi.string().optional(),
+        GOOGLE_CLIENT_SECRET: Joi.string().optional(),
+        GOOGLE_REDIRECT_URI: Joi.string().optional(),
+        GOOGLE_CALLBACK_URL: Joi.string().optional(),
         // Krew encryption
         ENCRYPTION_KEY: Joi.string().length(32).required(),
         // Krew's own Recurrente keys (for billing freelancers)
@@ -78,7 +86,7 @@ import { AdminModule } from './admin/admin.module';
         database: configService.get<string>('DATABASE_NAME'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         migrations: [__dirname + '/migrations/**/*{.ts,.js}'],
-        synchronize: false, // Usage of migrations is recommended for production
+        synchronize: configService.get('NODE_ENV') !== 'production', // auto-sync in dev
         migrationsRun: configService.get('NODE_ENV') === 'production',
       }),
       inject: [ConfigService],
@@ -98,6 +106,8 @@ import { AdminModule } from './admin/admin.module';
     ConnectionsModule,
     ProjectsModule,
     AdminModule,
+    PortalModule,
+    GoogleDriveModule,
   ],
   controllers: [AppController],
   providers: [

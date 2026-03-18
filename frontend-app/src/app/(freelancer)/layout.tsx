@@ -24,10 +24,10 @@ export default function FreelancerLayout({ children }: { children: React.ReactNo
     const freelancerNavItems: NavItemConfig[] = [
         { href: '/dashboard', label: t('sidebar.dashboard'), icon: LayoutDashboard, section: t('sidebar.mainSection') },
         { href: '/dashboard/clients', label: t('sidebar.clients'), icon: Users, section: t('sidebar.businessSection') },
-        { href: '/dashboard/network', label: 'Mi Red', icon: Network, section: t('sidebar.businessSection') },
+        { href: '/dashboard/network', label: t('sidebar.network'), icon: Network, section: t('sidebar.businessSection') },
         { href: '/dashboard/services', label: t('sidebar.services'), icon: Briefcase, section: t('sidebar.businessSection') },
         { href: '/dashboard/deals', label: t('sidebar.deals'), icon: FileText, section: t('sidebar.billingSection') },
-        { href: '/dashboard/projects', label: 'Proyectos', icon: FolderKanban, section: t('sidebar.billingSection') },
+        { href: '/dashboard/projects', label: t('sidebar.projects'), icon: FolderKanban, section: t('sidebar.billingSection') },
         { href: '/dashboard/templates', label: t('sidebar.templates'), icon: LayoutTemplate, section: t('sidebar.billingSection') },
         { href: '/dashboard/payments', label: t('sidebar.payments'), icon: CreditCard, section: t('sidebar.billingSection') },
         { href: '/dashboard/settings/personal-info', label: t('sidebar.settings'), icon: Settings, section: t('sidebar.settingsSection') },

@@ -8,9 +8,9 @@ import { ServicePickerDialog } from './ServicePickerDialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
-    Plus, Trash2, Package, PenLine, CheckCircle2, Copy,
+    Plus, Trash2, Package, PenLine, CheckCircle2,
     FileText, Calendar, Tag,
-    Save, X, DollarSign, Info
+    Save, X, DollarSign
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -108,8 +108,6 @@ export function QuotationStep({ deal, dealId, publicToken, currency, readonly, o
     // 2.3 — Inline quotation rename state
     const [renamingQuotationId, setRenamingQuotationId] = useState<string | null>(null);
     const [renameValue, setRenameValue] = useState('');
-    const [isCopied, setIsCopied] = useState(false);
-
     // Item delete confirmation
     const [deleteItemId, setDeleteItemId] = useState<string | null>(null);
 
@@ -288,42 +286,8 @@ export function QuotationStep({ deal, dealId, publicToken, currency, readonly, o
         onUpdate?.();
     };
 
-    const baseUrl = process.env.NEXT_PUBLIC_FRONTEND_PUBLIC_URL
-        || (typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname.replace('app.', 'client.')}${window.location.port === '3000' ? ':3001' : ''}` : '');
-    const publicLink = publicToken ? `${baseUrl}/d/${publicToken}` : '';
-
-    const handleCopyLink = () => {
-        if (!publicLink) return;
-        navigator.clipboard.writeText(publicLink);
-        toast.success('Enlace de la propuesta copiado al portapapeles');
-        setIsCopied(true);
-        setTimeout(() => setIsCopied(false), 2000);
-    };
-
     return (
         <div className="space-y-6">
-            {/* Public Link Banner */}
-            {publicToken && (
-                <div className="p-3 md:p-4 rounded-lg flex flex-col md:flex-row md:items-center justify-between gap-3 border bg-primary/5 border-primary/20">
-                    <div>
-                        <h4 className="text-[13px] font-semibold flex items-center gap-1.5 text-primary">
-                            <Info className="w-4 h-4" />
-                            Enlace de la Propuesta
-                        </h4>
-                        <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1 max-w-xl">
-                            Copia y envía este enlace seguro a tu cliente para que seleccione la opción de su preferencia.
-                        </p>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                        <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-xs text-zinc-500 px-3 py-2 rounded-lg truncate max-w-[250px] select-all hidden sm:block">
-                            {publicLink || `.../d/${publicToken}`}
-                        </div>
-                        <Button variant="secondary" size="sm" className="shrink-0 w-36" onClick={handleCopyLink}>
-                            {isCopied ? <><CheckCircle2 className="w-4 h-4 mr-2" /> Copiado</> : <><Copy className="w-4 h-4 mr-2" /> Copiar enlace</>}
-                        </Button>
-                    </div>
-                </div>
-            )}
 
 
 
@@ -361,7 +325,7 @@ export function QuotationStep({ deal, dealId, publicToken, currency, readonly, o
                                 {!readonly && q.id === activeQuotationId && (
                                     <button
                                         onClick={(e) => { e.stopPropagation(); setDeleteQuotationId(q.id); }}
-                                        className="absolute right-2 p-1 rounded-md text-white/70 hover:text-white hover:bg-white/20 transition-colors"
+                                        className="absolute right-2 p-1 rounded-md transition-colors text-white/70 hover:text-white hover:bg-white/20 dark:text-black/60 dark:hover:text-black dark:hover:bg-black/10"
                                         title="Eliminar opción"
                                     >
                                         <X className="w-3.5 h-3.5" />

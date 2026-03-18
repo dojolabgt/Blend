@@ -39,6 +39,7 @@ function Chip({
 }) {
     return (
         <motion.div
+            aria-hidden="true"
             className={`absolute pointer-events-none ${className}`}
             initial={{ opacity: 0, y: 12, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -111,11 +112,11 @@ export function Hero() {
 
             {/* ── Ambient glows ── */}
             {/* Top-center: principal light source */}
-            <div className="absolute pointer-events-none" style={{ top: "-10%", left: "50%", transform: "translateX(-50%)", width: "900px", height: "600px", background: "radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.055) 0%, transparent 65%)", borderRadius: "50%" }} />
+            <div aria-hidden="true" className="absolute pointer-events-none" style={{ top: "-10%", left: "50%", transform: "translateX(-50%)", width: "900px", height: "600px", background: "radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.055) 0%, transparent 65%)", borderRadius: "50%" }} />
             {/* Bottom-left warm */}
-            <div className="absolute pointer-events-none" style={{ bottom: "0%", left: "-5%", width: "600px", height: "500px", background: "radial-gradient(ellipse at 20% 80%, rgba(255,255,255,0.02) 0%, transparent 60%)", borderRadius: "50%" }} />
+            <div aria-hidden="true" className="absolute pointer-events-none" style={{ bottom: "0%", left: "-5%", width: "600px", height: "500px", background: "radial-gradient(ellipse at 20% 80%, rgba(255,255,255,0.02) 0%, transparent 60%)", borderRadius: "50%" }} />
             {/* Bottom-right cool */}
-            <div className="absolute pointer-events-none" style={{ bottom: "5%", right: "-8%", width: "550px", height: "450px", background: "radial-gradient(ellipse at 80% 80%, rgba(255,255,255,0.018) 0%, transparent 60%)", borderRadius: "50%" }} />
+            <div aria-hidden="true" className="absolute pointer-events-none" style={{ bottom: "5%", right: "-8%", width: "550px", height: "450px", background: "radial-gradient(ellipse at 80% 80%, rgba(255,255,255,0.018) 0%, transparent 60%)", borderRadius: "50%" }} />
 
             {/* ── Floating chips — desktop only ── */}
             <Chip icon={Lock}        label="Seguro"            className="hidden xl:flex top-[28%] left-[7%]"   entranceDelay={0.9}  floatDuration={5.2} floatDelay={0}    amplitude={9} />
@@ -138,17 +139,17 @@ export function Hero() {
                     transition={{ duration: 0.4, delay: 0.2 }}
                     className="mb-8"
                 >
-                    <span className="inline-flex items-center gap-2 border border-white/[0.1] rounded-full px-4 py-1.5 text-[11px] font-medium text-white/40">
-                        <span className="relative flex h-1.5 w-1.5">
+                    <span className="inline-flex items-center gap-2 border border-white/[0.1] rounded-full px-4 py-1.5 text-[11px] font-medium text-white/60">
+                        <span aria-hidden="true" className="relative flex h-1.5 w-1.5">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
                             <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400" />
                         </span>
-                        Para freelancers en Guatemala · <span className="text-white/25">Próximamente Centroamérica</span>
+                        Para freelancers en Guatemala · <span className="text-white/50">Próximamente Centroamérica</span>
                     </span>
                 </motion.div>
 
                 {/* Headline */}
-                <h1 className="text-[56px] sm:text-[68px] md:text-[80px] font-black tracking-tighter leading-[0.97] mb-7">
+                <h1 aria-label="Cotiza mejor. Cobra más rápido." className="text-[56px] sm:text-[68px] md:text-[80px] font-black tracking-tighter leading-[0.97] mb-7">
                     <AnimatedHeadline text="Cotiza mejor." baseDelay={0.35} />
                     <AnimatedHeadline text="Cobra más rápido." dim baseDelay={0.55} />
                 </h1>
@@ -158,7 +159,7 @@ export function Hero() {
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.85 }}
-                    className="text-[16px] md:text-[17px] text-white/40 leading-relaxed max-w-lg font-light mb-8"
+                    className="text-[16px] md:text-[17px] text-white/60 leading-relaxed max-w-lg font-normal mb-8"
                 >
                     Hi Krew centraliza el flujo completo de tu negocio freelance:
                     clientes, deals, cotizaciones y cobros, en un solo lugar.
@@ -166,6 +167,7 @@ export function Hero() {
 
                 {/* Mobile chips grid */}
                 <motion.div
+                    aria-hidden="true"
                     initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.95 }}
@@ -177,7 +179,7 @@ export function Hero() {
                             className="flex items-center gap-2 bg-white/[0.06] border border-white/[0.08] rounded-xl px-3 py-2"
                         >
                             <Icon className="h-3.5 w-3.5 text-white/40" strokeWidth={1.5} />
-                            <span className="text-[11px] text-white/35 font-medium">{label}</span>
+                            <span className="text-[11px] text-white/55 font-medium">{label}</span>
                         </span>
                     ))}
                 </motion.div>
@@ -196,14 +198,14 @@ export function Hero() {
                     >
                         <Link href={`${APP_URL}/register`}>
                             Empezar gratis
-                            <ArrowRight className="ml-2 h-4 w-4" />
+                            <ArrowRight aria-hidden="true" className="ml-2 h-4 w-4" />
                         </Link>
                     </Button>
                     <Button
                         asChild
                         variant="ghost"
                         size="lg"
-                        className="rounded-full h-11 px-7 text-[14px] text-white/45 hover:text-white hover:bg-white/[0.07] border border-white/[0.08]"
+                        className="rounded-full h-11 px-7 text-[14px] text-white/60 hover:text-white hover:bg-white/[0.07] border border-white/[0.08]"
                     >
                         <Link href="#funciones">Ver funciones</Link>
                     </Button>
@@ -217,8 +219,8 @@ export function Hero() {
                     className="flex flex-wrap justify-center gap-x-5 gap-y-1"
                 >
                     {["Plan gratis para siempre", "Sin tarjeta de crédito", "Sin contratos"].map((t) => (
-                        <span key={t} className="flex items-center gap-1.5 text-[11px] text-white/35 font-medium">
-                            <Check className="h-3 w-3 text-emerald-400/80 shrink-0" strokeWidth={2.5} />
+                        <span key={t} className="flex items-center gap-1.5 text-[11px] text-white/55 font-medium">
+                            <Check aria-hidden="true" className="h-3 w-3 text-emerald-400/80 shrink-0" strokeWidth={2.5} />
                             {t}
                         </span>
                     ))}
@@ -233,7 +235,7 @@ export function Hero() {
                 className="relative max-w-5xl mx-auto px-5 pb-20"
             >
                 {/* Glow above mockup */}
-                <div className="absolute -inset-x-20 -top-16 h-32 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 100% at 50% 100%, rgba(255,255,255,0.035) 0%, transparent 100%)" }} />
+                <div aria-hidden="true" className="absolute -inset-x-20 -top-16 h-32 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 100% at 50% 100%, rgba(255,255,255,0.035) 0%, transparent 100%)" }} />
                 <AppMockup />
             </motion.div>
 

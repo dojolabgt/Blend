@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Settings2, Plus, Trash2, GripVertical, Save } from 'lucide-react';
 import { useBriefTemplates, BriefTemplate } from '@/hooks/use-brief-templates';
+import { useWorkspaceSettings } from '@/hooks/use-workspace-settings';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,6 +16,7 @@ interface BriefBuilderProps {
 
 export function BriefBuilder({ template: initialTemplate }: BriefBuilderProps) {
     const { updateTemplate } = useBriefTemplates();
+    const { t } = useWorkspaceSettings();
     const [template, setTemplate] = useState<BriefTemplate>(initialTemplate);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [fields, setFields] = useState<any[]>(initialTemplate.schema || []);
@@ -24,7 +26,7 @@ export function BriefBuilder({ template: initialTemplate }: BriefBuilderProps) {
         setFields([...fields, {
             id: crypto.randomUUID(),
             type: 'text',
-            label: 'Nueva pregunta',
+            label: t('briefBuilder.fieldDefaultLabel'),
             description: '',
             tooltip: '',
             placeholder: '',
@@ -56,12 +58,12 @@ export function BriefBuilder({ template: initialTemplate }: BriefBuilderProps) {
                 isActive: template.isActive
             });
             if (updated) {
-                toast.success('Plantilla guardada correctamente');
+                toast.success(t('briefBuilder.saveSuccess'));
             } else {
-                toast.error('Error al guardar la plantilla');
+                toast.error(t('briefBuilder.saveError'));
             }
         } catch {
-            toast.error('Error al guardar la plantilla');
+            toast.error(t('briefBuilder.saveError'));
         } finally {
             setIsSaving(false);
         }
@@ -80,16 +82,16 @@ export function BriefBuilder({ template: initialTemplate }: BriefBuilderProps) {
                     <Input
                         value={template.description || ''}
                         onChange={(e) => setTemplate({ ...template, description: e.target.value })}
-                        placeholder="Descripción corta de esta plantilla..."
+                        placeholder={t('briefBuilder.descPlaceholder')}
                         className="text-sm text-zinc-500 dark:text-zinc-400 border-transparent hover:border-zinc-200 focus-visible:ring-1 bg-transparent px-2 h-7 mt-1 w-full"
                     />
                 </div>
                 <div className="flex items-center gap-3">
                     <Button variant="outline" size="sm" onClick={() => addField()}>
-                        <Plus className="w-4 h-4 mr-2" /> Agregar Campo
+                        <Plus className="w-4 h-4 mr-2" /> {t('briefBuilder.addField')}
                     </Button>
                     <Button size="sm" onClick={handleSave} disabled={isSaving}>
-                        {isSaving ? 'Guardando...' : <><Save className="w-4 h-4 mr-2" /> Guardar Plantilla</>}
+                        {isSaving ? t('briefBuilder.savingBtn') : <><Save className="w-4 h-4 mr-2" /> {t('briefBuilder.saveBtn')}</>}
                     </Button>
                 </div>
             </div>
@@ -100,12 +102,12 @@ export function BriefBuilder({ template: initialTemplate }: BriefBuilderProps) {
                     {fields.length === 0 ? (
                         <div className="text-center py-16 px-4 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl">
                             <Settings2 className="w-12 h-12 text-zinc-300 dark:text-zinc-700 mx-auto mb-4" />
-                            <h3 className="text-lg font-medium text-zinc-900 dark:text-white mb-1">Plantilla vacía</h3>
+                            <h3 className="text-lg font-medium text-zinc-900 dark:text-white mb-1">{t('briefBuilder.emptyTitle')}</h3>
                             <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6">
-                                Comienza agregando preguntas o campos que tu cliente deberá llenar.
+                                {t('briefBuilder.emptyDesc')}
                             </p>
                             <Button onClick={() => addField()} variant="secondary">
-                                <Plus className="w-4 h-4 mr-2" /> Agregar Primer Campo
+                                <Plus className="w-4 h-4 mr-2" /> {t('briefBuilder.addFirstField')}
                             </Button>
                         </div>
                     ) : (
@@ -126,7 +128,7 @@ export function BriefBuilder({ template: initialTemplate }: BriefBuilderProps) {
                                         <Input
                                             value={field.label || ''}
                                             onChange={(e) => updateField(field.id, { label: e.target.value })}
-                                            placeholder="Ej. ¿Cuál es el objetivo principal del proyecto?"
+                                            placeholder={t('briefBuilder.questionPlaceholder')}
                                             className="font-medium text-base border-transparent hover:border-zinc-200 focus-visible:ring-1 flex-1 shadow-none"
                                         />
                                     </div>
@@ -140,11 +142,11 @@ export function BriefBuilder({ template: initialTemplate }: BriefBuilderProps) {
                                                 options: ['select', 'radio', 'checkbox'].includes(e.target.value) ? field.options : []
                                             })}
                                         >
-                                            <option value="text">Texto corto</option>
-                                            <option value="textarea">Párrafo (Largo)</option>
-                                            <option value="select">Lista Desplegable</option>
-                                            <option value="radio">Opciones Únicas (Radio)</option>
-                                            <option value="checkbox">Opciones Múltiples</option>
+                                            <option value="text">{t('briefBuilder.typeShort')}</option>
+                                            <option value="textarea">{t('briefBuilder.typeParagraph')}</option>
+                                            <option value="select">{t('briefBuilder.typeSelect')}</option>
+                                            <option value="radio">{t('briefBuilder.typeRadio')}</option>
+                                            <option value="checkbox">{t('briefBuilder.typeCheckbox')}</option>
                                         </select>
                                         <Button
                                             variant="ghost"
@@ -160,29 +162,29 @@ export function BriefBuilder({ template: initialTemplate }: BriefBuilderProps) {
                                 <div className="pl-8 space-y-4">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="space-y-1.5">
-                                            <Label className="text-xs text-zinc-500">Texto de Ayuda (Placeholder)</Label>
+                                            <Label className="text-xs text-zinc-500">{t('briefBuilder.placeholderLabel')}</Label>
                                             <Input
                                                 value={field.placeholder || ''}
                                                 onChange={(e) => updateField(field.id, { placeholder: e.target.value })}
-                                                placeholder="Ej. Escribe tu respuesta aquí..."
+                                                placeholder={t('briefBuilder.placeholderInput')}
                                                 className="text-sm shadow-none"
                                             />
                                         </div>
                                         <div className="space-y-1.5">
-                                            <Label className="text-xs text-zinc-500">Descripción bajo la pregunta</Label>
+                                            <Label className="text-xs text-zinc-500">{t('briefBuilder.descriptionLabel')}</Label>
                                             <Input
                                                 value={field.description || ''}
                                                 onChange={(e) => updateField(field.id, { description: e.target.value })}
-                                                placeholder="Ej. Selecciona todas las que apliquen"
+                                                placeholder={t('briefBuilder.descriptionInput')}
                                                 className="text-sm shadow-none"
                                             />
                                         </div>
                                         <div className="space-y-1.5 md:col-span-2">
-                                            <Label className="text-xs text-zinc-500">Tooltip / Nota de información (vía ícono ℹ️)</Label>
+                                            <Label className="text-xs text-zinc-500">{t('briefBuilder.tooltipLabel')}</Label>
                                             <Input
                                                 value={field.tooltip || ''}
                                                 onChange={(e) => updateField(field.id, { tooltip: e.target.value })}
-                                                placeholder="Ej. Esto nos ayudará a determinar los tiempos de entrega."
+                                                placeholder={t('briefBuilder.tooltipInput')}
                                                 className="text-sm shadow-none"
                                             />
                                         </div>
@@ -196,7 +198,7 @@ export function BriefBuilder({ template: initialTemplate }: BriefBuilderProps) {
                                                 onChange={(e) => updateField(field.id, { required: e.target.checked })}
                                                 className="rounded border-zinc-300 text-primary focus:ring-primary w-4 h-4"
                                             />
-                                            Respuesta Obligatoria
+                                            {t('briefBuilder.requiredLabel')}
                                         </label>
 
                                         {['select', 'radio', 'checkbox'].includes(field.type) && (
@@ -207,7 +209,7 @@ export function BriefBuilder({ template: initialTemplate }: BriefBuilderProps) {
                                                     onChange={(e) => updateField(field.id, { allowOther: e.target.checked })}
                                                     className="rounded border-zinc-300 text-primary focus:ring-primary w-4 h-4"
                                                 />
-                                                Incluir opción &quot;Otro&quot; (con campo de texto)
+                                                {t('briefBuilder.allowOtherLabel')}
                                             </label>
                                         )}
                                     </div>
@@ -215,7 +217,7 @@ export function BriefBuilder({ template: initialTemplate }: BriefBuilderProps) {
                                     {/* Select Options Manager */}
                                     {['select', 'radio', 'checkbox'].includes(field.type) && (
                                         <div className="mt-4 p-4 bg-zinc-50 dark:bg-zinc-950/50 rounded-lg border border-zinc-100 dark:border-zinc-800/60">
-                                            <Label className="text-xs text-zinc-500 mb-2 block">Opciones</Label>
+                                            <Label className="text-xs text-zinc-500 mb-2 block">{t('briefBuilder.optionsLabel')}</Label>
                                             <div className="space-y-2">
                                                 {((field.options as unknown[]) || []).map((opt: unknown, optIdx: number) => {
                                                     const option = opt as { label: string; value: string };
@@ -228,7 +230,7 @@ export function BriefBuilder({ template: initialTemplate }: BriefBuilderProps) {
                                                                     newOpts[optIdx] = { label: e.target.value, value: e.target.value };
                                                                     updateField(field.id, { options: newOpts });
                                                                 }}
-                                                                placeholder={`Opción ${optIdx + 1}`}
+                                                                placeholder={`${t('briefBuilder.optionPlaceholder')} ${optIdx + 1}`}
                                                                 className="h-8 shadow-none"
                                                             />
                                                             <Button
@@ -254,7 +256,7 @@ export function BriefBuilder({ template: initialTemplate }: BriefBuilderProps) {
                                                         updateField(field.id, { options: newOpts });
                                                     }}
                                                 >
-                                                    <Plus className="w-3 h-3 mr-1" /> Añadir Opción
+                                                    <Plus className="w-3 h-3 mr-1" /> {t('briefBuilder.addOption')}
                                                 </Button>
                                             </div>
                                         </div>
@@ -263,9 +265,9 @@ export function BriefBuilder({ template: initialTemplate }: BriefBuilderProps) {
                                     {/* Conditional Logic (Depends On) */}
                                     {index > 0 && (
                                         <div className="pt-2">
-                                            <Label className="text-xs text-zinc-500 mb-1.5 block">Lógica Condicional (Opcional)</Label>
+                                            <Label className="text-xs text-zinc-500 mb-1.5 block">{t('briefBuilder.conditionalLogic')}</Label>
                                             <div className="flex flex-col sm:flex-row items-center gap-2">
-                                                <span className="text-xs text-zinc-400">Mostrar si</span>
+                                                <span className="text-xs text-zinc-400">{t('briefBuilder.showIf')}</span>
                                                 <select
                                                     className="text-xs border border-zinc-200 dark:border-zinc-800 rounded-md px-2 py-1.5 bg-zinc-50 dark:bg-zinc-950 focus:outline-none focus:ring-1 focus:ring-primary flex-1 max-w-[200px]"
                                                     value={field.dependsOn?.fieldId || ''}
@@ -280,26 +282,26 @@ export function BriefBuilder({ template: initialTemplate }: BriefBuilderProps) {
                                                         }
                                                     }}
                                                 >
-                                                    <option value="">-- Siempre visible --</option>
+                                                    <option value="">{t('briefBuilder.alwaysVisible')}</option>
                                                     {fields.slice(0, index)
                                                         // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                                         .filter((f: any) => ['select', 'radio', 'checkbox'].includes(f.type))
                                                         // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                                         .map((prevF: any) => (
-                                                            <option key={prevF.id} value={prevF.id}>{prevF.label || 'Pregunta sin nombre'}</option>
+                                                            <option key={prevF.id} value={prevF.id}>{prevF.label || t('briefBuilder.noNameQuestion')}</option>
                                                         ))
                                                     }
                                                 </select>
 
                                                 {field.dependsOn?.fieldId && (
                                                     <>
-                                                        <span className="text-xs text-zinc-400">es igual a</span>
+                                                        <span className="text-xs text-zinc-400">{t('briefBuilder.equalTo')}</span>
                                                         <select
                                                             className="text-xs border border-zinc-200 dark:border-zinc-800 rounded-md px-2 py-1.5 bg-zinc-50 dark:bg-zinc-950 focus:outline-none focus:ring-1 focus:ring-primary flex-1 max-w-[200px]"
                                                             value={field.dependsOn?.value || ''}
                                                             onChange={(e) => updateField(field.id, { dependsOn: { ...(field.dependsOn as object), value: e.target.value } })}
                                                         >
-                                                            <option value="">Selecciona opción...</option>
+                                                            <option value="">{t('briefBuilder.selectOption')}</option>
                                                             {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                                                             {((fields.find((f: any) => f.id === (field.dependsOn as any)?.fieldId)?.options as unknown[]) || []).map((opt: unknown, idx: number) => {
                                                                 const option = opt as { label: string; value: string };
@@ -310,7 +312,7 @@ export function BriefBuilder({ template: initialTemplate }: BriefBuilderProps) {
                                                             {/* Allow depending on 'Otro' if enabled */}
                                                             {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                                                             {fields.find((f: any) => f.id === (field.dependsOn as any)?.fieldId)?.allowOther && (
-                                                                <option value="__other__">La opción &quot;Otro&quot;</option>
+                                                                <option value="__other__">{t('briefBuilder.otherOptionLabel')}</option>
                                                             )}
                                                         </select>
                                                     </>

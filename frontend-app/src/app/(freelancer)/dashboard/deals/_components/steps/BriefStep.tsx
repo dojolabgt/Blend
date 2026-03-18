@@ -18,7 +18,6 @@ import {
     Star,
     Info,
     AlertCircle,
-    Copy,
 } from 'lucide-react';
 import {
     AlertDialog,
@@ -33,6 +32,7 @@ import {
 import { DataTable, ColumnDef } from '@/components/common/DataTable';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { useWorkspaceSettings } from '@/hooks/use-workspace-settings';
 
 
 interface BriefStepProps {
@@ -47,66 +47,9 @@ interface BriefStepProps {
 
 // ── Field type helpers ─────────────────────────────────────────────────────
 
-const FIELD_TYPE_CONFIG: Record<string, { label: string; icon: React.ReactNode; color: string; mockPreview: React.ReactNode }> = {
-    text: {
-        label: 'Texto corto',
-        icon: <AlignLeft className="w-3.5 h-3.5" />,
-        color: 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
-        mockPreview: (
-            <div className="mt-2 h-9 rounded-md border border-dashed border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/50 flex items-center px-3 text-xs text-zinc-400 dark:text-zinc-500 italic">
-                Tu respuesta aquí...
-            </div>
-        ),
-    },
-    textarea: {
-        label: 'Párrafo',
-        icon: <AlignJustify className="w-3.5 h-3.5" />,
-        color: 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
-        mockPreview: (
-            <div className="mt-2 h-20 rounded-md border border-dashed border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/50 flex items-start px-3 pt-2 text-xs text-zinc-400 dark:text-zinc-500 italic">
-                Escribe tu respuesta detallada aquí...
-            </div>
-        ),
-    },
-    select: {
-        label: 'Lista desplegable',
-        icon: <ChevronDown className="w-3.5 h-3.5" />,
-        color: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
-        mockPreview: (
-            <div className="mt-2 h-9 rounded-md border border-dashed border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/50 flex items-center px-3 text-xs text-zinc-400 dark:text-zinc-500 italic justify-between">
-                Selecciona una opción...
-                <ChevronDown className="w-3.5 h-3.5" />
-            </div>
-        ),
-    },
-    radio: {
-        label: 'Opción única',
-        icon: <Circle className="w-3.5 h-3.5" />,
-        color: 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
-        mockPreview: null, // rendered dynamically below
-    },
-    checkbox: {
-        label: 'Múltiple selección',
-        icon: <CheckSquare className="w-3.5 h-3.5" />,
-        color: 'bg-rose-50 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300',
-        mockPreview: null, // rendered dynamically below
-    },
-    rating: {
-        label: 'Calificación',
-        icon: <Star className="w-3.5 h-3.5" />,
-        color: 'bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300',
-        mockPreview: (
-            <div className="mt-2 flex gap-1.5">
-                {[1, 2, 3, 4, 5].map((s) => (
-                    <Star key={s} className="w-5 h-5 text-zinc-300 dark:text-zinc-600" />
-                ))}
-            </div>
-        ),
-    },
-};
+type FieldTypeConfig = { label: string; icon: React.ReactNode; color: string; mockPreview: React.ReactNode };
 
-function FieldMockPreview({ field }: { field: Record<string, any> }) {
-    const config = FIELD_TYPE_CONFIG[field.type];
+function FieldMockPreview({ field, config, otherLabel }: { field: Record<string, any>; config: FieldTypeConfig | undefined; otherLabel: string }) {
     if (!config) return null;
 
     if (['radio', 'checkbox'].includes(field.type) && field.options?.length > 0) {
@@ -119,12 +62,12 @@ function FieldMockPreview({ field }: { field: Record<string, any> }) {
                     </div>
                 ))}
                 {field.options.length > 3 && (
-                    <p className="text-[10px] text-zinc-400 pl-5">+{field.options.length - 3} más...</p>
+                    <p className="text-[10px] text-zinc-400 pl-5">+{field.options.length - 3} {t('brief.moreOptions')}</p>
                 )}
                 {field.allowOther && (
                     <div className="flex items-center gap-2 text-xs text-zinc-400 dark:text-zinc-500 italic">
                         <div className={`w-3.5 h-3.5 flex-shrink-0 border border-dashed border-zinc-300 dark:border-zinc-600 ${field.type === 'radio' ? 'rounded-full' : 'rounded'}`} />
-                        <span>Otro (especifica)</span>
+                        <span>{otherLabel}</span>
                     </div>
                 )}
             </div>
@@ -144,11 +87,69 @@ export function BriefStep({
     readonly,
 }: BriefStepProps) {
     const router = useRouter();
+    const { t } = useWorkspaceSettings();
     const { templates, fetchTemplates, isLoading } = useBriefTemplates(workspaceId);
+
+    const FIELD_TYPE_CONFIG: Record<string, FieldTypeConfig> = {
+        text: {
+            label: t('brief.fieldTypeShort'),
+            icon: <AlignLeft className="w-3.5 h-3.5" />,
+            color: 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
+            mockPreview: (
+                <div className="mt-2 h-9 rounded-md border border-dashed border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/50 flex items-center px-3 text-xs text-zinc-400 dark:text-zinc-500 italic">
+                    {t('brief.shortAnswerPlaceholder')}
+                </div>
+            ),
+        },
+        textarea: {
+            label: t('brief.fieldTypeParagraph'),
+            icon: <AlignJustify className="w-3.5 h-3.5" />,
+            color: 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
+            mockPreview: (
+                <div className="mt-2 h-20 rounded-md border border-dashed border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/50 flex items-start px-3 pt-2 text-xs text-zinc-400 dark:text-zinc-500 italic">
+                    {t('brief.paragraphPlaceholder')}
+                </div>
+            ),
+        },
+        select: {
+            label: t('brief.fieldTypeSelect'),
+            icon: <ChevronDown className="w-3.5 h-3.5" />,
+            color: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
+            mockPreview: (
+                <div className="mt-2 h-9 rounded-md border border-dashed border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/50 flex items-center px-3 text-xs text-zinc-400 dark:text-zinc-500 italic justify-between">
+                    {t('brief.selectPlaceholder')}
+                    <ChevronDown className="w-3.5 h-3.5" />
+                </div>
+            ),
+        },
+        radio: {
+            label: t('brief.fieldTypeRadio'),
+            icon: <Circle className="w-3.5 h-3.5" />,
+            color: 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
+            mockPreview: null,
+        },
+        checkbox: {
+            label: t('brief.fieldTypeCheckbox'),
+            icon: <CheckSquare className="w-3.5 h-3.5" />,
+            color: 'bg-rose-50 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300',
+            mockPreview: null,
+        },
+        rating: {
+            label: t('brief.fieldTypeRating'),
+            icon: <Star className="w-3.5 h-3.5" />,
+            color: 'bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300',
+            mockPreview: (
+                <div className="mt-2 flex gap-1.5">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                        <Star key={s} className="w-5 h-5 text-zinc-300 dark:text-zinc-600" />
+                    ))}
+                </div>
+            ),
+        },
+    };
     const [selectedTemplate, setSelectedTemplate] = useState<string | null>(initialSelectedTemplateId || null);
     // Fix 1.4 — gate for the "Cambiar" destructive confirmation
     const [showChangeBriefDialog, setShowChangeBriefDialog] = useState(false);
-    const [isCopied, setIsCopied] = useState(false);
 
     useEffect(() => {
         fetchTemplates();
@@ -159,7 +160,7 @@ export function BriefStep({
         if (!tpl.isActive) return;
         setSelectedTemplate(tpl.id);
         if (onSelectTemplate) onSelectTemplate(tpl.id);
-        toast.success(`Brief seleccionado`);
+        toast.success(t('brief.toastSelected'));
     };
 
     // Fix 1.4 — only show dialog when a brief is already linked or already completed
@@ -184,7 +185,7 @@ export function BriefStep({
         const columns: ColumnDef<{ id: string; name: string; description?: string; isActive?: boolean; schema?: any[] }>[] = [
             {
                 key: 'name',
-                header: 'Nombre de Plantilla',
+                header: t('brief.templateNameHeader'),
                 render: (tpl) => (
                     <div>
                         <div className={`font-medium ${!tpl.isActive ? 'text-muted-foreground' : ''}`}>
@@ -200,24 +201,24 @@ export function BriefStep({
             },
             {
                 key: 'questions',
-                header: 'Preguntas',
+                header: t('brief.questionsHeader'),
                 render: (tpl) => (
                     <span className="inline-flex items-center rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium">
-                        {tpl.schema?.length || 0} campos
+                        {tpl.schema?.length || 0} {t('brief.fieldsCount')}
                     </span>
                 ),
             },
             {
                 key: 'status',
-                header: 'Estado',
+                header: t('briefTemplates.colStatus'),
                 render: (tpl) =>
                     tpl.isActive ? (
                         <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
-                            <CheckCircle2 className="w-3.5 h-3.5" /> Activa
+                            <CheckCircle2 className="w-3.5 h-3.5" /> {t('brief.statusActive')}
                         </span>
                     ) : (
                         <span className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground">
-                            <XCircle className="w-3.5 h-3.5" /> Inactiva
+                            <XCircle className="w-3.5 h-3.5" /> {t('brief.statusInactive')}
                         </span>
                     ),
             },
@@ -236,7 +237,7 @@ export function BriefStep({
                         }}
                         className="text-xs"
                     >
-                        Usar <ArrowRight className="w-3 h-3 ml-1" />
+                        {t('brief.useBtn')} <ArrowRight className="w-3 h-3 ml-1" />
                     </Button>
                 ),
             },
@@ -247,9 +248,9 @@ export function BriefStep({
                 {/* Sub-header */}
                 <div className="flex justify-between items-center bg-zinc-50 dark:bg-zinc-900/50 p-5 rounded-xl border border-zinc-200 dark:border-zinc-800">
                     <div>
-                        <h3 className="text-base font-semibold text-zinc-900 dark:text-white">Selecciona un Brief</h3>
+                        <h3 className="text-base font-semibold text-zinc-900 dark:text-white">{t('brief.selectBriefTitle')}</h3>
                         <p className="text-sm text-zinc-500 mt-0.5 max-w-lg">
-                            Selecciona una plantilla para que tu cliente la llene. Puedes crear y editar plantillas desde los Ajustes.
+                            {t('brief.selectBriefDesc')}
                         </p>
                     </div>
                 </div>
@@ -260,8 +261,8 @@ export function BriefStep({
                     columns={columns}
                     isLoading={isLoading}
                     emptyIcon={<FileText className="w-8 h-8" />}
-                    emptyTitle="No tienes plantillas creadas"
-                    emptyDescription="Acelera tus ventas teniendo formatos de cuestionarios listos para enviar. Dirígete a Ajustes para crear tu primera plantilla."
+                    emptyTitle={t('brief.emptyTitle')}
+                    emptyDescription={t('brief.emptyDesc')}
                     onRowClick={(tpl) => handleSelect(tpl)}
                 />
             </div>
@@ -275,51 +276,6 @@ export function BriefStep({
 
     return (
         <div className="space-y-6">
-            {/* ENLACE PÚBLICO BANNER */}
-            {publicToken && (
-                <div className={`p-4 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4 border ${isCompleted ? 'bg-emerald-50/50 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20' : 'bg-primary/5 border-primary/20'}`}>
-                    <div>
-                        <h4 className={`text-sm font-semibold flex items-center gap-2 ${isCompleted ? 'text-emerald-700 dark:text-emerald-400' : 'text-primary'}`}>
-                            {isCompleted ? <CheckCircle2 className="w-5 h-5" /> : <Info className="w-5 h-5" />}
-                            {isCompleted ? 'Brief Completado' : 'Enlace público para tu cliente'}
-                        </h4>
-                        <p className={`text-xs mt-1 max-w-xl ${isCompleted ? 'text-emerald-600 dark:text-emerald-500' : 'text-zinc-600 dark:text-zinc-400'}`}>
-                            {isCompleted
-                                ? 'El cliente ya ha llenado este cuestionario exitosamente y sus respuestas fueron guardadas.'
-                                : 'Copia y envía este enlace seguro a tu cliente. Podrá llenar el Brief sin necesidad de crear una cuenta en Krew.'}
-                        </p>
-                    </div>
-                    {!isCompleted && (() => {
-                        const baseUrl = process.env.NEXT_PUBLIC_FRONTEND_PUBLIC_URL
-                            || (typeof window !== 'undefined'
-                                ? `${window.location.protocol}//${window.location.hostname.replace('app.', 'client.')}${window.location.port === '3000' ? ':3001' : ''}`
-                                : '');
-                        const fullPublicLink = `${baseUrl}/b/${publicToken}`;
-
-                        return (
-                            <div className="flex items-center gap-2 shrink-0">
-                                <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-xs text-zinc-500 px-3 py-2 rounded-lg truncate max-w-[250px] select-all hidden sm:block">
-                                    {fullPublicLink || `.../b/${publicToken}`}
-                                </div>
-                                <Button
-                                    variant="secondary"
-                                    size="sm"
-                                    className="shrink-0 w-36"
-                                    onClick={() => {
-                                        if (fullPublicLink) navigator.clipboard.writeText(fullPublicLink);
-                                        toast.success('¡Enlace copiado al portapapeles!');
-                                        setIsCopied(true);
-                                        setTimeout(() => setIsCopied(false), 2000);
-                                    }}
-                                >
-                                    {isCopied ? <><CheckCircle2 className="w-4 h-4 mr-2" /> Copiado</> : <><Copy className="w-4 h-4 mr-2" /> Copiar enlace</>}
-                                </Button>
-                            </div>
-                        );
-                    })()}
-                </div>
-            )}
-
             {/* Header Bar */}
             <div className="flex items-center justify-between bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 shadow-sm">
                 <div className="flex items-center gap-3 min-w-0">
@@ -327,7 +283,7 @@ export function BriefStep({
                         <FileText className="w-5 h-5 text-primary" />
                     </div>
                     <div className="min-w-0">
-                        <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-400 dark:text-zinc-500">Brief Seleccionado</p>
+                        <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-400 dark:text-zinc-500">{t('brief.selectedLabel')}</p>
                         <h3 className="font-semibold text-zinc-900 dark:text-white truncate text-sm mt-0.5">
                             {tpl?.name || 'Plantilla'}
                         </h3>
@@ -340,18 +296,18 @@ export function BriefStep({
                             <AlertDialog open={showChangeBriefDialog} onOpenChange={setShowChangeBriefDialog}>
                                 <AlertDialogContent>
                                     <AlertDialogHeader>
-                                        <AlertDialogTitle>¿Cambiar la plantilla de Brief?</AlertDialogTitle>
+                                        <AlertDialogTitle>{t('brief.changeBriefTitle')}</AlertDialogTitle>
                                         <AlertDialogDescription>
                                             {isCompleted
-                                                ? 'El cliente ya completó este brief. Cambiar la plantilla no eliminará las respuestas guardadas, pero desvincularás el cuestionario actual de esta propuesta.'
-                                                : 'Si cambias la plantilla, el enlace público actual del brief dejará de estar asociado a esta propuesta.'}
-                                            {' '}¿Deseas continuar?
+                                                ? t('brief.changeBriefDescCompleted')
+                                                : t('brief.changeBriefDescPending')}
+                                            {' '}{t('brief.continueConfirm')}
                                         </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                        <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
                                         <AlertDialogAction onClick={confirmChangeBrief}>
-                                            Sí, cambiar plantilla
+                                            {t('brief.changeBriefConfirm')}
                                         </AlertDialogAction>
                                     </AlertDialogFooter>
                                 </AlertDialogContent>
@@ -362,7 +318,7 @@ export function BriefStep({
                                 className="text-xs text-zinc-500"
                                 onClick={handleBack}
                             >
-                                Cambiar
+                                {t('brief.changeBtn')}
                             </Button>
                             <Button
                                 variant="outline"
@@ -371,7 +327,7 @@ export function BriefStep({
                                 onClick={() => router.push(`/dashboard/templates/briefs?edit=${selectedTemplate}`)}
                             >
                                 <Pencil className="w-3.5 h-3.5" />
-                                Editar plantilla
+                                {t('brief.editTemplateBtn')}
                             </Button>
                         </>
                     )}
@@ -382,10 +338,7 @@ export function BriefStep({
             {!isCompleted && !readonly && (
                 <div className="flex items-start gap-2 bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 rounded-lg p-3 text-xs text-blue-800 dark:text-blue-300">
                     <Info className="w-4 h-4 shrink-0 mt-0.5" />
-                    <p>
-                        Si editas esta plantilla, los cambios <span className="font-semibold">no se aplicarán automáticamente</span> a esta propuesta.
-                        Para refrescar el formulario, haz clic en <strong>Cambiar</strong> y vuelve a seleccionarla.
-                    </p>
+                    <p>{t('brief.changeWarning')}</p>
                 </div>
             )}
 
@@ -393,14 +346,14 @@ export function BriefStep({
             {schema.length === 0 ? (
                 <div className="h-48 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl flex flex-col items-center justify-center text-zinc-400 gap-2">
                     <AlertCircle className="w-8 h-8 opacity-40" />
-                    <p className="text-sm">Este brief no tiene preguntas todavía.</p>
+                    <p className="text-sm">{t('brief.noQuestionsYet')}</p>
                     <Button
                         variant="ghost"
                         size="sm"
                         className="text-xs mt-1"
                         onClick={() => router.push(`/dashboard/templates/briefs?edit=${selectedTemplate}`)}
                     >
-                        <Pencil className="w-3.5 h-3.5 mr-1.5" /> Ir a editar
+                        <Pencil className="w-3.5 h-3.5 mr-1.5" /> {t('brief.goEditBtn')}
                     </Button>
                 </div>
             ) : (
@@ -421,7 +374,7 @@ export function BriefStep({
                                         </span>
                                         <div className="flex-1 min-w-0">
                                             <p className="font-medium text-zinc-900 dark:text-white text-sm leading-snug">
-                                                {field.label || 'Sin pregunta asignada'}
+                                                {field.label || t('brief.noQuestionLabel')}
                                                 {field.required && (
                                                     <span className="text-red-500 ml-1">*</span>
                                                 )}
@@ -462,11 +415,11 @@ export function BriefStep({
                                                     <p className="whitespace-pre-wrap">{String(responses[field.id])}</p>
                                                 )
                                             ) : (
-                                                <span className="text-zinc-400 italic">No respondió</span>
+                                                <span className="text-zinc-400 italic">{t('brief.noAnswer')}</span>
                                             )}
                                         </div>
                                     ) : (
-                                        <FieldMockPreview field={field} />
+                                        <FieldMockPreview field={field} config={FIELD_TYPE_CONFIG[field.type]} otherLabel={t('brief.otherOption')} />
                                     )}
                                 </div>
 
@@ -474,7 +427,7 @@ export function BriefStep({
                                 {field.dependsOn?.fieldId && (
                                     <div className="ml-9 mt-3 inline-flex items-center gap-1.5 text-[10px] font-medium text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 px-2 py-0.5 rounded-full">
                                         <AlertCircle className="w-3 h-3" />
-                                        Visible condicionalmente
+                                        {t('brief.conditionalVisible')}
                                     </div>
                                 )}
                             </div>
@@ -483,8 +436,8 @@ export function BriefStep({
 
                     {/* Summary footer */}
                     <div className="flex items-center justify-between text-xs text-zinc-400 dark:text-zinc-500 px-1 pt-1">
-                        <span>{schema.length} pregunta{schema.length !== 1 ? 's' : ''} en total</span>
-                        <span>{schema.filter(f => f.required).length} obligatoria{schema.filter(f => f.required).length !== 1 ? 's' : ''}</span>
+                        <span>{schema.length} {schema.length !== 1 ? t('brief.totalQuestionPlural') : t('brief.totalQuestionSingular')}</span>
+                        <span>{schema.filter(f => f.required).length} {schema.filter(f => f.required).length !== 1 ? t('brief.requiredPlural') : t('brief.requiredSingular')}</span>
                     </div>
                 </div>
             )}

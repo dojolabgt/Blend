@@ -39,7 +39,7 @@ export function CtaBanner() {
                         <h2 className="text-4xl md:text-[48px] font-black tracking-tight text-white leading-[1.05]">
                             Tu primer deal,<br />sin complicaciones.
                         </h2>
-                        <p className="text-[15px] text-white/40 font-light leading-relaxed">
+                        <p className="text-[15px] text-white/60 font-normal leading-relaxed">
                             Crea tu cuenta gratis en segundos. Sin tarjeta de crédito.
                         </p>
                     </div>
@@ -48,10 +48,10 @@ export function CtaBanner() {
                         <Button asChild size="lg" className="rounded-full h-11 px-7 text-[14px] font-semibold bg-white text-gray-900 hover:bg-gray-100 shadow-none border-0">
                             <Link href={`${APP_URL}/register`}>
                                 Empezar gratis
-                                <ArrowRight className="ml-2 h-4 w-4" />
+                                <ArrowRight aria-hidden="true" className="ml-2 h-4 w-4" />
                             </Link>
                         </Button>
-                        <Button asChild variant="ghost" size="lg" className="rounded-full h-11 px-7 text-[14px] text-white/40 hover:text-white hover:bg-white/[0.07] border border-white/[0.08]">
+                        <Button asChild variant="ghost" size="lg" className="rounded-full h-11 px-7 text-[14px] text-white/60 hover:text-white hover:bg-white/[0.07] border border-white/[0.08]">
                             <Link href="#precios">Ver planes</Link>
                         </Button>
                     </div>

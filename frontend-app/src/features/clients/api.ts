@@ -23,4 +23,20 @@ export const clientsApi = {
     delete: async (id: string): Promise<void> => {
         return api.delete(`/clients/${id}`).then((res) => res.data);
     },
+
+    inviteToPortal: async (id: string): Promise<void> => {
+        return api.post(`/clients/${id}/invite`).then((res) => res.data);
+    },
+
+    getInvite: async (token: string): Promise<{
+        clientName: string;
+        email: string;
+        workspace: { businessName?: string; logo?: string };
+    }> => {
+        return api.get(`/clients/invite/${token}`).then((res) => res.data);
+    },
+
+    acceptInvite: async (token: string, password: string): Promise<void> => {
+        return api.post(`/clients/invite/${token}/accept`, { password }).then((res) => res.data);
+    },
 };

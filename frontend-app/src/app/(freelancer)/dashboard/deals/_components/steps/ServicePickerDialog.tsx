@@ -12,6 +12,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Search, Package } from 'lucide-react';
 import { servicesApi } from '@/features/services/api';
+import { useWorkspaceSettings } from '@/hooks/use-workspace-settings';
 import { cn } from '@/lib/utils';
 
 interface ServicePickerDialogProps {
@@ -24,6 +25,7 @@ interface ServicePickerDialogProps {
 }
 
 export function ServicePickerDialog({ open, onOpenChange, onSelect, currency = 'GTQ', currencySymbol = 'Q', workspaceId }: ServicePickerDialogProps) {
+    const { t } = useWorkspaceSettings();
     const [services, setServices] = useState<Record<string, any>[]>([]);
     const [search, setSearch] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -48,18 +50,18 @@ export function ServicePickerDialog({ open, onOpenChange, onSelect, currency = '
     );
 
     const chargeTypeLabel: Record<string, string> = {
-        ONE_TIME: 'Una vez',
-        HOURLY: 'Por hora',
-        RECURRING: 'Recurrente',
+        ONE_TIME: t('servicePicker.chargeOneTime'),
+        HOURLY: t('servicePicker.chargeHourly'),
+        RECURRING: t('servicePicker.chargeRecurring'),
     };
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-lg">
                 <DialogHeader>
-                    <DialogTitle>Agregar desde Catálogo</DialogTitle>
+                    <DialogTitle>{t('servicePicker.title')}</DialogTitle>
                     <DialogDescription>
-                        Selecciona un servicio. Sus datos se copiarán como snapshot al ítem de la cotización.
+                        {t('servicePicker.desc')}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -67,7 +69,7 @@ export function ServicePickerDialog({ open, onOpenChange, onSelect, currency = '
                 <div className="relative mt-2">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
                     <Input
-                        placeholder="Buscar por nombre o categoría..."
+                        placeholder={t('servicePicker.searchPlaceholder')}
                         className="pl-9 rounded-xl"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
@@ -85,7 +87,7 @@ export function ServicePickerDialog({ open, onOpenChange, onSelect, currency = '
                     {!isLoading && filtered.length === 0 && (
                         <div className="flex flex-col items-center py-8 text-zinc-400">
                             <Package className="w-8 h-8 mb-2" />
-                            <p className="text-sm">No se encontraron servicios</p>
+                            <p className="text-sm">{t('servicePicker.emptyState')}</p>
                         </div>
                     )}
 

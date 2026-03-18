@@ -17,16 +17,11 @@ import { AppSearch } from '@/components/common/AppSearch';
 import { AppFilterTabs, FilterOption } from '@/components/common/AppFilterTabs';
 import { AppPagination } from '@/components/common/AppPagination';
 import { BriefBuilder } from './_components/BriefBuilder';
+import { useWorkspaceSettings } from '@/hooks/use-workspace-settings';
 
 // ─── Filter options ───────────────────────────────────────────────────────────
 
 type ActiveFilter = 'true' | 'false';
-
-const ACTIVE_OPTIONS: FilterOption<ActiveFilter>[] = [
-    { label: 'Todas', value: undefined },
-    { label: 'Activas', value: 'true' },
-    { label: 'Inactivas', value: 'false' },
-];
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -34,6 +29,13 @@ export default function BriefTemplatesPage() {
     const searchParams = useSearchParams();
     const editParam = searchParams.get('edit');
     const { activeWorkspace } = useAuth();
+    const { t } = useWorkspaceSettings();
+
+    const ACTIVE_OPTIONS: FilterOption<ActiveFilter>[] = [
+        { label: t('briefTemplates.filterAll'), value: undefined },
+        { label: t('briefTemplates.filterActive'), value: 'true' },
+        { label: t('briefTemplates.filterInactive'), value: 'false' },
+    ];
     const { createTemplate } = useBriefTemplates();
 
     const list = useListState<{ isActive: ActiveFilter | undefined }>({
@@ -82,18 +84,18 @@ export default function BriefTemplatesPage() {
         try {
             const res = await createTemplate({
                 name: newTplName,
-                description: 'Plantilla personalizada',
+                description: t('briefTemplates.customDescription'),
                 schema: [],
                 isActive: true,
             });
             if (res?.id) {
-                toast.success('Plantilla creada correctamente');
+                toast.success(t('briefTemplates.createSuccess'));
                 setNewTplName('');
                 setIsDialogOpen(false);
                 setEditingTemplate(res);
             }
         } catch (err: unknown) {
-            toast.error((err as Error).message || 'Error al crear plantilla');
+            toast.error((err as Error).message || t('briefTemplates.createError'));
         } finally {
             setIsCreating(false);
         }
@@ -110,7 +112,7 @@ export default function BriefTemplatesPage() {
                         onClick={() => setEditingTemplate(null)}
                         className="-ml-3 text-zinc-500"
                     >
-                        <ArrowLeft className="w-4 h-4 mr-2" /> Volver a Plantillas
+                        <ArrowLeft className="w-4 h-4 mr-2" /> {t('briefTemplates.backBtn')}
                     </Button>
                 </div>
                 <BriefBuilder template={editingTemplate} onClose={() => setEditingTemplate(null)} />
@@ -122,7 +124,7 @@ export default function BriefTemplatesPage() {
     const columns: ColumnDef<BriefTemplate>[] = [
         {
             key: 'name',
-            header: 'Nombre de Plantilla',
+            header: t('briefTemplates.colName'),
             render: (tpl) => (
                 <div>
                     <div className={`font-medium ${!tpl.isActive ? 'text-muted-foreground' : ''}`}>
@@ -138,19 +140,19 @@ export default function BriefTemplatesPage() {
         },
         {
             key: 'questions',
-            header: 'Preguntas',
+            header: t('briefTemplates.colQuestions'),
             render: (tpl) => (
                 <span className="inline-flex items-center rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium">
-                    {tpl.schema?.length || 0} campos
+                    {tpl.schema?.length || 0} {t('briefTemplates.colFields')}
                 </span>
             ),
         },
         {
             key: 'status',
-            header: 'Estado',
+            header: t('briefTemplates.colStatus'),
             render: (tpl) => (
                 <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${tpl.isActive ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400' : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400'}`}>
-                    {tpl.isActive ? 'Activa' : 'Inactiva'}
+                    {tpl.isActive ? t('briefTemplates.statusActive') : t('briefTemplates.statusInactive')}
                 </span>
             ),
         },
@@ -169,7 +171,7 @@ export default function BriefTemplatesPage() {
                         }}
                     >
                         <Settings2 className="w-4 h-4 mr-2 text-zinc-500" />
-                        Configurar
+                        {t('briefTemplates.configureBtn')}
                     </Button>
                 </div>
             ),
@@ -181,33 +183,33 @@ export default function BriefTemplatesPage() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
-                        Plantillas de Brief
+                        {t('briefTemplates.pageTitle')}
                     </h1>
                     <p className="text-zinc-500 dark:text-zinc-400 mt-1 max-w-2xl">
-                        Crea cuestionarios estandarizados que tus clientes deberán llenar al iniciar un nuevo trato.
+                        {t('briefTemplates.pageDesc')}
                     </p>
                 </div>
 
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
                         <Button className="shadow-sm">
-                            <Plus className="w-4 h-4 mr-2" /> Nueva Plantilla
+                            <Plus className="w-4 h-4 mr-2" /> {t('briefTemplates.newBtn')}
                         </Button>
                     </DialogTrigger>
                     <DialogContent>
                         <DialogHeader>
-                            <DialogTitle>Nueva plantilla de Brief</DialogTitle>
+                            <DialogTitle>{t('briefTemplates.createDialogTitle')}</DialogTitle>
                             <DialogDescription>
-                                Dale un nombre para identificarla. Luego podrás agregar todos los campos requeridos.
+                                {t('briefTemplates.createDialogDesc')}
                             </DialogDescription>
                         </DialogHeader>
                         <form onSubmit={handleCreateTemplate} className="space-y-4 pt-4">
                             <div className="space-y-2">
-                                <Label>Nombre de la Plantilla</Label>
+                                <Label>{t('briefTemplates.nameLabel')}</Label>
                                 <Input
                                     value={newTplName}
                                     onChange={(e) => setNewTplName(e.target.value)}
-                                    placeholder="Ej. Formulario Inicial Web..."
+                                    placeholder={t('briefTemplates.namePlaceholder')}
                                     required
                                     autoFocus
                                 />
@@ -219,10 +221,10 @@ export default function BriefTemplatesPage() {
                                     onClick={() => setIsDialogOpen(false)}
                                     disabled={isCreating}
                                 >
-                                    Cancelar
+                                    {t('common.cancel')}
                                 </Button>
                                 <Button type="submit" disabled={!newTplName || isCreating}>
-                                    {isCreating ? 'Creando...' : 'Crear y Continuar'}
+                                    {isCreating ? t('briefTemplates.creatingBtn') : t('briefTemplates.createContinueBtn')}
                                 </Button>
                             </div>
                         </form>
@@ -235,11 +237,11 @@ export default function BriefTemplatesPage() {
                 columns={columns}
                 isLoading={isLoading}
                 emptyIcon={<FileText className="w-10 h-10 text-zinc-300 dark:text-zinc-700" />}
-                emptyTitle="No tienes plantillas creadas"
-                emptyDescription="Acelera tus ventas teniendo formatos de cuestionarios listos para que tus clientes llenen."
+                emptyTitle={t('briefTemplates.emptyTitle')}
+                emptyDescription={t('briefTemplates.emptyDesc')}
                 emptyAction={
                     <Button variant="outline" onClick={() => setIsDialogOpen(true)} className="mt-4">
-                        <Plus className="w-4 h-4 mr-2" /> Crear mi primera plantilla
+                        <Plus className="w-4 h-4 mr-2" /> {t('briefTemplates.emptyBtn')}
                     </Button>
                 }
                 toolbar={
@@ -247,7 +249,7 @@ export default function BriefTemplatesPage() {
                         <AppSearch
                             value={list.search}
                             onChange={list.setSearch}
-                            placeholder="Buscar plantillas..."
+                            placeholder={t('briefTemplates.searchPlaceholder')}
                             className="w-56"
                         />
                         <AppFilterTabs

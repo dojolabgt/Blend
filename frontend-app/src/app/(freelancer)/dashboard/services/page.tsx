@@ -15,32 +15,30 @@ import { AppSearch } from '@/components/common/AppSearch';
 import { AppFilterTabs, FilterOption } from '@/components/common/AppFilterTabs';
 import { AppPagination } from '@/components/common/AppPagination';
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
-
-const CHARGE_TYPE_LABEL: Record<ServiceChargeType, string> = {
-    [ServiceChargeType.ONE_TIME]: 'Único',
-    [ServiceChargeType.HOURLY]: 'Por hora',
-    [ServiceChargeType.RECURRING]: 'Recurrente',
-};
-
-const UNIT_TYPE_LABEL: Record<ServiceUnitType, string> = {
-    [ServiceUnitType.HOUR]: 'Hora',
-    [ServiceUnitType.PROJECT]: 'Proyecto',
-    [ServiceUnitType.MONTH]: 'Mes',
-    [ServiceUnitType.UNIT]: 'Unidad',
-};
-
-const CHARGE_TYPE_OPTIONS: FilterOption<ServiceChargeType>[] = [
-    { label: 'Todos', value: undefined },
-    { label: 'Único', value: ServiceChargeType.ONE_TIME },
-    { label: 'Por hora', value: ServiceChargeType.HOURLY },
-    { label: 'Recurrente', value: ServiceChargeType.RECURRING },
-];
-
 // ─── Page ────────────────────────────────────────────────────────────────────
 
 export default function ServicesPage() {
     const { formatCurrency, t } = useWorkspaceSettings();
+
+    const CHARGE_TYPE_LABEL: Record<ServiceChargeType, string> = {
+        [ServiceChargeType.ONE_TIME]: t('services.chargeTypeOneTime'),
+        [ServiceChargeType.HOURLY]: t('services.chargeTypeHourly'),
+        [ServiceChargeType.RECURRING]: t('services.chargeTypeRecurring'),
+    };
+
+    const UNIT_TYPE_LABEL: Record<ServiceUnitType, string> = {
+        [ServiceUnitType.HOUR]: t('services.unitHour'),
+        [ServiceUnitType.PROJECT]: t('services.unitProject'),
+        [ServiceUnitType.MONTH]: t('services.unitMonth'),
+        [ServiceUnitType.UNIT]: t('services.unitUnit'),
+    };
+
+    const CHARGE_TYPE_OPTIONS: FilterOption<ServiceChargeType>[] = [
+        { label: t('services.chargeTypeAll'), value: undefined },
+        { label: t('services.chargeTypeOneTime'), value: ServiceChargeType.ONE_TIME },
+        { label: t('services.chargeTypeHourly'), value: ServiceChargeType.HOURLY },
+        { label: t('services.chargeTypeRecurring'), value: ServiceChargeType.RECURRING },
+    ];
 
     const list = useListState<{ chargeType: ServiceChargeType | undefined }>({
         initialFilters: { chargeType: undefined },
@@ -75,13 +73,13 @@ export default function ServicesPage() {
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm('¿Estás seguro de que quieres eliminar este servicio?')) return;
+        if (!confirm(t('services.deleteConfirm'))) return;
         try {
             await servicesApi.delete(id);
-            toast.success(t('common.deleted') || 'Servicio eliminado');
+            toast.success(t('services.deleteSuccess'));
             loadServices();
         } catch {
-            toast.error(t('common.error') || 'Error al eliminar el servicio');
+            toast.error(t('services.deleteError'));
         }
     };
 
@@ -99,7 +97,7 @@ export default function ServicesPage() {
                     <div className={`font-medium group-hover:text-primary transition-colors ${!service.isActive ? 'text-muted-foreground' : ''}`}>
                         {service.name}
                         {!service.isActive && (
-                            <span className="ml-2 text-xs font-normal text-muted-foreground">(inactivo)</span>
+                            <span className="ml-2 text-xs font-normal text-muted-foreground">{t('services.inactiveLabel')}</span>
                         )}
                     </div>
                     {service.description && (
@@ -126,25 +124,25 @@ export default function ServicesPage() {
         },
         {
             key: 'chargeType',
-            header: 'Tipo de cobro',
+            header: t('services.colChargeType'),
             render: (service) => (
                 <div className="text-sm text-muted-foreground">
                     <div>{CHARGE_TYPE_LABEL[service.chargeType] ?? service.chargeType}</div>
-                    <div className="text-xs">por {UNIT_TYPE_LABEL[service.unitType] ?? service.unitType}</div>
+                    <div className="text-xs">{t('services.perUnit')} {UNIT_TYPE_LABEL[service.unitType] ?? service.unitType}</div>
                 </div>
             ),
         },
         {
             key: 'status',
-            header: 'Estado',
+            header: t('services.colStatus'),
             render: (service) =>
                 service.isActive ? (
                     <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
-                        <CheckCircle2 className="w-3.5 h-3.5" /> Activo
+                        <CheckCircle2 className="w-3.5 h-3.5" /> {t('services.statusActive')}
                     </span>
                 ) : (
                     <span className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground">
-                        <XCircle className="w-3.5 h-3.5" /> Inactivo
+                        <XCircle className="w-3.5 h-3.5" /> {t('services.statusInactive')}
                     </span>
                 ),
         },
@@ -209,7 +207,7 @@ export default function ServicesPage() {
                         <AppSearch
                             value={list.search}
                             onChange={list.setSearch}
-                            placeholder="Buscar servicios..."
+                            placeholder={t('services.searchPlaceholder')}
                             className="w-56"
                         />
                         <AppFilterTabs

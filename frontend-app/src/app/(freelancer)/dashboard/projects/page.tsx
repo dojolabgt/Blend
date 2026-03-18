@@ -6,6 +6,7 @@ import { FolderKanban } from 'lucide-react';
 import { DashboardShell } from '@/components/layout/DashboardShell';
 import { projectsApi } from '@/features/projects/api';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { useWorkspaceSettings } from '@/hooks/use-workspace-settings';
 import { DataTable, ColumnDef } from '@/components/common/DataTable';
 import { useListState } from '@/hooks/use-list-state';
 import { AppSearch } from '@/components/common/AppSearch';
@@ -21,22 +22,11 @@ const STATUS_STYLES: Record<string, string> = {
     COMPLETED: 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500',
 };
 
-const STATUS_LABEL: Record<string, string> = {
-    ACTIVE: 'Activo',
-    COMPLETED: 'Completado',
-};
-
-const STATUS_OPTIONS: FilterOption<ProjectStatus>[] = [
-    { label: 'Todos', value: undefined },
-    { label: 'Activos', value: 'ACTIVE' },
-    { label: 'Completados', value: 'COMPLETED' },
-];
-
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status, label }: { status: string; label: string }) {
     const key = status?.toUpperCase() ?? 'ACTIVE';
     return (
         <span className={`px-2.5 py-0.5 rounded-md text-xs font-medium ${STATUS_STYLES[key] ?? STATUS_STYLES.ACTIVE}`}>
-            {STATUS_LABEL[key] ?? status}
+            {label}
         </span>
     );
 }
@@ -56,7 +46,19 @@ interface ProjectItem {
 
 export default function ProjectsPage() {
     const { activeWorkspace } = useAuth();
+    const { t } = useWorkspaceSettings();
     const router = useRouter();
+
+    const STATUS_LABEL: Record<string, string> = {
+        ACTIVE: t('projects.statusActive'),
+        COMPLETED: t('projects.statusCompleted'),
+    };
+
+    const STATUS_OPTIONS: FilterOption<ProjectStatus>[] = [
+        { label: t('projects.filterAll'), value: undefined },
+        { label: t('projects.filterActive'), value: 'ACTIVE' },
+        { label: t('projects.filterCompleted'), value: 'COMPLETED' },
+    ];
 
     const list = useListState<{ status: ProjectStatus | undefined }>({
         initialFilters: { status: undefined },
@@ -89,18 +91,18 @@ export default function ProjectsPage() {
     const columns: ColumnDef<ProjectItem>[] = [
         {
             key: 'name',
-            header: 'Proyecto',
+            header: t('projects.colProject'),
             render: (project) => {
                 const isShared = project.workspace?.id !== activeWorkspace?.id;
                 return (
                     <div>
                         <div className="flex items-center gap-2">
                             <div className="font-semibold group-hover:text-primary transition-colors">
-                                {project.name || '(sin nombre)'}
+                                {project.name || t('projects.unknown')}
                             </div>
                             {isShared && (
                                 <span className="px-1.5 py-0.5 rounded text-[10px] whitespace-nowrap font-medium bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400">
-                                    De: {project.workspace?.businessName || project.workspace?.name || 'Otro'}
+                                    {t('projects.sharedFrom')} {project.workspace?.businessName || project.workspace?.name || '—'}
                                 </span>
                             )}
                         </div>
@@ -111,12 +113,17 @@ export default function ProjectsPage() {
         },
         {
             key: 'status',
-            header: 'Estado',
-            render: (project) => <StatusBadge status={project.status ?? 'ACTIVE'} />,
+            header: t('projects.colStatus'),
+            render: (project) => (
+                <StatusBadge
+                    status={project.status ?? 'ACTIVE'}
+                    label={STATUS_LABEL[(project.status ?? 'ACTIVE').toUpperCase()] ?? project.status}
+                />
+            ),
         },
         {
             key: 'collaborators',
-            header: 'Colaboradores',
+            header: t('projects.colCollaborators'),
             render: (project) => (
                 <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
                     {project.collaborators?.length || 0}
@@ -125,7 +132,7 @@ export default function ProjectsPage() {
         },
         {
             key: 'createdAt',
-            header: 'Creado',
+            header: t('projects.colDate'),
             render: (project) => (
                 <span className="text-sm text-muted-foreground">
                     {new Date(project.createdAt).toLocaleDateString('es-GT')}
@@ -138,9 +145,9 @@ export default function ProjectsPage() {
         <DashboardShell>
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Proyectos</h1>
+                    <h1 className="text-2xl font-bold tracking-tight">{t('projects.title')}</h1>
                     <p className="text-muted-foreground mt-1">
-                        Gestiona la ejecución de tus tratos ganados y asigna pagos a colaboradores.
+                        {t('projects.titleDesc')}
                     </p>
                 </div>
             </div>
@@ -150,14 +157,14 @@ export default function ProjectsPage() {
                 columns={columns}
                 isLoading={isLoading}
                 emptyIcon={<FolderKanban className="w-8 h-8" />}
-                emptyTitle="Sin proyectos activos"
-                emptyDescription="No tienes proyectos en ejecución. Cuando una propuesta se marque como Ganada, se convertirá en un proyecto automáticamente."
+                emptyTitle={t('projects.emptyTitle')}
+                emptyDescription={t('projects.emptyDesc')}
                 toolbar={
                     <>
                         <AppSearch
                             value={list.search}
                             onChange={list.setSearch}
-                            placeholder="Buscar proyectos..."
+                            placeholder={t('projects.searchPlaceholder')}
                             className="w-56"
                         />
                         <AppFilterTabs

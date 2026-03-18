@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Users, CreditCard, LayoutTemplate, FileText, CheckSquare, Folder } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { useWorkspaceSettings } from '@/hooks/use-workspace-settings';
 
 export interface ProjectData {
     id: string;
@@ -36,6 +37,8 @@ export interface ProjectData {
         };
     };
     collaborators?: { id: string; workspace: { id: string; businessName?: string; logo?: string; name?: string }; role: string }[];
+    driveFolderId?: string | null;
+    driveFolderUrl?: string | null;
     [key: string]: unknown;
 }
 
@@ -63,6 +66,7 @@ export default function ProjectLayout({ children }: { children: React.ReactNode 
     const projectId = params.id as string;
 
     const { activeWorkspace } = useAuth();
+    const { t } = useWorkspaceSettings();
     const { fetchProject, isLoading } = useProjects();
     const [project, setProject] = useState<ProjectData | null>(null);
 
@@ -83,7 +87,7 @@ export default function ProjectLayout({ children }: { children: React.ReactNode 
                 <div className="flex h-[50vh] items-center justify-center">
                     <div className="flex flex-col items-center gap-3 text-zinc-400">
                         <div className="w-8 h-8 border-2 border-zinc-300 border-t-primary rounded-full animate-spin" />
-                        <span className="text-sm">Cargando proyecto...</span>
+                        <span className="text-sm">{t('projects.loadingProject')}</span>
                     </div>
                 </div>
             </DashboardShell>
@@ -91,7 +95,7 @@ export default function ProjectLayout({ children }: { children: React.ReactNode 
     }
 
     const { deal } = project;
-    const clientName = deal?.client?.name || 'Cliente sin nombre';
+    const clientName = deal?.client?.name || t('projects.defaultClientName');
 
     const isOwner = project.workspaceId === activeWorkspace?.id;
     const collabMatch = project.collaborators?.find((c) => c.workspace.id === activeWorkspace?.id);
@@ -99,12 +103,12 @@ export default function ProjectLayout({ children }: { children: React.ReactNode 
     const isCompleted = project.status === 'COMPLETED';
 
     const tabs = [
-        { name: 'Resumen',         href: `/dashboard/projects/${projectId}`,           icon: Folder },
-        { name: 'Tareas',          href: `/dashboard/projects/${projectId}/tasks`,      icon: CheckSquare },
-        { name: 'Brief',           href: `/dashboard/projects/${projectId}/brief`,      icon: FileText },
-        { name: 'Documentos',      href: `/dashboard/projects/${projectId}/assets`,     icon: LayoutTemplate },
-        { name: 'Pagos',           href: `/dashboard/projects/${projectId}/payments`,   icon: CreditCard },
-        { name: 'Colaboradores',   href: `/dashboard/projects/${projectId}/team`,       icon: Users },
+        { name: t('projects.tabOverview'),      href: `/dashboard/projects/${projectId}`,           icon: Folder },
+        { name: t('projects.tabTasks'),         href: `/dashboard/projects/${projectId}/tasks`,      icon: CheckSquare },
+        { name: 'Brief',                         href: `/dashboard/projects/${projectId}/brief`,      icon: FileText },
+        { name: t('projects.tabDocuments'),     href: `/dashboard/projects/${projectId}/assets`,     icon: LayoutTemplate },
+        { name: t('projects.tabPayments'),      href: `/dashboard/projects/${projectId}/payments`,   icon: CreditCard },
+        { name: t('projects.tabCollaborators'), href: `/dashboard/projects/${projectId}/team`,       icon: Users },
     ];
 
     return (
@@ -117,7 +121,7 @@ export default function ProjectLayout({ children }: { children: React.ReactNode 
                     className="mb-5 -ml-2 text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
                     onClick={() => router.push('/dashboard/projects')}
                 >
-                    <ArrowLeft className="w-4 h-4 mr-2" /> Volver a Proyectos
+                    <ArrowLeft className="w-4 h-4 mr-2" /> {t('projects.backBtn')}
                 </Button>
 
                 {/* Hero header */}
@@ -148,23 +152,23 @@ export default function ProjectLayout({ children }: { children: React.ReactNode 
                                             ? 'bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400'
                                             : 'bg-emerald-200 dark:bg-emerald-800/60 text-emerald-800 dark:text-emerald-300',
                                     )}>
-                                        {isCompleted ? 'Completado' : 'Activo'}
+                                        {isCompleted ? t('projects.statusCompleted') : t('projects.statusActive')}
                                     </span>
                                     {!isOwner && (
                                         <span className="px-2 py-0.5 rounded-md text-xs font-semibold bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400">
-                                            Colaborador
+                                            {t('projects.collaboratorBadge')}
                                         </span>
                                     )}
                                 </div>
                                 <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
-                                    Cliente: <span className="font-medium text-zinc-700 dark:text-zinc-300">{clientName}</span>
+                                    {t('projects.clientLabel')} <span className="font-medium text-zinc-700 dark:text-zinc-300">{clientName}</span>
                                 </p>
                             </div>
                         </div>
 
                         {deal?.quotations?.[0]?.total && (
                             <div className="text-right shrink-0">
-                                <p className="text-xs text-zinc-500 font-medium uppercase tracking-wider">Valor</p>
+                                <p className="text-xs text-zinc-500 font-medium uppercase tracking-wider">{t('projects.valueLabel')}</p>
                                 <p className="text-2xl font-bold text-zinc-900 dark:text-white">
                                     {deal.currency?.symbol || '$'}{Number(deal.quotations.find(q => q.isApproved)?.total ?? deal.quotations[0]?.total).toLocaleString('es-GT', { minimumFractionDigits: 2 })}
                                 </p>

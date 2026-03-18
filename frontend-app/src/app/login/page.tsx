@@ -1,22 +1,59 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Image from 'next/image';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { toast } from 'sonner';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { AuthInput } from '@/components/common/AuthInput';
-import { Eye, EyeOff, Mail, Lock, ArrowLeft } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, ArrowLeft, AlertCircle } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import Link from 'next/link';
+import { UserRole } from '@/types';
 
 const PUBLIC_URL = process.env.NEXT_PUBLIC_PUBLIC_URL || '/';
 
-export default function LoginPage() {
-    const { login, isLoading, error } = useAuth();
+function getDashboardRoute(role: UserRole): string {
+    switch (role) {
+        case UserRole.ADMIN:
+        case UserRole.SUPPORT:
+            return '/admin';
+        case UserRole.FREELANCER:
+            return '/dashboard';
+        case UserRole.CLIENT:
+            return '/portal';
+        default:
+            return '/dashboard';
+    }
+}
 
-    const [email, setEmail] = useState('');
+function LoginContent() {
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const { login, isLoading, error, user } = useAuth();
+
+    const [email, setEmail] = useState(searchParams.get('email') ?? '');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+
+    useEffect(() => {
+        if (!isLoading && user) {
+            router.replace(getDashboardRoute(user.role));
+        }
+    }, [isLoading, user, router]);
+
+    useEffect(() => {
+        if (searchParams.get('error') === 'google_auth_failed') {
+            toast.error('No se pudo iniciar sesión con Google. Intenta de nuevo.');
+            const url = new URL(window.location.href);
+            url.searchParams.delete('error');
+            window.history.replaceState({}, '', url.toString());
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    if (isLoading || user) return null;
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -58,8 +95,9 @@ export default function LoginPage() {
 
                         <form onSubmit={handleLogin} className="space-y-3">
                             {error && (
-                                <div className="p-3 text-[13px] text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl text-center">
-                                    {error}
+                                <div className="flex items-start gap-2.5 px-3.5 py-3 rounded-lg bg-red-500/[0.07] border border-red-500/[0.15] animate-in fade-in slide-in-from-top-1 duration-200">
+                                    <AlertCircle className="h-4 w-4 text-red-400/70 mt-0.5 shrink-0" />
+                                    <p className="text-[13px] text-red-300/80 leading-snug">{error}</p>
                                 </div>
                             )}
 
@@ -197,5 +235,13 @@ export default function LoginPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen bg-[#0d0d0d]" />}>
+            <LoginContent />
+        </Suspense>
     );
 }

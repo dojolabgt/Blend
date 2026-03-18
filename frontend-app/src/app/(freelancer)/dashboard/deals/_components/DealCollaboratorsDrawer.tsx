@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useNetwork } from '@/hooks/use-network';
 import { useDeals } from '@/hooks/use-deals';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { useWorkspaceSettings } from '@/hooks/use-workspace-settings';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Loader2, Plus, Trash2, Users, Eye, Pencil } from 'lucide-react';
@@ -20,6 +21,7 @@ interface CollaboratorsDrawerProps {
 
 export function DealCollaboratorsDrawer({ deal, isOpen, onClose, onUpdate }: CollaboratorsDrawerProps) {
     const { activeWorkspace } = useAuth();
+    const { t } = useWorkspaceSettings();
     const { networkData, fetchConnections } = useNetwork();
     const { addCollaborator, removeCollaborator } = useDeals();
     const [isLoading, setIsLoading] = useState(false);
@@ -66,19 +68,19 @@ export function DealCollaboratorsDrawer({ deal, isOpen, onClose, onUpdate }: Col
             <SheetContent className="w-full sm:max-w-md overflow-y-auto px-6">
                 <SheetHeader className="mb-6 mt-2">
                     <SheetTitle className="flex items-center gap-2">
-                        <Users className="w-5 h-5 text-primary" /> Colaboradores
+                        <Users className="w-5 h-5 text-primary" /> {t('deals.collaboratorsTitle')}
                     </SheetTitle>
                     <SheetDescription>
-                        Agrega conexiones a esta propuesta para que puedan visualizar y ayudar a editar el trato.
+                        {t('deals.collaboratorsDesc')}
                     </SheetDescription>
                 </SheetHeader>
 
                 <div className="space-y-6 pb-6">
                     {/* Current Collaborators */}
                     <div>
-                        <h3 className="text-sm font-semibold mb-3 tracking-tight">Colaboradores Actuales</h3>
+                        <h3 className="text-sm font-semibold mb-3 tracking-tight">{t('deals.currentCollaborators')}</h3>
                         {!deal?.collaborators || deal.collaborators.length === 0 ? (
-                            <p className="text-sm text-zinc-500 italic">No hay colaboradores en esta propuesta.</p>
+                            <p className="text-sm text-zinc-500 italic">{t('deals.noCollaborators')}</p>
                         ) : (
                             <div className="space-y-3">
                                 {deal.collaborators.map((collaborator: { id: string; role: string; workspace: { businessName: string; logo: string | null } }) => (
@@ -97,7 +99,7 @@ export function DealCollaboratorsDrawer({ deal, isOpen, onClose, onUpdate }: Col
                                                         <Eye className="w-3 h-3 text-indigo-500" />
                                                     )}
                                                     <p className="text-xs text-zinc-500">
-                                                        Rol: <span className="capitalize font-medium">{collaborator.role === 'editor' ? 'Editor' : 'Lector'}</span>
+                                                        {t('deals.roleLabel')} <span className="capitalize font-medium">{collaborator.role === 'editor' ? t('deals.editorRole') : t('deals.viewerRole')}</span>
                                                     </p>
                                                 </div>
                                             </div>
@@ -122,10 +124,10 @@ export function DealCollaboratorsDrawer({ deal, isOpen, onClose, onUpdate }: Col
                     {/* Add from Network */}
                     {!isViewer && (
                         <div className="pt-4 border-t">
-                            <h3 className="text-sm font-semibold mb-3 tracking-tight">Tu Red</h3>
+                            <h3 className="text-sm font-semibold mb-3 tracking-tight">{t('deals.yourNetwork')}</h3>
                         {!networkData.active || networkData.active.length === 0 ? (
                             <p className="text-sm text-zinc-500 italic">
-                                Aún no tienes conexiones. Ve a &quot;Mi Red&quot; para invitar colaboradores.
+                                {t('deals.noConnectionsMsg')}
                             </p>
                         ) : (
                             <div className="space-y-3">
@@ -159,8 +161,8 @@ export function DealCollaboratorsDrawer({ deal, isOpen, onClose, onUpdate }: Col
                                                             <SelectValue placeholder="Rol" />
                                                         </SelectTrigger>
                                                         <SelectContent>
-                                                            <SelectItem value="editor" className="text-xs">Editor</SelectItem>
-                                                            <SelectItem value="viewer" className="text-xs">Lector</SelectItem>
+                                                            <SelectItem value="editor" className="text-xs">{t('deals.editorRole')}</SelectItem>
+                                                            <SelectItem value="viewer" className="text-xs">{t('deals.viewerRole')}</SelectItem>
                                                         </SelectContent>
                                                     </Select>
                                                 )}
@@ -171,8 +173,8 @@ export function DealCollaboratorsDrawer({ deal, isOpen, onClose, onUpdate }: Col
                                                     disabled={isAdded || isLoading}
                                                     onClick={() => handleAdd(partner.id)}
                                                 >
-                                                    {isAdded ? 'Agregado' : (
-                                                        <><Plus className="w-3.5 h-3.5 mr-1" /> Añadir</>
+                                                    {isAdded ? t('deals.addedBtn') : (
+                                                        <><Plus className="w-3.5 h-3.5 mr-1" /> {t('deals.addBtn')}</>
                                                     )}
                                                 </Button>
                                             </div>

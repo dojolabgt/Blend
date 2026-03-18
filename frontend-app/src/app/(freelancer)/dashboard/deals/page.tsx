@@ -50,30 +50,11 @@ const STATUS_STYLES: Record<string, string> = {
     LOST: 'bg-rose-100 dark:bg-rose-900/30 text-rose-800 dark:text-rose-400',
 };
 
-const STATUS_LABEL: Record<string, string> = {
-    DRAFT: 'Borrador',
-    SENT: 'Enviado',
-    VIEWED: 'Visto',
-    NEGOTIATING: 'En negociación',
-    WON: 'Ganado',
-    LOST: 'Perdido',
-};
-
-const STATUS_OPTIONS: FilterOption<DealStatus>[] = [
-    { label: 'Todos', value: undefined },
-    { label: 'Borrador', value: 'DRAFT' as DealStatus },
-    { label: 'Enviado', value: 'SENT' as DealStatus },
-    { label: 'Visto', value: 'VIEWED' as DealStatus },
-    { label: 'Negociando', value: 'NEGOTIATING' as DealStatus },
-    { label: 'Ganado', value: 'WON' as DealStatus },
-    { label: 'Perdido', value: 'LOST' as DealStatus },
-];
-
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status, label }: { status: string; label: string }) {
     const key = status?.toUpperCase() ?? 'DRAFT';
     return (
         <span className={`px-2.5 py-0.5 rounded-md text-xs font-medium ${STATUS_STYLES[key] ?? STATUS_STYLES.DRAFT}`}>
-            {STATUS_LABEL[key] ?? status}
+            {label}
         </span>
     );
 }
@@ -83,6 +64,25 @@ function StatusBadge({ status }: { status: string }) {
 export default function DealsPage() {
     const { t } = useWorkspaceSettings();
     const { activeWorkspace } = useAuth();
+
+    const STATUS_LABEL: Record<string, string> = {
+        DRAFT: t('deals.statusDraft'),
+        SENT: t('deals.statusSent'),
+        VIEWED: t('deals.statusViewed'),
+        NEGOTIATING: t('deals.statusNegotiating'),
+        WON: t('deals.statusWon'),
+        LOST: t('deals.statusLost'),
+    };
+
+    const STATUS_OPTIONS: FilterOption<DealStatus>[] = [
+        { label: t('deals.filterAll'), value: undefined },
+        { label: t('deals.statusDraft'), value: 'DRAFT' as DealStatus },
+        { label: t('deals.statusSent'), value: 'SENT' as DealStatus },
+        { label: t('deals.statusViewed'), value: 'VIEWED' as DealStatus },
+        { label: t('deals.statusNegotiatingFilter'), value: 'NEGOTIATING' as DealStatus },
+        { label: t('deals.statusWon'), value: 'WON' as DealStatus },
+        { label: t('deals.statusLost'), value: 'LOST' as DealStatus },
+    ];
     const { createDeal, deleteDeal, isLoading: isMutating } = useDeals();
     const router = useRouter();
 
@@ -135,7 +135,7 @@ export default function DealsPage() {
             setClientId('');
             router.push(`/dashboard/deals/${deal.slug || deal.id}`);
         } else {
-            toast.error('Error al crear la propuesta.');
+            toast.error(t('deals.createError'));
         }
     };
 
@@ -143,10 +143,10 @@ export default function DealsPage() {
         if (!dealToDelete) return;
         const ok = await deleteDeal(dealToDelete.id);
         if (ok) {
-            toast.success('Propuesta eliminada');
+            toast.success(t('deals.deleteSuccess'));
             loadDeals();
         } else {
-            toast.error('Error al eliminar la propuesta');
+            toast.error(t('deals.deleteError'));
         }
         setDealToDelete(null);
     };
@@ -164,18 +164,18 @@ export default function DealsPage() {
     const columns: ColumnDef<Deal>[] = [
         {
             key: 'name',
-            header: 'Propuesta',
+            header: t('deals.colDeal'),
             render: (deal) => {
                 const isShared = deal.workspace?.id !== activeWorkspace?.id;
                 return (
                     <div>
                         <div className="flex items-center gap-2">
                             <div className="font-semibold group-hover:text-primary transition-colors">
-                                {deal.name || '(sin nombre)'}
+                                {deal.name || t('deals.unknown')}
                             </div>
                             {isShared && (
                                 <span className="px-1.5 py-0.5 rounded text-[10px] whitespace-nowrap font-medium bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400">
-                                    De: {deal.workspace?.businessName || deal.workspace?.name || 'Otro'}
+                                    {t('deals.sharedFrom')} {deal.workspace?.businessName || deal.workspace?.name || '—'}
                                 </span>
                             )}
                         </div>
@@ -186,12 +186,17 @@ export default function DealsPage() {
         },
         {
             key: 'status',
-            header: 'Estado',
-            render: (deal) => <StatusBadge status={deal.status as string ?? 'DRAFT'} />,
+            header: t('deals.colStatus'),
+            render: (deal) => (
+                <StatusBadge
+                    status={deal.status as string ?? 'DRAFT'}
+                    label={STATUS_LABEL[(deal.status as string ?? 'DRAFT').toUpperCase()] ?? deal.status as string}
+                />
+            ),
         },
         {
             key: 'total',
-            header: 'Total',
+            header: t('deals.total'),
             render: (deal) => {
                 const total = getDealTotal(deal);
                 const approved = deal.quotations?.find((q: Record<string, unknown>) => q.isApproved) as Record<string, unknown> | undefined;
@@ -224,7 +229,7 @@ export default function DealsPage() {
         },
         {
             key: 'createdAt',
-            header: 'Creado',
+            header: t('deals.colDate'),
             render: (deal) => (
                 <span className="text-sm text-muted-foreground">
                     {new Date(deal.createdAt as string).toLocaleDateString('es-GT')}
@@ -239,7 +244,7 @@ export default function DealsPage() {
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight">{t('deals.title')}</h1>
                     <p className="text-muted-foreground mt-1">
-                        Gestiona tus propuestas comerciales, cotizaciones y planes de pago.
+                        {t('deals.pageDesc')}
                     </p>
                 </div>
 
@@ -251,28 +256,28 @@ export default function DealsPage() {
                     </DialogTrigger>
                     <DialogContent>
                         <DialogHeader>
-                            <DialogTitle>Crear nueva Propuesta</DialogTitle>
+                            <DialogTitle>{t('deals.createDialogTitle')}</DialogTitle>
                             <DialogDescription>
-                                Nombra este trato (ej. &quot;Rediseño Web V2&quot;) y asígnale el cliente.
+                                {t('deals.createDialogDesc')}
                             </DialogDescription>
                         </DialogHeader>
 
                         <form onSubmit={handleCreateDeal} className="space-y-4 py-4">
                             <div className="space-y-2">
-                                <Label htmlFor="title">Nombre de la Propuesta</Label>
+                                <Label htmlFor="title">{t('deals.dealNameLabel')}</Label>
                                 <Input
                                     id="title"
-                                    placeholder="Ej. Campaña 360..."
+                                    placeholder={t('deals.dealNamePlaceholder')}
                                     value={title}
                                     onChange={(e) => setTitle(e.target.value)}
                                     required
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="client">Cliente</Label>
+                                <Label htmlFor="client">{t('deals.clientLabel')}</Label>
                                 <Select value={clientId || undefined} onValueChange={setClientId} required>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Selecciona un cliente" />
+                                        <SelectValue placeholder={t('deals.selectClientPlaceholder')} />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {clients.map((client) => (
@@ -282,7 +287,7 @@ export default function DealsPage() {
                                         ))}
                                         {clients.length === 0 && (
                                             <SelectItem value="temp_empty" disabled>
-                                                No tienes clientes aún
+                                                {t('deals.noClientsYet')}
                                             </SelectItem>
                                         )}
                                     </SelectContent>
@@ -291,10 +296,10 @@ export default function DealsPage() {
 
                             <div className="pt-4 flex justify-end gap-3">
                                 <Button variant="outline" type="button" onClick={() => setIsDialogOpen(false)}>
-                                    Cancelar
+                                    {t('common.cancel')}
                                 </Button>
                                 <Button type="submit" disabled={isMutating || !title || !clientId}>
-                                    {isMutating ? 'Creando...' : 'Comenzar Flujo'}{' '}
+                                    {isMutating ? t('deals.creatingBtn') : t('deals.startFlowBtn')}{' '}
                                     <ArrowRight className="w-4 h-4 ml-2" />
                                 </Button>
                             </div>
@@ -308,8 +313,8 @@ export default function DealsPage() {
                 columns={columns}
                 isLoading={isLoading}
                 emptyIcon={<Handshake className="w-8 h-8" />}
-                emptyTitle="Sin propuestas aún"
-                emptyDescription="No has creado ninguna propuesta para tus clientes. Comienza armando una nueva ahora."
+                emptyTitle={t('deals.emptyTitle')}
+                emptyDescription={t('deals.emptyDesc')}
                 emptyAction={
                     <Button variant="outline" className="rounded-full" onClick={() => setIsDialogOpen(true)}>
                         <Plus className="mr-2 h-4 w-4" /> {t('deals.create')}
@@ -320,7 +325,7 @@ export default function DealsPage() {
                         <AppSearch
                             value={list.search}
                             onChange={list.setSearch}
-                            placeholder="Buscar propuestas..."
+                            placeholder={t('deals.searchPlaceholder')}
                             className="w-56"
                         />
                         <AppFilterTabs
@@ -345,7 +350,7 @@ export default function DealsPage() {
                     if (isShared) return [];
                     return [
                         {
-                            label: 'Eliminar',
+                            label: t('common.delete'),
                             icon: <Trash2 className="h-4 w-4" />,
                             onClick: () => setDealToDelete(deal),
                             destructive: true,
@@ -357,18 +362,18 @@ export default function DealsPage() {
             <AlertDialog open={!!dealToDelete} onOpenChange={(o) => !o && setDealToDelete(null)}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>¿Eliminar esta propuesta?</AlertDialogTitle>
+                        <AlertDialogTitle>{t('deals.deleteConfirmTitle')}</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Se eliminará <strong>&quot;{dealToDelete?.name}&quot;</strong> junto con su brief, cotizaciones y plan de pagos. Esta acción no se puede deshacer.
+                            {t('common.delete')} <strong>&quot;{dealToDelete?.name}&quot;</strong> {t('deals.deleteConfirmDesc')}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
                         <AlertDialogAction
                             className="bg-rose-600 hover:bg-rose-700"
                             onClick={handleConfirmDelete}
                         >
-                            Eliminar propuesta
+                            {t('deals.deleteAction')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

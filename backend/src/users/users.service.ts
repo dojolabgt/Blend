@@ -71,8 +71,38 @@ export class UsersService {
         'createdAt',
         'updatedAt',
         'refreshToken',
+        'password',
+        'googleId',
       ],
     });
+  }
+
+  async findOneByGoogleId(googleId: string): Promise<User | null> {
+    return this.usersRepository.findOne({
+      where: { googleId },
+      relations: [
+        'workspaceMembers',
+        'workspaceMembers.workspace',
+        'workspaceMembers.workspace.taxes',
+      ],
+      select: [
+        'id',
+        'email',
+        'firstName',
+        'lastName',
+        'role',
+        'profileImage',
+        'createdAt',
+        'updatedAt',
+        'refreshToken',
+        'password',
+        'googleId',
+      ],
+    });
+  }
+
+  async setGoogleId(userId: string, googleId: string): Promise<void> {
+    await this.usersRepository.update(userId, { googleId });
   }
 
   async create(userData: Partial<User>): Promise<User> {
@@ -140,17 +170,21 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
     const user = await this.findOneByEmailWithPassword(foundUser.email);
-    if (!user || !user.password) {
-      throw new NotFoundException('User not found or has no password set');
+    if (!user) {
+      throw new NotFoundException('User not found');
     }
 
-    const isPasswordValid = await bcrypt.compare(
-      currentPassword,
-      user.password,
-    );
-    if (!isPasswordValid) {
-      throw new BadRequestException('Invalid current password');
+    // If user already has a password, validate it before allowing change
+    if (user.password) {
+      const isPasswordValid = await bcrypt.compare(
+        currentPassword,
+        user.password,
+      );
+      if (!isPasswordValid) {
+        throw new BadRequestException('Invalid current password');
+      }
     }
+    // If user has no password (e.g. Google-only), allow setting one without current password
 
     const hashedPassword = await this.hashPassword(newPassword);
     await this.usersRepository.update(id, { password: hashedPassword });

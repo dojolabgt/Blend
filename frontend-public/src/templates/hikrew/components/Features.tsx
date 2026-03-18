@@ -66,13 +66,13 @@ export function Features() {
                     transition={{ duration: 0.5 }}
                     className="mb-12"
                 >
-                    <p className="text-[10px] font-bold tracking-[0.2em] text-white/40 uppercase mb-3">
+                    <p className="text-[10px] font-bold tracking-[0.2em] text-white/60 uppercase mb-3">
                         Funciones
                     </p>
                     <h2 className="text-4xl md:text-[44px] font-black tracking-tight text-white leading-[1.07] mb-4 max-w-lg">
                         Todo lo que necesitas, en un solo lugar.
                     </h2>
-                    <p className="text-[15px] text-white/55 font-light leading-relaxed max-w-md">
+                    <p className="text-[15px] text-white/65 font-normal leading-relaxed max-w-md">
                         Desde el brief hasta el cobro final — y una red de colaboradores que ninguna otra app te da.
                     </p>
                 </motion.div>
@@ -93,7 +93,7 @@ export function Features() {
                             }`}
                         >
                             <div className="flex items-start justify-between gap-3">
-                                <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                                <div aria-hidden="true" className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
                                     feat.featured ? "bg-white/[0.12]" : "bg-white/[0.07]"
                                 }`}>
                                     <feat.icon className="h-4 w-4 text-white/70" strokeWidth={1.75} />
@@ -109,7 +109,7 @@ export function Features() {
                                 <h3 className={`font-bold tracking-tight mb-1.5 ${feat.featured ? "text-[18px] text-white" : "text-[15px] text-white"}`}>
                                     {feat.title}
                                 </h3>
-                                <p className={`leading-relaxed ${feat.featured ? "text-[14px] text-white/60 max-w-sm" : "text-[13px] text-white/55"}`}>
+                                <p className={`leading-relaxed ${feat.featured ? "text-[14px] text-white/70 max-w-sm" : "text-[13px] text-white/65"}`}>
                                     {feat.description}
                                 </p>
                             </div>

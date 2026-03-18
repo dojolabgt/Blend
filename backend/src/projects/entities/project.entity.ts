@@ -59,4 +59,11 @@ export class Project {
     { cascade: true },
   )
   collaborators: ProjectCollaborator[];
+
+  // ─── Google Drive ─────────────────────────────────────────────────────────
+  @Column({ type: 'varchar', nullable: true, name: 'drive_folder_id' })
+  driveFolderId: string | null;
+
+  @Column({ type: 'varchar', nullable: true, name: 'drive_folder_url' })
+  driveFolderUrl: string | null;
 }

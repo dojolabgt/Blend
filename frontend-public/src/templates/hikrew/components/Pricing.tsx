@@ -79,13 +79,13 @@ export function Pricing() {
                     transition={{ duration: 0.5 }}
                     className="text-center max-w-lg mx-auto mb-14"
                 >
-                    <p className="text-[10px] font-bold tracking-[0.2em] text-white/30 uppercase mb-3">
+                    <p className="text-[10px] font-bold tracking-[0.2em] text-white/55 uppercase mb-3">
                         Precios
                     </p>
                     <h2 className="text-4xl md:text-[44px] font-black tracking-tight text-white leading-[1.07] mb-4">
                         Elige tu plan.
                     </h2>
-                    <p className="text-[15px] text-white/40 font-light leading-relaxed">
+                    <p className="text-[15px] text-white/60 font-normal leading-relaxed">
                         Empieza gratis. Sube de plan cuando tu negocio lo necesite.
                     </p>
                 </motion.div>
@@ -108,14 +108,14 @@ export function Pricing() {
                             {plan.featured && (
                                 <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
                                     <span className="inline-flex items-center gap-1.5 bg-gray-900 text-white text-[10px] font-bold tracking-widest uppercase px-3.5 py-1.5 rounded-full border border-white/[0.12]">
-                                        <Zap className="h-2.5 w-2.5 fill-white" strokeWidth={0} />
+                                        <Zap aria-hidden="true" className="h-2.5 w-2.5 fill-white" strokeWidth={0} />
                                         Popular
                                     </span>
                                 </div>
                             )}
 
                             {/* Plan name */}
-                            <p className={`text-[10px] font-bold tracking-widest uppercase mb-4 ${plan.featured ? "text-gray-400" : "text-white/30"}`}>
+                            <p className={`text-[10px] font-bold tracking-widest uppercase mb-4 ${plan.featured ? "text-gray-400" : "text-white/55"}`}>
                                 {plan.name}
                             </p>
 
@@ -124,12 +124,12 @@ export function Pricing() {
                                 <span className={`text-[44px] font-black leading-none tracking-tight ${plan.featured ? "text-gray-900" : "text-white"}`}>
                                     {plan.price}
                                 </span>
-                                <span className={`text-[13px] ${plan.featured ? "text-gray-400" : "text-white/30"}`}>
+                                <span className={`text-[13px] ${plan.featured ? "text-gray-400" : "text-white/55"}`}>
                                     {plan.period}
                                 </span>
                             </div>
 
-                            <p className={`text-[12px] leading-snug mb-7 ${plan.featured ? "text-gray-500" : "text-white/40"}`}>
+                            <p className={`text-[12px] leading-snug mb-7 ${plan.featured ? "text-gray-500" : "text-white/60"}`}>
                                 {plan.description}
                             </p>
 
@@ -140,13 +140,13 @@ export function Pricing() {
                             <ul className="space-y-2.5 mb-8 flex-1">
                                 {plan.features.map((feat, j) => (
                                     <li key={j} className="flex items-center gap-2.5 text-[13px]">
-                                        <div className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 ${plan.featured ? "bg-gray-100" : "bg-white/[0.07]"}`}>
+                                        <div aria-hidden="true" className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 ${plan.featured ? "bg-gray-100" : "bg-white/[0.07]"}`}>
                                             <Check
                                                 className={`h-2.5 w-2.5 shrink-0 ${plan.featured ? "text-gray-600" : "text-white/50"}`}
                                                 strokeWidth={3}
                                             />
                                         </div>
-                                        <span className={plan.featured ? "text-gray-700" : "text-white/55"}>
+                                        <span className={plan.featured ? "text-gray-700" : "text-white/65"}>
                                             {feat}
                                         </span>
                                     </li>
@@ -158,12 +158,12 @@ export function Pricing() {
                                 className={`w-full rounded-xl h-10 text-[13px] font-semibold shadow-none border-0 ${
                                     plan.featured
                                         ? "bg-gray-900 text-white hover:bg-gray-800"
-                                        : "bg-white/[0.07] text-white/70 hover:bg-white/[0.12] hover:text-white"
+                                        : "bg-white/[0.07] text-white/80 hover:bg-white/[0.12] hover:text-white"
                                 }`}
                             >
                                 <Link href={plan.href}>
                                     {plan.cta}
-                                    <ArrowRight className="ml-2 h-3.5 w-3.5" />
+                                    <ArrowRight aria-hidden="true" className="ml-2 h-3.5 w-3.5" />
                                 </Link>
                             </Button>
                         </motion.div>
@@ -176,7 +176,7 @@ export function Pricing() {
                     whileInView={{ opacity: 1 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: 0.4 }}
-                    className="text-center text-[11px] text-white/25 mt-8"
+                    className="text-center text-[11px] text-white/50 mt-8"
                 >
                     Precios en USD · Sin contratos · Cancela cuando quieras
                 </motion.p>

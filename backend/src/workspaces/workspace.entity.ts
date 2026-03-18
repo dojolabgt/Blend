@@ -113,6 +113,16 @@ export class Workspace {
   @Column({ type: 'text', nullable: true, name: 'default_proposal_terms' })
   defaultProposalTerms: string;
 
+  // ─── Google Drive OAuth ───────────────────────────────────────────────────
+  @Column({ type: 'text', select: false, nullable: true, name: 'google_drive_access_token' })
+  googleDriveAccessToken: string | null;
+
+  @Column({ type: 'text', select: false, nullable: true, name: 'google_drive_refresh_token' })
+  googleDriveRefreshToken: string | null;
+
+  @Column({ type: 'varchar', nullable: true, name: 'google_drive_email' })
+  googleDriveEmail: string | null;
+
   @OneToMany(() => WorkspaceMember, (member) => member.workspace)
   members: WorkspaceMember[];
 

@@ -5,11 +5,13 @@ import {
   Req,
   Res,
   Get,
+  Query,
   UnauthorizedException,
   Logger,
   HttpCode,
   Body,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -28,7 +30,10 @@ import { Throttle, SkipThrottle } from '@nestjs/throttler';
 export class AuthController {
   private readonly logger = new Logger(AuthController.name);
 
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private configService: ConfigService,
+  ) {}
 
   @UseGuards(LocalAuthGuard)
   @Throttle({ default: { limit: 5, ttl: 60000 } })
@@ -130,8 +135,68 @@ export class AuthController {
       throw new UnauthorizedException();
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, refreshToken, ...result } = user;
-    return result;
+    const { password, refreshToken, googleId, ...result } = user;
+    return {
+      ...result,
+      hasPassword: !!password,
+      authProviders: [
+        ...(password ? ['password'] : []),
+        ...(googleId ? ['google'] : []),
+      ],
+    };
+  }
+
+  // ─── Google OAuth ──────────────────────────────────────────────────────────
+
+  @SkipThrottle()
+  @Get('google')
+  async googleLogin(@Res() res: ExpressResponse) {
+    const url = this.authService.getGoogleAuthUrl('login');
+    res.redirect(url);
+  }
+
+  @SkipThrottle()
+  @Get('google/callback')
+  async googleCallback(
+    @Query('code') code: string,
+    @Query('state') state: string,
+    @Res() res: ExpressResponse,
+  ) {
+    const frontendUrl = this.configService.get<string>(
+      'NEXT_PUBLIC_DASHBOARD_URL',
+      'http://localhost:3000',
+    );
+    try {
+      if (state?.startsWith('link:')) {
+        const userId = state.replace('link:', '');
+        await this.authService.linkGoogleAccount(userId, code);
+        return res.redirect(
+          `${frontendUrl}/dashboard/settings/security?linked=true`,
+        );
+      }
+
+      const { accessToken, refreshToken, isNew } =
+        await this.authService.loginOrRegisterWithGoogle(code);
+      this.setAuthCookies(res, accessToken, refreshToken);
+      return res.redirect(
+        isNew ? `${frontendUrl}/onboarding` : `${frontendUrl}/dashboard`,
+      );
+    } catch (error) {
+      this.logger.error('Google OAuth error:', error);
+      return res.redirect(`${frontendUrl}/login?error=google_auth_failed`);
+    }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @SkipThrottle()
+  @Get('google/link')
+  async googleLink(
+    @Req() req: RequestWithUser,
+    @Res() res: ExpressResponse,
+  ) {
+    if (!req.user) throw new UnauthorizedException();
+    const url = this.authService.getGoogleAuthUrl(`link:${req.user.id}`);
+    res.redirect(url);
   }
 
   private setAuthCookies(

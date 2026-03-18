@@ -31,34 +31,34 @@ export function Footer() {
                             <Image src="/HiKrewLogo.png" alt="Hi Krew" width={24} height={24} className="object-contain opacity-80" />
                             <span className="font-bold text-[15px] text-white/80 tracking-tight">Hi Krew</span>
                         </Link>
-                        <p className="text-[12px] text-white/30 leading-relaxed max-w-[190px]">
+                        <p className="text-[12px] text-white/55 leading-relaxed max-w-[190px]">
                             La plataforma de gestión para freelancers y agencias en Guatemala.
                         </p>
                     </div>
 
                     {Object.entries(LINKS).map(([group, links]) => (
-                        <div key={group}>
-                            <p className="text-[10px] font-bold tracking-[0.18em] text-white/25 uppercase mb-4">
+                        <nav key={group} aria-label={group}>
+                            <p className="text-[10px] font-bold tracking-[0.18em] text-white/50 uppercase mb-4" aria-hidden="true">
                                 {group}
                             </p>
                             <ul className="space-y-2.5">
                                 {links.map((link) => (
                                     <li key={link.label}>
-                                        <Link href={link.href} className="text-[13px] text-white/40 hover:text-white/80 transition-colors">
+                                        <Link href={link.href} className="text-[13px] text-white/60 hover:text-white/90 transition-colors">
                                             {link.label}
                                         </Link>
                                     </li>
                                 ))}
                             </ul>
-                        </div>
+                        </nav>
                     ))}
                 </div>
 
                 <div className="border-t border-white/[0.06] pt-7 flex flex-col sm:flex-row items-center justify-between gap-3">
-                    <p className="text-[11px] text-white/25">
+                    <p className="text-[11px] text-white/50">
                         © {new Date().getFullYear()} Hi Krew · Todos los derechos reservados
                     </p>
-                    <p className="text-[11px] text-white/25">
+                    <p className="text-[11px] text-white/50">
                         Hecho en Guatemala 🇬🇹
                     </p>
                 </div>

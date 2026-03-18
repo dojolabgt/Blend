@@ -9,6 +9,7 @@ import { QuotationStep } from './steps/QuotationStep';
 import { PaymentPlanStep } from './steps/PaymentPlanStep';
 import { useDeals } from '@/hooks/use-deals';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { useWorkspaceSettings } from '@/hooks/use-workspace-settings';
 
 interface CanvasProps {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -23,6 +24,7 @@ interface CanvasProps {
 export function DealCanvas({ deal, activeStep, onNextStep, onUpdateBrief, onWon, onRefreshDeal }: CanvasProps) {
     const { updateDeal } = useDeals();
     const { activeWorkspace } = useAuth();
+    const { t } = useWorkspaceSettings();
     const [pendingBriefId, setPendingBriefId] = React.useState<string | null>(deal?.brief?.template?.id || null);
     const isWon = deal?.status === 'WON';
 
@@ -38,10 +40,10 @@ export function DealCanvas({ deal, activeStep, onNextStep, onUpdateBrief, onWon,
 
     const renderHeader = () => {
         const titles: Record<DealStep, string> = {
-            brief: 'Cuestionario Brief',
-            quotation: 'Configurando Cotización',
-            payment_plan: 'Plan de Pagos',
-            won: '¡Trato Ganado!',
+            brief: t('deals.stepBriefTitle'),
+            quotation: t('deals.stepQuotationTitle'),
+            payment_plan: t('deals.stepPaymentTitle'),
+            won: t('deals.stepWonTitle'),
         };
         const stepNums: Record<DealStep, number> = { brief: 1, quotation: 2, payment_plan: 3, won: 4 };
 
@@ -51,19 +53,19 @@ export function DealCanvas({ deal, activeStep, onNextStep, onUpdateBrief, onWon,
             <div className="flex items-center justify-between pb-6 border-b border-zinc-200 dark:border-zinc-800">
                 <div>
                     <span className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
-                        {isSnapshot ? 'Visualizando Snapshot Histórico' : `Paso ${stepNums[activeStep]} de 3`}
+                        {isSnapshot ? t('deals.snapshotLabel') : `Paso ${stepNums[activeStep]} de 3`}
                     </span>
                     <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white mt-1">
                         {titles[activeStep]}
                     </h1>
                     {deal?.client?.name && (
-                        <p className="text-sm text-zinc-500 mt-0.5">Para: <span className="font-medium text-zinc-700 dark:text-zinc-300">{deal.client.name}</span></p>
+                        <p className="text-sm text-zinc-500 mt-0.5">{t('deals.forLabel')} <span className="font-medium text-zinc-700 dark:text-zinc-300">{deal.client.name}</span></p>
                     )}
                 </div>
 
                 {isReadonly && (
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-xs font-semibold rounded-full border border-amber-200 dark:border-amber-800/50">
-                        <ShieldAlert className="w-3.5 h-3.5" /> Sólo Lectura
+                        <ShieldAlert className="w-3.5 h-3.5" /> {t('deals.readOnlyLabel')}
                     </span>
                 )}
             </div>
@@ -81,7 +83,7 @@ export function DealCanvas({ deal, activeStep, onNextStep, onUpdateBrief, onWon,
                         onClick={onWon}
                         className="bg-emerald-600 hover:bg-emerald-700 shadow-md shadow-emerald-600/20 transition-all active:scale-95"
                     >
-                        Marcar como Ganado <ChevronRight className="w-4 h-4 ml-2" />
+                        {t('deals.markAsWonBtn')} <ChevronRight className="w-4 h-4 ml-2" />
                     </Button>
                 ) : (
                     <div className="flex items-center gap-3">
@@ -91,7 +93,7 @@ export function DealCanvas({ deal, activeStep, onNextStep, onUpdateBrief, onWon,
                                 className="text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-all"
                                 onClick={() => onNextStep('quotation')}
                             >
-                                Omitir este paso
+                                {t('deals.skipStep')}
                             </Button>
                         )}
                         <Button
@@ -108,7 +110,7 @@ export function DealCanvas({ deal, activeStep, onNextStep, onUpdateBrief, onWon,
                                 (activeStep === 'quotation' && (!deal?.quotations || deal.quotations.length === 0))
                             }
                         >
-                            Continuar <ChevronRight className="w-4 h-4 ml-2" />
+                            {t('deals.continueBtn')} <ChevronRight className="w-4 h-4 ml-2" />
                         </Button>
                     </div>
                 )}
@@ -125,7 +127,7 @@ export function DealCanvas({ deal, activeStep, onNextStep, onUpdateBrief, onWon,
                     {activeStep === 'brief' && (
                         <BriefStep
                             initialSelectedTemplateId={pendingBriefId}
-                            publicToken={deal?.brief?.publicToken}
+                            publicToken={deal?.publicToken}
                             isCompleted={deal?.brief?.isCompleted}
                             responses={deal?.brief?.responses}
                             onSelectTemplate={(id) => {
@@ -169,10 +171,10 @@ export function DealCanvas({ deal, activeStep, onNextStep, onUpdateBrief, onWon,
                                 <span className="text-4xl text-emerald-600 dark:text-emerald-400">🎉</span>
                             </div>
                             <h2 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white mb-3">
-                                ¡Propuesta Aceptada!
+                                {t('deals.wonTitle')}
                             </h2>
                             <p className="text-zinc-500 dark:text-zinc-400 max-w-md mx-auto mb-8">
-                                El trato ha sido marcado como ganado. El brief, la cotización y el plan de pagos quedan guardados como registro histórico.
+                                {t('deals.wonDesc')}
                             </p>
                         </div>
                     )}

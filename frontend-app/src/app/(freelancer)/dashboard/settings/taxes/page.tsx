@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useWorkspaceSettings } from '@/hooks/use-workspace-settings';
 import api from '@/lib/api';
+import { toast } from 'sonner';
 import {
     Plus,
     Pencil,
@@ -260,6 +261,8 @@ export default function TaxesPage() {
             setPrefs(p => ({ ...p, ...patch }));
             setPrefsSaved(true);
             setTimeout(() => setPrefsSaved(false), 2500);
+        } catch {
+            toast.error(t('taxes.errSavedPrefs'));
         } finally { setSavingPrefs(false); }
     };
 
@@ -278,15 +281,24 @@ export default function TaxesPage() {
 
     const toggleActive = async (tax: WorkspaceTax) => {
         setTogglingId(tax.id);
-        try { await api.patch(`/workspaces/current/taxes/${tax.id}`, { isActive: !tax.isActive }); await load(); }
-        finally { setTogglingId(null); }
+        try {
+            await api.patch(`/workspaces/current/taxes/${tax.id}`, { isActive: !tax.isActive });
+            await load();
+        } catch {
+            toast.error(t('taxes.errToggle'));
+        } finally { setTogglingId(null); }
     };
 
     const deleteTax = async (tax: WorkspaceTax) => {
         if (!confirm(`${t('taxes.confirmDeletePre')}${tax.label}${t('taxes.confirmDeletePost')}`)) return;
         setDeletingId(tax.id);
-        try { await api.delete(`/workspaces/current/taxes/${tax.id}`); await load(); }
-        finally { setDeletingId(null); }
+        try {
+            await api.delete(`/workspaces/current/taxes/${tax.id}`);
+            await load();
+            toast.success(t('taxes.deleteSuccess'));
+        } catch {
+            toast.error(t('taxes.deleteError'));
+        } finally { setDeletingId(null); }
     };
 
     const countryData = (paisData as Record<string, { taxIdentifiers?: Array<{ key: string; label: string; placeholder: string; description: string; required: boolean }> }>)[prefs.country ?? 'GT'];

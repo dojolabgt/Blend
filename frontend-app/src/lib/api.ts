@@ -18,7 +18,7 @@ api.interceptors.request.use(
             const activeWorkspaceId = localStorage.getItem('activeWorkspaceId');
 
             // Do not send x-workspace-id on auth routes (login, register, refresh) to prevent CORS issues
-            const isAuthRoute = config.url?.startsWith('/auth/') || config.url?.includes('auth');
+            const isAuthRoute = config.url?.startsWith('/auth/') || config.url === '/auth' || config.url?.includes('/auth/');
             if (activeWorkspaceId && !isAuthRoute) {
                 config.headers['x-workspace-id'] = activeWorkspaceId;
             }

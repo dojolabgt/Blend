@@ -368,6 +368,7 @@ export class DealsService {
         'workspace',
         'client',
         'brief',
+        'brief.template',
         // Fetch quotations so customer sees their options
         'quotations',
         'quotations.items',

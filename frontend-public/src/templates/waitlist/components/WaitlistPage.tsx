@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Mail } from 'lucide-react';
 import Image from 'next/image';
-import BlurText from '@/components/react-bits/text/BlurText';
 
 export function WaitlistPage() {
     const [email, setEmail] = React.useState('');
@@ -48,13 +47,6 @@ export function WaitlistPage() {
 
                 {/* Headlines */}
                 <div className="space-y-6">
-                    <BlurText
-                        text="Únete a la revolución."
-                        delay={150}
-                        animateBy="words"
-                        direction="top"
-                        className="text-4xl md:text-5xl font-black tracking-tighter text-white leading-tight justify-center"
-                    />
 
                     <motion.p
                         initial={{ opacity: 0, y: 20 }}
@@ -76,12 +68,14 @@ export function WaitlistPage() {
                 >
                     {submitted ? (
                         <motion.div
+                            role="status"
+                            aria-live="polite"
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                             className="bg-green-500/10 border border-green-500/20 rounded-2xl p-6 text-green-400 font-medium flex flex-col items-center gap-2"
                         >
                             <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center mb-1">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+                                <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
                             </div>
                             ¡Estás en la lista! Nos pondremos en contacto pronto.
                         </motion.div>
@@ -90,8 +84,10 @@ export function WaitlistPage() {
                             <div className="relative group">
                                 <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-xl blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                                 <div className="relative flex items-center bg-zinc-900/80 border border-zinc-800 rounded-xl p-1.5 focus-within:ring-2 focus-within:ring-indigo-500/50 focus-within:border-indigo-500/50 transition-all shadow-inner">
-                                    <Mail className="absolute left-4 text-zinc-500 w-5 h-5" />
+                                    <Mail aria-hidden="true" className="absolute left-4 text-zinc-500 w-5 h-5" />
+                                    <label htmlFor="waitlist-email" className="sr-only">Correo electrónico</label>
                                     <Input
+                                        id="waitlist-email"
                                         type="email"
                                         placeholder="Ingresa tu correo electrónico..."
                                         value={email}
@@ -102,9 +98,10 @@ export function WaitlistPage() {
                                     <Button
                                         type="submit"
                                         size="icon"
+                                        aria-label="Unirse a la lista de espera"
                                         className="h-10 w-10 shrink-0 rounded-lg bg-white text-black hover:bg-zinc-200 transition-colors shadow-lg shadow-white/10"
                                     >
-                                        <ArrowRight className="w-4 h-4" />
+                                        <ArrowRight aria-hidden="true" className="w-4 h-4" />
                                     </Button>
                                 </div>
                             </div>

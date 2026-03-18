@@ -33,6 +33,8 @@ export interface Workspace {
     useCases?: string[] | null;
     onboardingCompleted?: boolean;
     taxes?: WorkspaceTax[] | null;
+    googleDriveConnected?: boolean;
+    googleDriveEmail?: string | null;
 }
 
 export interface WorkspaceMember {

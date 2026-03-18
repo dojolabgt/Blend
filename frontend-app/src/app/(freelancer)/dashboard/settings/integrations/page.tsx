@@ -1,10 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
+import { toast } from 'sonner';
 import { workspacesApi } from '@/features/workspaces/api';
 import { RecurrenteForm } from '../branding/_components/RecurrenteForm';
 import { IntegrationCard } from './_components/IntegrationCard';
+import { GoogleDriveSheet } from './_components/GoogleDriveSheet';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
     Sheet,
@@ -19,6 +22,22 @@ import { Gt, Sv } from '@next-languages/flags';
 
 const recurrenteLogoSrc = '/integrations/recurrente-logo.png';
 
+// Reads ?drive=connected from the URL and fires a toast once
+function DriveConnectedNotifier({ onNotify }: { onNotify: () => void }) {
+    const searchParams = useSearchParams();
+    useEffect(() => {
+        if (searchParams.get('drive') === 'connected') {
+            onNotify();
+            // Clean the URL without reloading
+            const url = new URL(window.location.href);
+            url.searchParams.delete('drive');
+            window.history.replaceState({}, '', url.toString());
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+    return null;
+}
+
 export default function IntegrationsPage() {
     const { t } = useWorkspaceSettings();
     const { activeWorkspace } = useAuth();
@@ -26,17 +45,31 @@ export default function IntegrationsPage() {
     const workspaceCountry = activeWorkspace?.country || 'GT';
     const isRecurrenteSupported = workspaceCountry === 'GT' || workspaceCountry === 'SV';
 
-    const [isConfigured, setIsConfigured] = useState<boolean | null>(null);
+    // Recurrente
+    const [isRecurrenteConfigured, setIsRecurrenteConfigured] = useState<boolean | null>(null);
+    const [recurrenteSheetOpen, setRecurrenteSheetOpen] = useState(false);
+
+    // Google Drive
+    const [driveConnected, setDriveConnected] = useState<boolean>(false);
+    const [driveEmail, setDriveEmail] = useState<string | undefined>(undefined);
+    const [driveSheetOpen, setDriveSheetOpen] = useState(false);
+
     const [isLoading, setIsLoading] = useState(true);
-    const [sheetOpen, setSheetOpen] = useState(false);
 
     useEffect(() => {
         async function loadData() {
             try {
-                const statusData = await workspacesApi.getRecurrenteStatus();
-                setIsConfigured(statusData.configured);
+                const [recurrente, drive] = await Promise.allSettled([
+                    workspacesApi.getRecurrenteStatus(),
+                    workspacesApi.getGoogleDriveStatus(),
+                ]);
+                if (recurrente.status === 'fulfilled') setIsRecurrenteConfigured(recurrente.value.configured);
+                if (drive.status === 'fulfilled') {
+                    setDriveConnected(drive.value.connected);
+                    setDriveEmail(drive.value.email);
+                }
             } catch (error) {
-                console.error('Error loading recurrente status', error);
+                console.error('Error loading integrations status', error);
             } finally {
                 setIsLoading(false);
             }
@@ -44,8 +77,20 @@ export default function IntegrationsPage() {
         loadData();
     }, []);
 
+    const handleDriveNotify = () => {
+        setDriveConnected(true);
+        // Re-fetch to get email
+        workspacesApi.getGoogleDriveStatus()
+            .then(s => { setDriveConnected(s.connected); setDriveEmail(s.email); })
+            .catch(() => {});
+        toast.success(t('integrations.driveConnectSuccess'));
+    };
+
     return (
         <div className="px-6 py-6">
+            <Suspense fallback={null}>
+                <DriveConnectedNotifier onNotify={handleDriveNotify} />
+            </Suspense>
 
             {/* Header */}
             <div className="mb-8">
@@ -86,8 +131,8 @@ export default function IntegrationsPage() {
                             }
                             name="Recurrente"
                             description={t('integrations.recurrenteDesc')}
-                            isConfigured={isConfigured ?? false}
-                            onConfigure={() => setSheetOpen(true)}
+                            isConfigured={isRecurrenteConfigured ?? false}
+                            onConfigure={() => setRecurrenteSheetOpen(true)}
                             proOnly
                             userIsPro={isProOrPremium}
                             badges={[
@@ -112,9 +157,8 @@ export default function IntegrationsPage() {
                             }
                             name="Google Drive"
                             description={t('integrations.driveDesc')}
-                            isConfigured={false}
-                            onConfigure={() => {}}
-                            comingSoon
+                            isConfigured={driveConnected}
+                            onConfigure={() => setDriveSheetOpen(true)}
                             proOnly
                             userIsPro={isProOrPremium}
                         />
@@ -159,7 +203,7 @@ export default function IntegrationsPage() {
             </div>
 
             {/* Sheet: Recurrente config */}
-            <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+            <Sheet open={recurrenteSheetOpen} onOpenChange={setRecurrenteSheetOpen}>
                 <SheetContent className="sm:max-w-md overflow-y-auto border-l border-gray-100 dark:border-white/[0.06] bg-white dark:bg-[#111111]">
                     <SheetHeader className="px-6 pt-6 pb-5 border-b border-gray-100 dark:border-white/[0.06]">
                         <div className="flex items-center gap-3 mb-3">
@@ -185,18 +229,27 @@ export default function IntegrationsPage() {
                             {t('integrations.configRecurrenteDesc')}
                         </SheetDescription>
                     </SheetHeader>
-
                     <div className="px-6 py-5">
                         <RecurrenteForm
-                            isConfigured={isConfigured ?? false}
+                            isConfigured={isRecurrenteConfigured ?? false}
                             onUpdateStatus={(status) => {
-                                setIsConfigured(status);
-                                if (status) setSheetOpen(false);
+                                setIsRecurrenteConfigured(status);
+                                if (status) setRecurrenteSheetOpen(false);
                             }}
                         />
                     </div>
                 </SheetContent>
             </Sheet>
+
+            {/* Sheet: Google Drive config */}
+            <GoogleDriveSheet
+                open={driveSheetOpen}
+                onOpenChange={setDriveSheetOpen}
+                onStatusChange={(connected, email) => {
+                    setDriveConnected(connected);
+                    setDriveEmail(email);
+                }}
+            />
         </div>
     );
 }

@@ -20,8 +20,11 @@ export class User {
   @Index() // Index for faster email lookups
   email: string;
 
-  @Column()
-  password: string;
+  @Column({ type: 'varchar', nullable: true })
+  password: string | null;
+
+  @Column({ type: 'varchar', length: 255, nullable: true, unique: true })
+  googleId: string | null;
 
   @Column()
   firstName: string;

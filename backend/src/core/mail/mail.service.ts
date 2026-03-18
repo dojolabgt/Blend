@@ -2,6 +2,8 @@ import { MailerService } from '@nestjs-modules/mailer';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { User } from '../../users/user.entity';
+import { Client } from '../../clients/client.entity';
+import { Workspace } from '../../workspaces/workspace.entity';
 
 @Injectable()
 export class MailService {
@@ -24,6 +26,24 @@ export class MailService {
       context: {
         name: user.firstName,
         url,
+      },
+    });
+  }
+
+  async sendClientInvite(
+    client: Client,
+    workspace: Workspace | null | undefined,
+    magicLink: string,
+  ) {
+    const workspaceName = workspace?.businessName || 'Tu proveedor';
+    await this.mailerService.sendMail({
+      to: client.email,
+      subject: `${workspaceName} te invita al portal de clientes`,
+      template: './client-invite',
+      context: {
+        clientName: client.name,
+        workspaceName,
+        magicLink,
       },
     });
   }

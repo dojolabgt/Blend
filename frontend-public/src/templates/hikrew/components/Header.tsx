@@ -25,10 +25,10 @@ export function Header() {
 
                 {/* Nav — desktop only */}
                 <nav className="hidden md:flex items-center gap-0.5 flex-1 justify-center">
-                    <Button variant="ghost" size="sm" asChild className="rounded-full text-white/50 hover:text-white hover:bg-white/[0.07] text-[13px]">
+                    <Button variant="ghost" size="sm" asChild className="rounded-full text-white/65 hover:text-white hover:bg-white/[0.07] text-[13px]">
                         <Link href="#funciones">Funciones</Link>
                     </Button>
-                    <Button variant="ghost" size="sm" asChild className="rounded-full text-white/50 hover:text-white hover:bg-white/[0.07] text-[13px]">
+                    <Button variant="ghost" size="sm" asChild className="rounded-full text-white/65 hover:text-white hover:bg-white/[0.07] text-[13px]">
                         <Link href="#precios">Precios</Link>
                     </Button>
                 </nav>
@@ -37,7 +37,7 @@ export function Header() {
                 <Button size="sm" asChild className="shrink-0 rounded-full bg-white text-gray-900 hover:bg-gray-100 text-[13px] px-4 font-semibold shadow-none">
                     <Link href={`${APP_URL}/login`}>
                         Entrar
-                        <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
+                        <ArrowRight aria-hidden="true" className="h-3.5 w-3.5 ml-1.5" />
                     </Link>
                 </Button>
             </motion.div>

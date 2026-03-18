@@ -13,7 +13,7 @@ export default function TemplatesLayout({ children }: { children: React.ReactNod
 
     const templateNavItems = [
         {
-            title: 'FORMATOS',
+            title: t('templates.groupFormats'),
             items: [
                 { href: '/dashboard/templates/briefs', label: t('templates.briefs'), icon: PenTool },
                 { href: '#quotes', label: t('templates.quotes'), icon: Calculator },

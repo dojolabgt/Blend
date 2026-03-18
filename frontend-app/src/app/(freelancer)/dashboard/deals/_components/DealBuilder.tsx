@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { DealRoadmapSidebar } from './DealRoadmapSidebar';
 import { DealCanvas } from './DealCanvas';
 import { useDeals, type DealStatus } from '@/hooks/use-deals';
+import { useWorkspaceSettings } from '@/hooks/use-workspace-settings';
 import { toast } from 'sonner';
 import {
     AlertDialog,
@@ -34,6 +35,7 @@ interface DealBuilderProps {
 
 export function DealBuilder({ dealId }: DealBuilderProps) {
     const { fetchDeal, updateDeal } = useDeals();
+    const { t } = useWorkspaceSettings();
 
     const [deal, setDeal] = useState<DealData | null>(null);
     const [activeStep, setActiveStep] = useState<DealStep>('brief');
@@ -91,8 +93,12 @@ export function DealBuilder({ dealId }: DealBuilderProps) {
     }, [dealId, fetchDeal]);
 
     const STATUS_LABEL: Record<string, string> = {
-        DRAFT: 'Borrador', SENT: 'Enviado', VIEWED: 'Visto',
-        NEGOTIATING: 'Negociando', WON: 'Ganado', LOST: 'Perdido',
+        DRAFT: t('deals.statusDraft'),
+        SENT: t('deals.statusSent'),
+        VIEWED: t('deals.statusViewed'),
+        NEGOTIATING: t('deals.statusNegotiatingFilter'),
+        WON: t('deals.statusWon'),
+        LOST: t('deals.statusLost'),
     };
 
     const handleStatusChange = async (status: DealStatus) => {
@@ -101,7 +107,7 @@ export function DealBuilder({ dealId }: DealBuilderProps) {
         const updated = await updateDeal(dealId, { status });
         if (updated) {
             setDeal(updated);
-            toast.success(`Estado actualizado: ${STATUS_LABEL[status] ?? status}`);
+            toast.success(`${t('deals.statusUpdated')} ${STATUS_LABEL[status] ?? status}`);
         }
     };
 
@@ -110,7 +116,7 @@ export function DealBuilder({ dealId }: DealBuilderProps) {
         if (updated) {
             setDeal(updated);
             setActiveStep('won');
-            toast.success('¡Trato marcado como Ganado! 🎉');
+            toast.success(t('deals.markWonToast'));
         }
         setShowWonDialog(false);
     };
@@ -119,7 +125,7 @@ export function DealBuilder({ dealId }: DealBuilderProps) {
         const updated = await updateDeal(dealId, { status: 'LOST' });
         if (updated) {
             setDeal(updated);
-            toast.error('Trato marcado como Perdido.');
+            toast.error(t('deals.markLostToast'));
         }
         setShowLostDialog(false);
     };
@@ -130,7 +136,7 @@ export function DealBuilder({ dealId }: DealBuilderProps) {
             <div className="flex h-[calc(100vh-64px)] items-center justify-center">
                 <div className="flex flex-col items-center gap-3 text-zinc-400">
                     <div className="w-8 h-8 border-2 border-zinc-300 border-t-primary rounded-full animate-spin" />
-                    <span className="text-sm">Cargando propuesta...</span>
+                    <span className="text-sm">{t('deals.loadingDeal')}</span>
                 </div>
             </div>
         );
@@ -139,7 +145,7 @@ export function DealBuilder({ dealId }: DealBuilderProps) {
     if (!deal) {
         return (
             <div className="flex h-[calc(100vh-64px)] items-center justify-center text-zinc-500">
-                <p>Propuesta no encontrada.</p>
+                <p>{t('deals.dealNotFound')}</p>
             </div>
         );
     }
@@ -175,18 +181,18 @@ export function DealBuilder({ dealId }: DealBuilderProps) {
             <AlertDialog open={showWonDialog} onOpenChange={setShowWonDialog}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>¿Marcar como Ganado?</AlertDialogTitle>
+                        <AlertDialogTitle>{t('deals.markWonTitle')}</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Esta acción cerrará el trato como <strong>Ganado (WON)</strong>. El brief, la cotización y el plan de pagos quedarán en modo de solo lectura. ¿Deseas continuar?
+                            {t('deals.markWonDesc')}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
                         <AlertDialogAction
                             className="bg-emerald-600 hover:bg-emerald-700"
                             onClick={handleWon}
                         >
-                            Sí, marcar como Ganado 🎉
+                            {t('deals.markWonBtn')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
@@ -196,18 +202,18 @@ export function DealBuilder({ dealId }: DealBuilderProps) {
             <AlertDialog open={showLostDialog} onOpenChange={setShowLostDialog}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>¿Marcar como Perdido?</AlertDialogTitle>
+                        <AlertDialogTitle>{t('deals.markLostTitle')}</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Marcarás este trato como <strong>Perdido</strong>. Podrás seguir consultándolo pero no habrá acciones comerciales activas. ¿Deseas continuar?
+                            {t('deals.markLostDesc')}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
                         <AlertDialogAction
                             className="bg-rose-600 hover:bg-rose-700"
                             onClick={handleLost}
                         >
-                            Sí, marcar como Perdido
+                            {t('deals.markLostBtn')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

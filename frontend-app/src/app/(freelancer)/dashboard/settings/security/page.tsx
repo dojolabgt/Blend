@@ -1,8 +1,25 @@
 'use client';
 
+import { useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { toast } from 'sonner';
 import { SecurityForm } from './SecurityForm';
 import { useWorkspaceSettings } from '@/hooks/use-workspace-settings';
 import { ShieldAlert, Smartphone } from 'lucide-react';
+
+function LinkedNotifier() {
+    const searchParams = useSearchParams();
+    useEffect(() => {
+        if (searchParams.get('linked') === 'true') {
+            toast.success('Cuenta de Google vinculada correctamente');
+            const url = new URL(window.location.href);
+            url.searchParams.delete('linked');
+            window.history.replaceState({}, '', url.toString());
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+    return null;
+}
 
 export default function SecurityPage() {
     const { t } = useWorkspaceSettings();
@@ -13,6 +30,10 @@ export default function SecurityPage() {
                 <h1 className="text-[18px] font-bold text-gray-900 dark:text-white tracking-tight">{t('security.title')}</h1>
                 <p className="text-[13px] text-gray-500 dark:text-white/50 mt-0.5">{t('security.desc')}</p>
             </div>
+
+            <Suspense fallback={null}>
+                <LinkedNotifier />
+            </Suspense>
 
             <div className="space-y-4">
                 <SecurityForm />

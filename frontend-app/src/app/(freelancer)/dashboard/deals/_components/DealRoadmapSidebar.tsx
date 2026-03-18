@@ -1,28 +1,25 @@
 'use client';
 
 import React, { useState } from 'react';
-import { CheckCircle2, Lock, Eye, Play, StickyNote } from 'lucide-react';
+import { CheckCircle2, Lock, Eye, Play, StickyNote, Link2, Copy } from 'lucide-react';
 import { DealStep } from './DealBuilder';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { type DealStatus } from '@/hooks/use-deals';
+import { useWorkspaceSettings } from '@/hooks/use-workspace-settings';
 
 // ─── Status config ────────────────────────────────────────────────────────────
 
-const STATUS_OPTIONS = [
-    { value: 'DRAFT',       label: 'Borrador',        color: 'text-yellow-700 dark:text-yellow-400',  bg: 'bg-yellow-100 dark:bg-yellow-900/30' },
-    { value: 'SENT',        label: 'Enviado',          color: 'text-blue-700 dark:text-blue-400',      bg: 'bg-blue-100 dark:bg-blue-900/30' },
-    { value: 'VIEWED',      label: 'Visto',            color: 'text-purple-700 dark:text-purple-400',  bg: 'bg-purple-100 dark:bg-purple-900/30' },
-    { value: 'NEGOTIATING', label: 'Negociando',       color: 'text-orange-700 dark:text-orange-400',  bg: 'bg-orange-100 dark:bg-orange-900/30' },
-    { value: 'WON',         label: 'Ganado',           color: 'text-emerald-700 dark:text-emerald-400',bg: 'bg-emerald-100 dark:bg-emerald-900/30' },
-    { value: 'LOST',        label: 'Perdido',          color: 'text-rose-700 dark:text-rose-400',      bg: 'bg-rose-100 dark:bg-rose-900/30' },
-] as const;
-
-function getStatusConfig(status: string) {
-    return STATUS_OPTIONS.find((s) => s.value === status) ?? STATUS_OPTIONS[0];
-}
+const STATUS_COLORS = {
+    DRAFT:       { color: 'text-yellow-700 dark:text-yellow-400',  bg: 'bg-yellow-100 dark:bg-yellow-900/30' },
+    SENT:        { color: 'text-blue-700 dark:text-blue-400',      bg: 'bg-blue-100 dark:bg-blue-900/30' },
+    VIEWED:      { color: 'text-purple-700 dark:text-purple-400',  bg: 'bg-purple-100 dark:bg-purple-900/30' },
+    NEGOTIATING: { color: 'text-orange-700 dark:text-orange-400',  bg: 'bg-orange-100 dark:bg-orange-900/30' },
+    WON:         { color: 'text-emerald-700 dark:text-emerald-400',bg: 'bg-emerald-100 dark:bg-emerald-900/30' },
+    LOST:        { color: 'text-rose-700 dark:text-rose-400',      bg: 'bg-rose-100 dark:bg-rose-900/30' },
+} as const;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -31,6 +28,7 @@ interface DealData {
     slug?: string;
     name?: string;
     status?: string;
+    publicToken?: string;
     currentStep?: string;
     notes?: string;
     currency?: { symbol?: string };
@@ -66,6 +64,7 @@ interface SidebarProps {
 
 export function DealRoadmapSidebar({ deal, activeStep, onStepChange, onStatusChange, updateDeal }: SidebarProps) {
     const { activeWorkspace } = useAuth();
+    const { t } = useWorkspaceSettings();
     const router = useRouter();
 
     const isWon = deal?.status === 'WON';
@@ -74,8 +73,18 @@ export function DealRoadmapSidebar({ deal, activeStep, onStepChange, onStatusCha
     const [notes, setNotes] = useState(deal?.notes || '');
     const [isSavingNotes, setIsSavingNotes] = useState(false);
     const [statusOpen, setStatusOpen] = useState(false);
+    const [isCopied, setIsCopied] = useState(false);
 
-    const statusCfg = getStatusConfig(deal?.status || 'DRAFT');
+    const STATUS_OPTIONS = [
+        { value: 'DRAFT',       label: t('deals.statusDraft'),             ...STATUS_COLORS.DRAFT },
+        { value: 'SENT',        label: t('deals.statusSent'),              ...STATUS_COLORS.SENT },
+        { value: 'VIEWED',      label: t('deals.statusViewed'),            ...STATUS_COLORS.VIEWED },
+        { value: 'NEGOTIATING', label: t('deals.statusNegotiatingFilter'), ...STATUS_COLORS.NEGOTIATING },
+        { value: 'WON',         label: t('deals.statusWon'),               ...STATUS_COLORS.WON },
+        { value: 'LOST',        label: t('deals.statusLost'),              ...STATUS_COLORS.LOST },
+    ];
+
+    const statusCfg = STATUS_OPTIONS.find((s) => s.value === (deal?.status || 'DRAFT')) ?? STATUS_OPTIONS[0];
 
     const indexMap: Record<DealStep, number> = { brief: 0, quotation: 1, payment_plan: 2, won: 3 };
 
@@ -110,28 +119,28 @@ export function DealRoadmapSidebar({ deal, activeStep, onStepChange, onStatusCha
     const steps = [
         {
             id: 'brief' as DealStep,
-            label: 'Cuestionario Brief',
+            label: t('deals.briefStepLabel'),
             desc: briefTemplate
-                ? `Plantilla: ${briefTemplate.name}`
-                : deal?.brief?.isCompleted ? 'Brief completado' : 'Pendiente de asignar',
+                ? `${t('deals.briefTemplateLabel')} ${briefTemplate.name}`
+                : deal?.brief?.isCompleted ? t('deals.briefCompleted') : t('deals.briefPending'),
             amount: null,
         },
         {
             id: 'quotation' as DealStep,
-            label: 'Configurar Cotización',
+            label: t('deals.quotationStepLabel'),
             desc: approvedQuotation
-                ? `${approvedQuotation.optionName} aprobada`
+                ? `${approvedQuotation.optionName} ${t('deals.quotationApproved')}`
                 : hasQuotationItems
-                    ? `${anyQuotation?.items?.length ?? 0} ítem(s)`
-                    : 'Sin ítems aún',
+                    ? `${anyQuotation?.items?.length ?? 0} ${t('deals.noItems').replace('Sin ', '').replace(' aún', '')}(s)`
+                    : t('deals.noItems'),
             amount: formattedAmount,
         },
         {
             id: 'payment_plan' as DealStep,
-            label: 'Plan de Pagos',
+            label: t('deals.paymentStepLabel'),
             desc: deal?.paymentPlan
                 ? `${deal.paymentPlan.milestones?.length ?? 0} hito(s) definido(s)`
-                : 'Pendiente de configurar',
+                : t('deals.paymentPending'),
             amount: null,
         },
     ];
@@ -145,10 +154,10 @@ export function DealRoadmapSidebar({ deal, activeStep, onStepChange, onStatusCha
             {/* ── Header ───────────────────────────────────────────────── */}
             <div className="mb-8">
                 <span className="text-xs font-semibold tracking-wider text-zinc-500 dark:text-zinc-400 uppercase">
-                    Roadmap del Trato
+                    {t('deals.roadmapTitle')}
                 </span>
                 <h2 className="text-xl font-bold mt-1 text-zinc-900 dark:text-white truncate" title={deal?.name}>
-                    {deal?.name || 'Propuesta'}
+                    {deal?.name || t('deals.defaultName')}
                 </h2>
                 {deal?.client?.name && (
                     <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5 truncate">
@@ -274,15 +283,55 @@ export function DealRoadmapSidebar({ deal, activeStep, onStepChange, onStatusCha
             {isWon && deal?.project?.id && (
                 <div className="mt-auto pt-6 border-t border-emerald-200 dark:border-emerald-800/50">
                     <p className="text-xs text-emerald-700 dark:text-emerald-400 mb-3 text-center">
-                        La fase de venta ha terminado. El proyecto está listo para ejecutarse.
+                        {t('deals.salePhaseEnded')}
                     </p>
                     <Button
                         onClick={() => router.push(`/dashboard/projects/${deal.project!.id}`)}
                         className="w-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-600/20 transition-transform active:scale-95"
                     >
                         <Play className="w-4 h-4 mr-2" />
-                        Ir al Proyecto
+                        {t('deals.goToProject')}
                     </Button>
+                </div>
+            )}
+
+            {/* ── Share link ────────────────────────────────────────────── */}
+            {deal?.publicToken && !isWon && (
+                <div className={cn(
+                    'mt-6 pt-5 border-t',
+                    isLost ? 'border-rose-200 dark:border-rose-800/50' : 'border-zinc-200 dark:border-zinc-800',
+                )}>
+                    <label className="flex items-center gap-1.5 text-[10px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2">
+                        <Link2 className="w-3.5 h-3.5" /> Compartir con cliente
+                    </label>
+                    {(() => {
+                        const baseUrl = process.env.NEXT_PUBLIC_FRONTEND_PUBLIC_URL
+                            || (typeof window !== 'undefined'
+                                ? `${window.location.protocol}//${window.location.hostname.replace('app.', 'client.')}${window.location.port === '3000' ? ':3001' : ''}`
+                                : '');
+                        const shareUrl = `${baseUrl}/d/${deal.publicToken}`;
+                        return (
+                            <div className="flex items-center gap-2">
+                                <div className="flex-1 min-w-0 bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 rounded-lg px-2.5 py-1.5 text-[11px] text-zinc-500 truncate select-all">
+                                    {shareUrl}
+                                </div>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="shrink-0 h-7 px-2"
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(shareUrl);
+                                        setIsCopied(true);
+                                        setTimeout(() => setIsCopied(false), 2000);
+                                    }}
+                                >
+                                    {isCopied
+                                        ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                                        : <Copy className="w-3.5 h-3.5" />}
+                                </Button>
+                            </div>
+                        );
+                    })()}
                 </div>
             )}
 
@@ -294,12 +343,12 @@ export function DealRoadmapSidebar({ deal, activeStep, onStepChange, onStatusCha
                       : 'border-zinc-200 dark:border-zinc-800',
             )}>
                 <label className="flex items-center gap-1.5 text-[10px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2">
-                    <StickyNote className="w-3.5 h-3.5" /> Notas internas
+                    <StickyNote className="w-3.5 h-3.5" /> {t('deals.internalNotes')}
                 </label>
                 <textarea
                     className="w-full text-xs p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/40 resize-none focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-zinc-400 dark:text-zinc-300"
                     rows={3}
-                    placeholder="Apuntes privados, contexto del cliente..."
+                    placeholder={t('deals.notesPlaceholder')}
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     onBlur={async () => {
@@ -309,7 +358,7 @@ export function DealRoadmapSidebar({ deal, activeStep, onStepChange, onStatusCha
                         setIsSavingNotes(false);
                     }}
                 />
-                {isSavingNotes && <p className="text-[10px] text-zinc-400 mt-1">Guardando...</p>}
+                {isSavingNotes && <p className="text-[10px] text-zinc-400 mt-1">{t('common.saving')}</p>}
             </div>
         </div>
     );

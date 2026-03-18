@@ -1,4 +1,4 @@
-import { Injectable, ForbiddenException, Logger } from '@nestjs/common';
+import { Injectable, ForbiddenException, ConflictException, Logger } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -10,6 +10,7 @@ import { SettingsService } from '../core/settings/settings.service';
 import { RegisterDto } from './dto/register.dto';
 import { MailService } from '../core/mail/mail.service';
 import { WorkspacesService } from '../workspaces/workspaces.service';
+import { google } from 'googleapis';
 
 @Injectable()
 export class AuthService {
@@ -125,18 +126,120 @@ export class AuthService {
     pass: string,
   ): Promise<AuthenticatedUser | null> {
     const user = await this.usersService.findOneByEmailWithPassword(email);
-    if (user && (await bcrypt.compare(pass, user.password))) {
+    if (user && user.password && (await bcrypt.compare(pass, user.password))) {
       return this.mapToAuthenticatedUser(user);
     }
     return null;
   }
+
+  // ─── Google OAuth ─────────────────────────────────────────────────────────
+
+  private getGoogleOAuthClient() {
+    return new google.auth.OAuth2(
+      this.configService.get('GOOGLE_CLIENT_ID'),
+      this.configService.get('GOOGLE_CLIENT_SECRET'),
+      this.configService.get('GOOGLE_CALLBACK_URL'),
+    );
+  }
+
+  getGoogleAuthUrl(state: string): string {
+    const client = this.getGoogleOAuthClient();
+    return client.generateAuthUrl({
+      access_type: 'offline',
+      prompt: 'select_account',
+      scope: [
+        'https://www.googleapis.com/auth/userinfo.profile',
+        'https://www.googleapis.com/auth/userinfo.email',
+      ],
+      state,
+    });
+  }
+
+  private async getGoogleUserInfo(accessToken: string): Promise<{
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+  }> {
+    const client = this.getGoogleOAuthClient();
+    client.setCredentials({ access_token: accessToken });
+    const oauth2 = google.oauth2({ version: 'v2', auth: client });
+    const { data } = await oauth2.userinfo.get();
+    return {
+      id: data.id!,
+      email: data.email!,
+      firstName: data.given_name || 'User',
+      lastName: data.family_name || '',
+    };
+  }
+
+  async loginOrRegisterWithGoogle(
+    code: string,
+  ): Promise<{ accessToken: string; refreshToken: string; isNew: boolean }> {
+    const client = this.getGoogleOAuthClient();
+    const { tokens } = await client.getToken(code);
+
+    const { id: googleId, email, firstName, lastName } =
+      await this.getGoogleUserInfo(tokens.access_token!);
+
+    let isNew = false;
+    let user = await this.usersService.findOneByGoogleId(googleId);
+
+    if (!user) {
+      const existingByEmail = await this.usersService.findOneByEmail(email);
+      if (existingByEmail) {
+        // Link Google to existing account
+        await this.usersService.setGoogleId(existingByEmail.id, googleId);
+        user = await this.usersService.findOneById(existingByEmail.id);
+      } else {
+        // New user registration
+        const settings = await this.settingsService.getSettings();
+        if (!settings.allowRegistration) {
+          throw new ForbiddenException('Registration is disabled by administrator');
+        }
+        isNew = true;
+        const newUser = await this.usersService.create({
+          email,
+          firstName,
+          lastName,
+          googleId,
+          role: UserRole.FREELANCER,
+        });
+        await this.workspacesService.createDefaultWorkspace(newUser.id);
+        user = await this.usersService.findOneById(newUser.id);
+      }
+    }
+
+    const authenticatedUser = this.mapToAuthenticatedUser(user!);
+    const authTokens = await this.login(authenticatedUser);
+    return { ...authTokens, isNew };
+  }
+
+  async linkGoogleAccount(userId: string, code: string): Promise<void> {
+    const client = this.getGoogleOAuthClient();
+    const { tokens } = await client.getToken(code);
+
+    const { id: googleId } = await this.getGoogleUserInfo(tokens.access_token!);
+
+    const existingByGoogleId =
+      await this.usersService.findOneByGoogleId(googleId);
+    if (existingByGoogleId && existingByGoogleId.id !== userId) {
+      throw new ConflictException(
+        'This Google account is already linked to another user',
+      );
+    }
+
+    await this.usersService.setGoogleId(userId, googleId);
+  }
+
+  // ─── Helpers ──────────────────────────────────────────────────────────────
 
   // Helper to centralize the mapping from User entity to AuthenticatedUser
   // This avoids scattered casting throughout the codebase
 
   private mapToAuthenticatedUser(user: User): AuthenticatedUser {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, refreshToken, ...result } = user;
+    const { password, refreshToken, googleId, ...result } = user;
     return result;
   }
 

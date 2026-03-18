@@ -5,7 +5,7 @@ import { clientsApi } from '@/features/clients/api';
 import { Client, ClientType } from '@/features/clients/types';
 import { DashboardShell } from '@/components/layout/DashboardShell';
 import { Button } from '@/components/ui/button';
-import { Users, UserPlus, Mail, Phone, Building2, User, Edit2, Trash2 } from 'lucide-react';
+import { Users, UserPlus, Mail, Phone, Building2, User, Edit2, Trash2, Send } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ClientModal } from './_components/ClientModal';
 import { toast } from 'sonner';
@@ -71,6 +71,21 @@ export default function ClientsPage() {
     const handleCreate = () => {
         setEditingClient(null);
         setModalOpen(true);
+    };
+
+    const handleInvite = async (client: Client) => {
+        if (client.linkedUserId) {
+            toast.info(t('clients.alreadyLinked') || 'Este cliente ya tiene cuenta en el portal');
+            return;
+        }
+        try {
+            await clientsApi.inviteToPortal(client.id);
+            toast.success(
+                (t('clients.inviteSuccess') || 'Invitación enviada a {email}').replace('{email}', client.email)
+            );
+        } catch {
+            toast.error(t('clients.inviteError') || 'Error al enviar la invitación');
+        }
     };
 
     const columns: ColumnDef<Client>[] = [
@@ -206,6 +221,13 @@ export default function ClientsPage() {
                         label: t('common.edit') || 'Editar',
                         icon: <Edit2 className="h-4 w-4" />,
                         onClick: () => handleEdit(client),
+                    },
+                    {
+                        label: client.linkedUserId
+                            ? (t('clients.alreadyLinked') || 'Ya tiene cuenta')
+                            : (t('clients.invitePortal') || 'Invitar al portal'),
+                        icon: <Send className="h-4 w-4" />,
+                        onClick: () => handleInvite(client),
                     },
                     {
                         label: t('common.delete') || 'Eliminar',

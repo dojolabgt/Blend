@@ -3,6 +3,7 @@ import "./globals.css";
 import { AuthProvider } from "@/features/auth/context/auth-context";
 import { ServiceWorkerProvider } from "@/components/layout/ServiceWorkerProvider";
 import { ThemeProvider } from "@/components/common/ThemeProvider";
+import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
     title: 'Hi Krew',
@@ -46,6 +47,7 @@ export default function RootLayout({
                     <AuthProvider>
                         <ServiceWorkerProvider />
                         {children}
+                        <Toaster richColors position="bottom-right" />
                     </AuthProvider>
                 </ThemeProvider>
             </body>

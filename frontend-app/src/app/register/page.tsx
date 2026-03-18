@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { AuthInput } from '@/components/common/AuthInput';
-import { Eye, EyeOff, Mail, Lock, User, ArrowLeft } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, AlertCircle } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import Link from 'next/link';
@@ -76,8 +76,9 @@ export default function RegisterPage() {
 
                         <form onSubmit={handleRegister} className="space-y-3">
                             {(error || localError) && (
-                                <div className="p-3 text-[13px] text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl text-center">
-                                    {localError || error}
+                                <div className="flex items-start gap-2.5 px-3.5 py-3 rounded-lg bg-red-500/[0.07] border border-red-500/[0.15] animate-in fade-in slide-in-from-top-1 duration-200">
+                                    <AlertCircle className="h-4 w-4 text-red-400/70 mt-0.5 shrink-0" />
+                                    <p className="text-[13px] text-red-300/80 leading-snug">{localError || error}</p>
                                 </div>
                             )}
 

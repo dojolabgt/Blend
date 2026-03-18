@@ -168,6 +168,7 @@ export function HowItWorks() {
 
             {/* Ambient glow */}
             <div
+                aria-hidden="true"
                 className="pointer-events-none absolute left-1/2 -translate-x-1/2 w-[700px] h-[400px] opacity-100"
                 style={{ background: "radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.022) 0%, transparent 65%)" }}
             />
@@ -182,30 +183,30 @@ export function HowItWorks() {
                     transition={{ duration: 0.5 }}
                     className="mb-16 text-center max-w-xl mx-auto"
                 >
-                    <p className="text-[10px] font-bold tracking-[0.2em] text-white/30 uppercase mb-3">
+                    <p className="text-[10px] font-bold tracking-[0.2em] text-white/55 uppercase mb-3">
                         Cómo funciona
                     </p>
                     <h2 className="text-4xl md:text-[44px] font-black tracking-tight text-white leading-[1.07] mb-4">
                         De la idea al cobro,<br className="hidden md:block" /> en cuatro pasos.
                     </h2>
-                    <p className="text-[15px] text-white/40 font-light leading-relaxed">
+                    <p className="text-[15px] text-white/60 font-normal leading-relaxed">
                         Un flujo continuo — sin cambiar de app en cada etapa.
                     </p>
                 </motion.div>
 
                 {/* Timeline */}
-                <div className="relative space-y-8">
+                <ol role="list" className="relative space-y-8">
 
                     {/* Vertical connector line */}
-                    <div className="absolute left-[calc(50%-0.5px)] top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-white/[0.08] to-transparent hidden md:block pointer-events-none" />
+                    <div aria-hidden="true" className="absolute left-[calc(50%-0.5px)] top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-white/[0.08] to-transparent hidden md:block pointer-events-none" />
 
                     {STEPS.map((step, i) => {
                         const isEven = i % 2 === 0;
                         return (
-                            <div key={i} className="relative grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 items-center">
+                            <li key={i} className="relative grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 items-center">
 
                                 {/* Dot on line */}
-                                <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-[#0d0d0d] border border-white/[0.12] items-center justify-center z-10">
+                                <div aria-hidden="true" className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-[#0d0d0d] border border-white/[0.12] items-center justify-center z-10">
                                     <span className="text-[11px] font-black text-white/40 tabular-nums">{step.number}</span>
                                 </div>
 
@@ -218,12 +219,12 @@ export function HowItWorks() {
                                     className={`flex flex-col gap-3 ${isEven ? "md:pr-14 md:text-right md:items-end" : "md:order-last md:pl-14"}`}
                                 >
                                     {/* Mobile number pill */}
-                                    <div className="flex items-center gap-2 md:hidden">
+                                    <div aria-hidden="true" className="flex items-center gap-2 md:hidden">
                                         <span className="w-6 h-6 rounded-full border border-white/15 flex items-center justify-center text-[10px] font-black text-white/40">{step.number}</span>
                                         <span className="text-[10px] text-white/30 bg-white/[0.06] rounded-full px-2.5 py-0.5">{step.tag}</span>
                                     </div>
 
-                                    <span className="hidden md:inline-block text-[10px] font-semibold text-white/30 bg-white/[0.06] border border-white/[0.07] rounded-full px-2.5 py-1 self-end">
+                                    <span aria-hidden="true" className="hidden md:inline-block text-[10px] font-semibold text-white/30 bg-white/[0.06] border border-white/[0.07] rounded-full px-2.5 py-1 self-end">
                                         {step.tag}
                                     </span>
 
@@ -231,7 +232,7 @@ export function HowItWorks() {
                                         <h3 className="text-[22px] md:text-[24px] font-black text-white tracking-tight leading-tight mb-2">
                                             {step.title}
                                         </h3>
-                                        <p className="text-[14px] text-white/45 leading-relaxed max-w-xs md:ml-auto">
+                                        <p className="text-[14px] text-white/60 leading-relaxed max-w-xs md:ml-auto">
                                             {step.description}
                                         </p>
                                     </div>
@@ -239,6 +240,7 @@ export function HowItWorks() {
 
                                 {/* Preview */}
                                 <motion.div
+                                    aria-hidden="true"
                                     initial={{ opacity: 0, y: 16 }}
                                     whileInView={{ opacity: 1, y: 0 }}
                                     viewport={{ once: true, margin: "-60px" }}
@@ -248,10 +250,10 @@ export function HowItWorks() {
                                     {step.preview}
                                 </motion.div>
 
-                            </div>
+                            </li>
                         );
                     })}
-                </div>
+                </ol>
             </div>
         </section>
     );
