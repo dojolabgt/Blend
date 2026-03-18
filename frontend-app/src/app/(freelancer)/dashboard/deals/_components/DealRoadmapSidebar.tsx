@@ -75,7 +75,7 @@ export function DealRoadmapSidebar({ deal, activeStep, onStepChange, onStatusCha
     const [statusOpen, setStatusOpen] = useState(false);
     const [isCopied, setIsCopied] = useState(false);
 
-    const STATUS_OPTIONS = [
+    const STATUS_OPTIONS: { value: DealStatus; label: string; color: string; bg: string }[] = [
         { value: 'DRAFT',       label: t('deals.statusDraft'),             ...STATUS_COLORS.DRAFT },
         { value: 'SENT',        label: t('deals.statusSent'),              ...STATUS_COLORS.SENT },
         { value: 'VIEWED',      label: t('deals.statusViewed'),            ...STATUS_COLORS.VIEWED },

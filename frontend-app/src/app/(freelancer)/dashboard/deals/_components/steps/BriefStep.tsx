@@ -49,7 +49,7 @@ interface BriefStepProps {
 
 type FieldTypeConfig = { label: string; icon: React.ReactNode; color: string; mockPreview: React.ReactNode };
 
-function FieldMockPreview({ field, config, otherLabel }: { field: Record<string, any>; config: FieldTypeConfig | undefined; otherLabel: string }) {
+function FieldMockPreview({ field, config, otherLabel, t }: { field: Record<string, any>; config: FieldTypeConfig | undefined; otherLabel: string; t: (key: string) => string }) {
     if (!config) return null;
 
     if (['radio', 'checkbox'].includes(field.type) && field.options?.length > 0) {
@@ -419,7 +419,7 @@ export function BriefStep({
                                             )}
                                         </div>
                                     ) : (
-                                        <FieldMockPreview field={field} config={FIELD_TYPE_CONFIG[field.type]} otherLabel={t('brief.otherOption')} />
+                                        <FieldMockPreview field={field} config={FIELD_TYPE_CONFIG[field.type]} otherLabel={t('brief.otherOption')} t={t} />
                                     )}
                                 </div>
 
