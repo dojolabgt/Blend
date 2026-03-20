@@ -150,10 +150,6 @@ export class DealsService {
     const qb = this.dealsRepository
       .createQueryBuilder('deal')
       .leftJoinAndSelect('deal.client', 'client')
-      .leftJoinAndSelect('deal.brief', 'brief')
-      .leftJoinAndSelect('deal.quotations', 'quotations')
-      .leftJoinAndSelect('deal.paymentPlan', 'paymentPlan')
-      .leftJoinAndSelect('deal.workspace', 'workspace')
       .leftJoinAndSelect('deal.project', 'project')
       .where('deal.workspace_id = :workspaceId', { workspaceId });
 

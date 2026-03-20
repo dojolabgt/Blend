@@ -57,10 +57,18 @@ export class ClientsController {
     return this.clientsService.remove(req.workspaceId, id);
   }
 
-  /** POST /clients/:id/invite — generate magic link + send email */
+  /** POST /clients/:id/invite — generate magic link, optionally send email */
   @Post(':id/invite')
-  inviteToPortal(@Req() req: AuthRequest, @Param('id') id: string) {
-    return this.clientsService.inviteToPortal(req.workspaceId, id);
+  inviteToPortal(
+    @Req() req: AuthRequest,
+    @Param('id') id: string,
+    @Query('sendEmail') sendEmail?: string,
+  ) {
+    return this.clientsService.inviteToPortal(
+      req.workspaceId,
+      id,
+      sendEmail !== 'false',
+    );
   }
 }
 

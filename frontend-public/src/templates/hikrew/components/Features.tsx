@@ -86,16 +86,14 @@ export function Features() {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true, margin: "-40px" }}
                             transition={{ duration: 0.4, delay: i * 0.06, ease: [0.25, 0.1, 0.25, 1] }}
-                            className={`rounded-2xl border p-6 flex flex-col gap-3 ${
-                                feat.featured
+                            className={`rounded-2xl border p-6 flex flex-col gap-3 ${feat.featured
                                     ? "md:col-span-2 bg-white/[0.05] border-white/[0.12]"
                                     : "bg-white/[0.03] border-white/[0.07]"
-                            }`}
+                                }`}
                         >
                             <div className="flex items-start justify-between gap-3">
-                                <div aria-hidden="true" className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                                    feat.featured ? "bg-white/[0.12]" : "bg-white/[0.07]"
-                                }`}>
+                                <div aria-hidden="true" className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${feat.featured ? "bg-white/[0.12]" : "bg-white/[0.07]"
+                                    }`}>
                                     <feat.icon className="h-4 w-4 text-white/70" strokeWidth={1.75} />
                                 </div>
                                 {feat.tag && (

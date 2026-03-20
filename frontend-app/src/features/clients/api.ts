@@ -24,8 +24,8 @@ export const clientsApi = {
         return api.delete(`/clients/${id}`).then((res) => res.data);
     },
 
-    inviteToPortal: async (id: string): Promise<void> => {
-        return api.post(`/clients/${id}/invite`).then((res) => res.data);
+    inviteToPortal: async (id: string, sendEmail = true): Promise<{ magicLink: string }> => {
+        return api.post(`/clients/${id}/invite?sendEmail=${sendEmail}`).then((res) => res.data);
     },
 
     getInvite: async (token: string): Promise<{

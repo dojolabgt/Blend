@@ -6,6 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Project } from './entities/project.entity';
+import { ProjectBrief } from './entities/project-brief.entity';
 import {
   ProjectCollaborator,
   ProjectRole,
@@ -13,10 +14,22 @@ import {
 import { Workspace } from '../workspaces/workspace.entity';
 import { ProjectStatus } from './enums/project-status.enum';
 import { Deal } from '../deals/entities/deal.entity';
+import { PaymentPlan } from '../deals/entities/payment-plan.entity';
 import { PaymentMilestone } from '../deals/entities/payment-milestone.entity';
 import { MilestoneSplit } from '../deals/entities/milestone-split.entity';
+import { BriefTemplate } from '../deals/entities/brief-template.entity';
 import { CreateMilestoneSplitDto } from '../deals/dto/milestone-split.dto';
+import {
+  CreateMilestoneDto,
+  UpdateMilestoneDto,
+  CreatePaymentPlanDto,
+} from '../deals/dto/payment-plan.dto';
 import { ProjectsQueryDto } from './dto/projects-query.dto';
+import { CreateProjectDto } from './dto/create-project.dto';
+import {
+  CreateProjectBriefDto,
+  UpdateProjectBriefDto,
+} from './dto/create-project-brief.dto';
 import { paginate, PaginatedResponse } from '../common/dto/pagination.dto';
 
 @Injectable()
@@ -24,34 +37,54 @@ export class ProjectsService {
   constructor(
     @InjectRepository(Project)
     private readonly projectsRepository: Repository<Project>,
+    @InjectRepository(ProjectBrief)
+    private readonly projectBriefsRepository: Repository<ProjectBrief>,
     @InjectRepository(ProjectCollaborator)
     private readonly projectCollaboratorsRepository: Repository<ProjectCollaborator>,
     @InjectRepository(Workspace)
     private readonly workspacesRepository: Repository<Workspace>,
+    @InjectRepository(Deal)
+    private readonly dealsRepository: Repository<Deal>,
+    @InjectRepository(PaymentPlan)
+    private readonly paymentPlansRepository: Repository<PaymentPlan>,
     @InjectRepository(PaymentMilestone)
     private readonly paymentMilestonesRepository: Repository<PaymentMilestone>,
     @InjectRepository(MilestoneSplit)
     private readonly milestoneSplitsRepository: Repository<MilestoneSplit>,
+    @InjectRepository(BriefTemplate)
+    private readonly briefTemplatesRepository: Repository<BriefTemplate>,
   ) {}
 
-  async createFromDeal(workspaceId: string, deal: Deal): Promise<Project> {
-    // Check if project already exists for this deal to be idempotent
-    const existingProject = await this.projectsRepository.findOne({
-      where: { dealId: deal.id },
-    });
-
-    if (existingProject) {
-      return existingProject;
-    }
-
+  async create(workspaceId: string, dto: CreateProjectDto): Promise<Project> {
     const project = this.projectsRepository.create({
       workspaceId,
+      dealId: null,
+      clientId: dto.clientId ?? null,
+      name: dto.name,
+      description: dto.description ?? null,
+      currency: dto.currency ?? null,
+      budget: dto.budget ?? null,
+      status: ProjectStatus.ACTIVE,
+    });
+    return this.projectsRepository.save(project);
+  }
+
+  async createFromDeal(workspaceId: string, deal: Deal): Promise<Project> {
+    const existing = await this.projectsRepository.findOne({
+      where: { dealId: deal.id },
+    });
+    if (existing) return existing;
+    // Pass the full deal relation object so TypeORM correctly sets deal_id FK.
+    // Setting only dealId (string) alongside a nullable OneToOne relation causes
+    // TypeORM to override the FK with null when the relation property is undefined.
+    const project = this.projectsRepository.create({
+      workspaceId,
+      deal,
       dealId: deal.id,
       name: deal.name,
       status: ProjectStatus.ACTIVE,
     });
-
-    return await this.projectsRepository.save(project);
+    return this.projectsRepository.save(project);
   }
 
   async findAll(
@@ -63,7 +96,8 @@ export class ProjectsService {
     const qb = this.projectsRepository
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.deal', 'deal')
-      .leftJoinAndSelect('deal.client', 'client')
+      .leftJoinAndSelect('deal.client', 'dealClient')
+      .leftJoinAndSelect('project.client', 'directClient')
       .leftJoinAndSelect('project.collaborators', 'collaborators')
       .leftJoinAndSelect('collaborators.workspace', 'collaboratorWorkspace')
       .where(
@@ -74,17 +108,13 @@ export class ProjectsService {
     if (search) {
       qb.andWhere('project.name ILIKE :search', { search: `%${search}%` });
     }
-
     if (status) {
       qb.andWhere('project.status = :status', { status });
     }
 
     const allowedSort = ['name', 'createdAt', 'status'];
     const orderField = allowedSort.includes(sortBy) ? sortBy : 'createdAt';
-    qb.orderBy(
-      `project.${orderField}`,
-      sortOrder.toUpperCase() as 'ASC' | 'DESC',
-    )
+    qb.orderBy(`project.${orderField}`, sortOrder.toUpperCase() as 'ASC' | 'DESC')
       .skip(query.skip)
       .take(query.limit);
 
@@ -92,19 +122,22 @@ export class ProjectsService {
     return paginate(data, total, query);
   }
 
-  async findOne(workspaceId: string, projectId: string): Promise<Project> {
+  async findOne(workspaceId: string, projectId: string): Promise<object> {
     const project = await this.projectsRepository
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.deal', 'deal')
-      .leftJoinAndSelect('deal.client', 'client')
+      .leftJoinAndSelect('deal.client', 'dealClient')
       .leftJoinAndSelect('deal.brief', 'brief')
       .leftJoinAndSelect('brief.template', 'briefTemplate')
       .leftJoinAndSelect('deal.quotations', 'quotations')
       .leftJoinAndSelect('quotations.items', 'items')
-      .leftJoinAndSelect('deal.paymentPlan', 'paymentPlan')
-      .leftJoinAndSelect('paymentPlan.milestones', 'milestones')
-      .leftJoinAndSelect('milestones.splits', 'splits')
-      .leftJoinAndSelect('splits.collaboratorWorkspace', 'splitWorkspace')
+      .leftJoinAndSelect('deal.paymentPlan', 'dealPaymentPlan')
+      .leftJoinAndSelect('dealPaymentPlan.milestones', 'dealMilestones')
+      .leftJoinAndSelect('dealMilestones.splits', 'dealSplits')
+      .leftJoinAndSelect('dealSplits.collaboratorWorkspace', 'dealSplitWs')
+      .leftJoinAndSelect('project.client', 'directClient')
+      .leftJoinAndSelect('project.briefs', 'briefs')
+      .leftJoinAndSelect('briefs.template', 'briefsTemplate')
       .leftJoinAndSelect('project.collaborators', 'collaborators')
       .leftJoinAndSelect('collaborators.workspace', 'collaboratorWorkspace')
       .where('project.id = :projectId', { projectId })
@@ -114,39 +147,249 @@ export class ProjectsService {
       )
       .getOne();
 
-    if (!project) {
-      throw new NotFoundException('Project not found');
+    if (!project) throw new NotFoundException('Project not found');
+
+    let directPaymentPlan: PaymentPlan | null = null;
+    if (!project.dealId) {
+      directPaymentPlan = await this.paymentPlansRepository.findOne({
+        where: { projectId: project.id },
+        relations: [
+          'milestones',
+          'milestones.splits',
+          'milestones.splits.collaboratorWorkspace',
+        ],
+      });
     }
 
+    return { ...project, directPaymentPlan };
+  }
+
+  private async findProjectOwnerOrFail(
+    workspaceId: string,
+    projectId: string,
+  ): Promise<Project> {
+    const project = await this.projectsRepository.findOne({
+      where: { id: projectId, workspaceId },
+      relations: ['collaborators'],
+    });
+    if (!project) throw new NotFoundException('Project not found');
     return project;
   }
 
-  // ─── COLLABORATORS ───────────────────────────────────────────────────────
-
-  private async findProjectOrFail(
+  async createProjectBrief(
     workspaceId: string,
     projectId: string,
-    requireEditor: boolean = false,
-  ): Promise<Project> {
-    const project = await this.projectsRepository.findOne({
-      where: [{ id: projectId, workspaceId: workspaceId }],
-      relations: ['workspace', 'collaborators'],
-    });
+    dto: CreateProjectBriefDto,
+  ): Promise<ProjectBrief> {
+    await this.findProjectOwnerOrFail(workspaceId, projectId);
 
-    if (!project) throw new NotFoundException('Project not found');
+    let templateSnapshot: {
+      id: string;
+      label: string;
+      type: string;
+      options?: string[];
+      required?: boolean;
+    }[] = [];
 
-    if (requireEditor && project.workspace.id !== workspaceId) {
-      const col = project.collaborators?.find(
-        (c) => c.workspaceId === workspaceId,
-      );
-      if (!col || col.role !== ProjectRole.EDITOR) {
-        throw new BadRequestException(
-          'No tienes permisos de Editor para modificar este Project',
-        );
-      }
+    if (dto.templateId) {
+      const template = await this.briefTemplatesRepository.findOne({
+        where: { id: dto.templateId, workspaceId },
+      });
+      if (!template) throw new NotFoundException('Brief template not found');
+      templateSnapshot = template.schema ?? [];
     }
 
-    return project;
+    const count = await this.projectBriefsRepository.count({
+      where: { projectId },
+    });
+
+    const brief = this.projectBriefsRepository.create({
+      projectId,
+      name: dto.name,
+      templateId: dto.templateId ?? null,
+      templateSnapshot,
+      responses: dto.responses ?? {},
+      sortOrder: count,
+    });
+    return this.projectBriefsRepository.save(brief);
+  }
+
+  async updateProjectBrief(
+    workspaceId: string,
+    projectId: string,
+    briefId: string,
+    dto: UpdateProjectBriefDto,
+  ): Promise<ProjectBrief> {
+    await this.findProjectOwnerOrFail(workspaceId, projectId);
+    const brief = await this.projectBriefsRepository.findOne({
+      where: { id: briefId, projectId },
+    });
+    if (!brief) throw new NotFoundException('Project brief not found');
+    if (dto.name !== undefined) brief.name = dto.name;
+    if (dto.responses !== undefined) brief.responses = dto.responses;
+    if (dto.isCompleted !== undefined) brief.isCompleted = dto.isCompleted;
+    return this.projectBriefsRepository.save(brief);
+  }
+
+  async deleteProjectBrief(
+    workspaceId: string,
+    projectId: string,
+    briefId: string,
+  ): Promise<void> {
+    await this.findProjectOwnerOrFail(workspaceId, projectId);
+    const brief = await this.projectBriefsRepository.findOne({
+      where: { id: briefId, projectId },
+    });
+    if (!brief) throw new NotFoundException('Project brief not found');
+    await this.projectBriefsRepository.remove(brief);
+  }
+
+  async findProjectPaymentPlan(
+    workspaceId: string,
+    projectId: string,
+  ): Promise<PaymentPlan> {
+    await this.findProjectOwnerOrFail(workspaceId, projectId);
+    const plan = await this.paymentPlansRepository.findOne({
+      where: { projectId },
+      relations: [
+        'milestones',
+        'milestones.splits',
+        'milestones.splits.collaboratorWorkspace',
+      ],
+    });
+    if (!plan) throw new NotFoundException('No payment plan for this project');
+    return plan;
+  }
+
+  async createOrUpdateProjectPaymentPlan(
+    workspaceId: string,
+    projectId: string,
+    dto: CreatePaymentPlanDto & { billingCycle?: string },
+  ): Promise<PaymentPlan> {
+    const project = await this.findProjectOwnerOrFail(workspaceId, projectId);
+    if (project.dealId) {
+      throw new BadRequestException(
+        'Deal-based projects manage payment plan through the deal',
+      );
+    }
+
+    const existing = await this.paymentPlansRepository.findOne({
+      where: { projectId },
+      relations: ['milestones', 'milestones.splits'],
+    });
+    if (existing) await this.paymentPlansRepository.remove(existing);
+
+    const totalAmount = dto.milestones.reduce((s, m) => s + Number(m.amount), 0);
+    const plan = this.paymentPlansRepository.create({
+      projectId,
+      dealId: null,
+      totalAmount,
+      billingCycle: (dto.billingCycle as PaymentPlan['billingCycle']) ?? null,
+      milestones: dto.milestones.map((m) =>
+        this.paymentMilestonesRepository.create({
+          name: m.name,
+          percentage: m.percentage,
+          amount: m.amount,
+          description: m.description,
+          dueDate: m.dueDate ? new Date(m.dueDate) : undefined,
+        }),
+      ),
+    });
+    return this.paymentPlansRepository.save(plan);
+  }
+
+  async addProjectMilestone(
+    workspaceId: string,
+    projectId: string,
+    dto: CreateMilestoneDto,
+  ): Promise<PaymentPlan> {
+    const project = await this.findProjectOwnerOrFail(workspaceId, projectId);
+    if (project.dealId) {
+      throw new BadRequestException(
+        'Use the deal payment plan endpoint for deal-based projects',
+      );
+    }
+    const plan = await this.paymentPlansRepository.findOne({
+      where: { projectId },
+      relations: ['milestones'],
+    });
+    if (!plan) throw new NotFoundException('Payment plan not found. Create one first.');
+
+    await this.paymentMilestonesRepository.save(
+      this.paymentMilestonesRepository.create({
+        paymentPlan: { id: plan.id } as unknown as PaymentPlan,
+        name: dto.name,
+        percentage: dto.percentage,
+        amount: dto.amount,
+        description: dto.description,
+        dueDate: dto.dueDate ? new Date(dto.dueDate) : undefined,
+      }),
+    );
+    plan.totalAmount = Number(plan.totalAmount) + Number(dto.amount);
+    plan.milestones = undefined as unknown as PaymentMilestone[];
+    return this.paymentPlansRepository.save(plan);
+  }
+
+  async updateProjectMilestone(
+    workspaceId: string,
+    projectId: string,
+    milestoneId: string,
+    dto: UpdateMilestoneDto,
+  ): Promise<PaymentMilestone> {
+    await this.findProjectOwnerOrFail(workspaceId, projectId);
+    const milestone = await this.paymentMilestonesRepository.findOne({
+      where: { id: milestoneId },
+      relations: ['paymentPlan'],
+    });
+    if (!milestone || milestone.paymentPlan.projectId !== projectId) {
+      throw new NotFoundException('Milestone not found for this project');
+    }
+    if (dto.name) milestone.name = dto.name;
+    if (dto.percentage !== undefined) milestone.percentage = dto.percentage;
+    if (dto.amount !== undefined) milestone.amount = dto.amount;
+    if (dto.description !== undefined) milestone.description = dto.description;
+    if (dto.dueDate) milestone.dueDate = new Date(dto.dueDate);
+    if (dto.status) (milestone as unknown as Record<string, unknown>)['status'] = dto.status;
+    return this.paymentMilestonesRepository.save(milestone);
+  }
+
+  async deleteProjectMilestone(
+    workspaceId: string,
+    projectId: string,
+    milestoneId: string,
+  ): Promise<void> {
+    await this.findProjectOwnerOrFail(workspaceId, projectId);
+    const milestone = await this.paymentMilestonesRepository.findOne({
+      where: { id: milestoneId },
+      relations: ['paymentPlan'],
+    });
+    if (!milestone || milestone.paymentPlan.projectId !== projectId) {
+      throw new NotFoundException('Milestone not found');
+    }
+    await this.paymentMilestonesRepository.remove(milestone);
+  }
+
+  async updateProjectPaymentSettings(
+    workspaceId: string,
+    projectId: string,
+    dto: { billingCycle?: PaymentPlan['billingCycle'] },
+  ): Promise<PaymentPlan> {
+    const project = await this.findProjectOwnerOrFail(workspaceId, projectId);
+    if (project.dealId) {
+      throw new BadRequestException(
+        'Deal-based projects manage payment settings through the deal',
+      );
+    }
+    let plan = await this.paymentPlansRepository.findOne({ where: { projectId } });
+    if (!plan) {
+      plan = this.paymentPlansRepository.create({
+        projectId,
+        dealId: null,
+        totalAmount: 0,
+      });
+    }
+    if (dto.billingCycle !== undefined) plan.billingCycle = dto.billingCycle;
+    return this.paymentPlansRepository.save(plan);
   }
 
   async addCollaborator(
@@ -155,28 +398,20 @@ export class ProjectsService {
     collaboratorWorkspaceId: string,
     role: ProjectRole = ProjectRole.VIEWER,
   ): Promise<ProjectCollaborator> {
-    const project = await this.findProjectOrFail(workspaceId, projectId, true);
-
+    const project = await this.findProjectOwnerOrFail(workspaceId, projectId);
     const exists = await this.projectCollaboratorsRepository.findOne({
       where: {
         project: { id: project.id },
         workspace: { id: collaboratorWorkspaceId },
       },
     });
-
-    if (exists) {
-      throw new BadRequestException(
-        'This workspace is already a collaborator on this project',
-      );
-    }
-
+    if (exists) throw new BadRequestException('This workspace is already a collaborator');
     const collaborator = this.projectCollaboratorsRepository.create({
       project: { id: project.id },
       workspace: { id: collaboratorWorkspaceId },
       role,
     });
-
-    return await this.projectCollaboratorsRepository.save(collaborator);
+    return this.projectCollaboratorsRepository.save(collaborator);
   }
 
   async removeCollaborator(
@@ -184,19 +419,13 @@ export class ProjectsService {
     projectId: string,
     collaboratorId: string,
   ): Promise<void> {
-    const project = await this.findProjectOrFail(workspaceId, projectId, true);
+    const project = await this.findProjectOwnerOrFail(workspaceId, projectId);
     const collaborator = await this.projectCollaboratorsRepository.findOne({
       where: { id: collaboratorId, project: { id: project.id } },
     });
-
-    if (!collaborator) {
-      throw new NotFoundException('Collaborator not found');
-    }
-
+    if (!collaborator) throw new NotFoundException('Collaborator not found');
     await this.projectCollaboratorsRepository.remove(collaborator);
   }
-
-  // ─── MILESTONE SPLITS ────────────────────────────────────────────────────
 
   async addMilestoneSplit(
     workspaceId: string,
@@ -204,34 +433,25 @@ export class ProjectsService {
     milestoneId: string,
     dto: CreateMilestoneSplitDto,
   ): Promise<MilestoneSplit> {
-    const project = await this.findProjectOrFail(workspaceId, projectId, true);
+    const project = await this.findProjectOwnerOrFail(workspaceId, projectId);
     const milestone = await this.paymentMilestonesRepository.findOne({
       where: { id: milestoneId },
       relations: ['paymentPlan', 'paymentPlan.deal', 'splits'],
     });
-
-    if (!milestone || milestone.paymentPlan.deal.id !== project.dealId) {
+    if (!milestone || milestone.paymentPlan.deal?.id !== project.dealId) {
       throw new NotFoundException('Milestone not found for this project');
     }
-
-    const currentSplitsAmount = milestone.splits.reduce(
-      (acc, split) => acc + Number(split.amount),
-      0,
-    );
-    if (currentSplitsAmount + dto.amount > milestone.amount) {
-      throw new BadRequestException(
-        'Split amounts exceed total milestone amount',
-      );
+    const currentTotal = milestone.splits.reduce((acc, s) => acc + Number(s.amount), 0);
+    if (currentTotal + dto.amount > milestone.amount) {
+      throw new BadRequestException('Split amounts exceed total milestone amount');
     }
-
     const split = this.milestoneSplitsRepository.create({
       milestoneId: milestone.id,
       collaboratorWorkspaceId: dto.collaboratorWorkspaceId,
       percentage: dto.percentage,
       amount: dto.amount,
     });
-
-    return await this.milestoneSplitsRepository.save(split);
+    return this.milestoneSplitsRepository.save(split);
   }
 
   async deleteMilestoneSplit(
@@ -240,23 +460,18 @@ export class ProjectsService {
     milestoneId: string,
     splitId: string,
   ): Promise<void> {
-    const project = await this.findProjectOrFail(workspaceId, projectId, true);
+    const project = await this.findProjectOwnerOrFail(workspaceId, projectId);
     const split = await this.milestoneSplitsRepository.findOne({
-      where: { id: splitId, milestoneId: milestoneId },
+      where: { id: splitId, milestoneId },
       relations: [
         'paymentMilestone',
         'paymentMilestone.paymentPlan',
         'paymentMilestone.paymentPlan.deal',
       ],
     });
-
-    if (
-      !split ||
-      split.paymentMilestone.paymentPlan.deal.id !== project.dealId
-    ) {
+    if (!split || split.paymentMilestone.paymentPlan.deal?.id !== project.dealId) {
       throw new NotFoundException('Milestone Split not found');
     }
-
     await this.milestoneSplitsRepository.remove(split);
   }
 }

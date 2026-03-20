@@ -6,7 +6,7 @@ import { useBriefTemplates, BriefTemplate } from '@/hooks/use-brief-templates';
 import { briefTemplatesApi } from '@/features/brief-templates/api';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Plus, FileText, Settings2, ArrowLeft } from 'lucide-react';
+import { Plus, FileText, Settings2, ArrowLeft, ChevronRight } from 'lucide-react';
 import { DataTable, ColumnDef } from '@/components/common/DataTable';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -18,6 +18,7 @@ import { AppFilterTabs, FilterOption } from '@/components/common/AppFilterTabs';
 import { AppPagination } from '@/components/common/AppPagination';
 import { BriefBuilder } from './_components/BriefBuilder';
 import { useWorkspaceSettings } from '@/hooks/use-workspace-settings';
+import { DashboardShell } from '@/components/layout/DashboardShell';
 
 // ─── Filter options ───────────────────────────────────────────────────────────
 
@@ -104,18 +105,27 @@ export default function BriefTemplatesPage() {
     // ── Builder view ──────────────────────────────────────────────────────────
     if (editingTemplate) {
         return (
-            <div className="p-6 md:p-10 h-full flex flex-col">
-                <div className="mb-6 flex items-center justify-between">
-                    <Button
-                        variant="ghost"
-                        size="sm"
+            <div className="h-full flex flex-col">
+                {/* Breadcrumb — same visual language as the list header */}
+                <div className="bg-[#FDFDFD] dark:bg-[#0A0A0A] border-b border-zinc-200 dark:border-zinc-800 px-6 py-3 flex items-center gap-2 shrink-0">
+                    <button
                         onClick={() => setEditingTemplate(null)}
-                        className="-ml-3 text-zinc-500"
+                        className="flex items-center gap-1.5 text-sm text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors group"
                     >
-                        <ArrowLeft className="w-4 h-4 mr-2" /> {t('briefTemplates.backBtn')}
-                    </Button>
+                        <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
+                        <span>{t('briefTemplates.pageTitle')}</span>
+                    </button>
+                    <ChevronRight className="w-3.5 h-3.5 text-zinc-300 dark:text-zinc-700 shrink-0" />
+                    <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate max-w-xs">
+                        {editingTemplate.name}
+                    </span>
+                    <span className={`ml-1 px-2 py-0.5 rounded-md text-[11px] font-semibold shrink-0 ${editingTemplate.isActive ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400' : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400'}`}>
+                        {editingTemplate.isActive ? t('briefTemplates.statusActive') : t('briefTemplates.statusInactive')}
+                    </span>
                 </div>
-                <BriefBuilder template={editingTemplate} onClose={() => setEditingTemplate(null)} />
+                <div className="flex-1 min-h-0 p-5">
+                    <BriefBuilder template={editingTemplate} onClose={() => setEditingTemplate(null)} />
+                </div>
             </div>
         );
     }
@@ -179,13 +189,13 @@ export default function BriefTemplatesPage() {
     ];
 
     return (
-        <div className="p-6 md:p-10 max-w-6xl mx-auto space-y-8">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <DashboardShell>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
+                    <h1 className="text-2xl font-bold tracking-tight">
                         {t('briefTemplates.pageTitle')}
                     </h1>
-                    <p className="text-zinc-500 dark:text-zinc-400 mt-1 max-w-2xl">
+                    <p className="text-muted-foreground mt-1">
                         {t('briefTemplates.pageDesc')}
                     </p>
                 </div>
@@ -269,6 +279,6 @@ export default function BriefTemplatesPage() {
                     />
                 }
             />
-        </div>
+        </DashboardShell>
     );
 }

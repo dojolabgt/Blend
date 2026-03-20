@@ -8,7 +8,7 @@ export interface BriefSchemaField {
     type: string;
     label: string;
     required?: boolean;
-    options?: string[];
+    options?: any[];
     [key: string]: unknown;
 }
 

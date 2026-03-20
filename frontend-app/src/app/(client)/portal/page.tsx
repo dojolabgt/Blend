@@ -176,7 +176,7 @@ export default function PortalPage() {
     useEffect(() => {
         portalApi.getDeals()
             .then(setDeals)
-            .catch(() => setError('No se pudo cargar tus propuestas. Inténtalo de nuevo.'))
+            .catch(() => setError('No se pudo cargar tus Deals. Inténtalo de nuevo.'))
             .finally(() => setIsLoading(false));
     }, []);
 
@@ -217,7 +217,7 @@ export default function PortalPage() {
                     Hola, {firstName} 👋
                 </h1>
                 <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-                    Aquí puedes revisar y gestionar todas tus propuestas.
+                    Aquí puedes revisar y gestionar todas tus Deals.
                 </p>
             </div>
 
@@ -260,7 +260,7 @@ export default function PortalPage() {
                     <div className="w-14 h-14 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
                         <Inbox className="h-7 w-7 text-zinc-400" />
                     </div>
-                    <h2 className="text-base font-semibold">Sin propuestas todavía</h2>
+                    <h2 className="text-base font-semibold">Sin Deals todavía</h2>
                     <p className="text-sm text-zinc-500 dark:text-zinc-400 max-w-xs">
                         Cuando tu freelancer te envíe una propuesta aparecerá aquí.
                     </p>
@@ -271,7 +271,7 @@ export default function PortalPage() {
             {activeDeals.length > 0 && (
                 <div className="space-y-3">
                     <p className="text-xs font-medium text-zinc-400 uppercase tracking-wider">
-                        Propuestas activas — {activeDeals.length}
+                        Deals activos — {activeDeals.length}
                     </p>
                     <div className="grid gap-3 sm:grid-cols-2">
                         {activeDeals.map((deal) => (

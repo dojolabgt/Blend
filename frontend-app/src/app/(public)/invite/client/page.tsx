@@ -229,9 +229,21 @@ function ClientInviteContent() {
                         <div>
                             <h1 className="text-lg font-semibold tracking-tight">Invitación de {workspaceName}</h1>
                             <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-                                Te invitan a acceder al portal de clientes como <strong>{user?.email}</strong>.
+                                Esta invitación es para <strong>{invite?.email}</strong>.
                             </p>
                         </div>
+                        {user?.email.toLowerCase() !== invite?.email.toLowerCase() && (
+                            <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-amber-500/[0.07] border border-amber-500/[0.2] text-left">
+                                <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+                                <p className="text-[13px] text-amber-600 dark:text-amber-400 leading-snug">
+                                    Estás loggeado como <strong>{user?.email}</strong>, pero la invitación es para otro correo.{' '}
+                                    <button className="underline font-medium" onClick={() => setPageState('login')}>
+                                        Cambia de cuenta
+                                    </button>
+                                    .
+                                </p>
+                            </div>
+                        )}
                         {fieldError && (
                             <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-red-500/[0.07] border border-red-500/[0.15] text-left">
                                 <AlertCircle className="h-4 w-4 text-red-400/70 mt-0.5 shrink-0" />
@@ -241,7 +253,7 @@ function ClientInviteContent() {
                         <Button
                             className="w-full rounded-xl h-11"
                             onClick={handleConfirm}
-                            disabled={isSubmitting}
+                            disabled={isSubmitting || user?.email.toLowerCase() !== invite?.email.toLowerCase()}
                         >
                             {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                             Aceptar invitación

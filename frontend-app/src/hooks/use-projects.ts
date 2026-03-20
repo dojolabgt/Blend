@@ -43,8 +43,8 @@ export function useProjects() {
         if (!activeWorkspace) return;
         setIsLoading(true);
         try {
-            const res = await api.get(`${base}?t=${Date.now()}`);
-            setProjects(res.data);
+            const res = await api.get(base);
+            setProjects(res.data?.data ?? []);
         } catch (err: unknown) {
             setError(getErrorMessage(err));
         } finally {
@@ -55,8 +55,8 @@ export function useProjects() {
     const fetchProject = useCallback(async (projectId: string) => {
         if (!activeWorkspace) return null;
         try {
-            const res = await api.get(`${base}/${projectId}?t=${Date.now()}`);
-            return res.data;
+            const res = await api.get(`${base}/${projectId}`);
+            return res.data?.data ?? res.data;
         } catch (err: unknown) {
             setError(getErrorMessage(err));
             return null;

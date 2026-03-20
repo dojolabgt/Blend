@@ -1,8 +1,10 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import ReactDOM from 'react-dom';
 import { useRouter } from 'next/navigation';
-import { Plus, ArrowRight, Handshake, Trash2 } from 'lucide-react';
+import { Plus, ArrowRight, Handshake, Trash2, ChevronDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { DashboardShell } from '@/components/layout/DashboardShell';
 import { useWorkspaceSettings } from '@/hooks/use-workspace-settings';
@@ -83,7 +85,7 @@ export default function DealsPage() {
         { label: t('deals.statusWon'), value: 'WON' as DealStatus },
         { label: t('deals.statusLost'), value: 'LOST' as DealStatus },
     ];
-    const { createDeal, deleteDeal, isLoading: isMutating } = useDeals();
+    const { createDeal, deleteDeal, updateDeal, isLoading: isMutating } = useDeals();
     const router = useRouter();
 
     const list = useListState<{ status: DealStatus | undefined }>({
@@ -166,7 +168,7 @@ export default function DealsPage() {
             key: 'name',
             header: t('deals.colDeal'),
             render: (deal) => {
-                const isShared = deal.workspace?.id !== activeWorkspace?.id;
+                const isShared = !!deal.workspace?.id && deal.workspace.id !== activeWorkspace?.id;
                 return (
                     <div>
                         <div className="flex items-center gap-2">
@@ -187,12 +189,25 @@ export default function DealsPage() {
         {
             key: 'status',
             header: t('deals.colStatus'),
-            render: (deal) => (
-                <StatusBadge
-                    status={deal.status as string ?? 'DRAFT'}
-                    label={STATUS_LABEL[(deal.status as string ?? 'DRAFT').toUpperCase()] ?? deal.status as string}
-                />
-            ),
+            render: (deal) => {
+                const isShared = !!deal.workspace?.id && deal.workspace.id !== activeWorkspace?.id;
+                return (
+                    <StatusSelect
+                        status={deal.status as string ?? 'DRAFT'}
+                        statusLabel={STATUS_LABEL}
+                        statusStyles={STATUS_STYLES}
+                        disabled={isShared}
+                        onSelect={async (newStatus) => {
+                            const updated = await updateDeal(deal.id, { status: newStatus });
+                            if (updated) {
+                                setDeals((prev) =>
+                                    prev.map((d) => d.id === deal.id ? { ...d, status: newStatus } : d)
+                                );
+                            }
+                        }}
+                    />
+                );
+            },
         },
         {
             key: 'total',
@@ -346,7 +361,7 @@ export default function DealsPage() {
                 }
                 onRowClick={(deal) => router.push(`/dashboard/deals/${deal.slug || deal.id}`)}
                 actions={(deal) => {
-                    const isShared = deal.workspace?.id !== activeWorkspace?.id;
+                    const isShared = !!deal.workspace?.id && deal.workspace.id !== activeWorkspace?.id;
                     if (isShared) return [];
                     return [
                         {
@@ -379,5 +394,92 @@ export default function DealsPage() {
                 </AlertDialogContent>
             </AlertDialog>
         </DashboardShell>
+    );
+}
+
+// ─── Inline status selector (same look as the sidebar, works inside the table) ──
+
+interface StatusSelectProps {
+    status: string;
+    statusLabel: Record<string, string>;
+    statusStyles: Record<string, string>;
+    disabled?: boolean;
+    onSelect: (status: DealStatus) => Promise<void>;
+}
+
+const STATUS_ORDER: DealStatus[] = ['DRAFT', 'SENT', 'VIEWED', 'NEGOTIATING', 'WON', 'LOST'];
+
+function StatusSelect({ status, statusLabel, statusStyles, disabled, onSelect }: StatusSelectProps) {
+    const [open, setOpen] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
+    const btnRef = React.useRef<HTMLButtonElement>(null);
+    const key = status?.toUpperCase() ?? 'DRAFT';
+
+    const handleOpen = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (btnRef.current) {
+            const rect = btnRef.current.getBoundingClientRect();
+            setDropdownPos({ top: rect.bottom + 4, left: rect.left });
+        }
+        setOpen((o) => !o);
+    };
+
+    const handleSelect = async (e: React.MouseEvent, value: DealStatus) => {
+        e.stopPropagation();
+        if (value === key) { setOpen(false); return; }
+        setLoading(true);
+        setOpen(false);
+        await onSelect(value);
+        setLoading(false);
+    };
+
+    return (
+        <div onClick={(e) => e.stopPropagation()}>
+            <button
+                ref={btnRef}
+                disabled={disabled || loading}
+                onClick={handleOpen}
+                className={cn(
+                    'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all',
+                    statusStyles[key] ?? statusStyles.DRAFT,
+                    !disabled && 'hover:opacity-80 cursor-pointer',
+                    disabled && 'cursor-default opacity-70',
+                )}
+            >
+                <span className="w-1.5 h-1.5 rounded-full bg-current shrink-0" />
+                {statusLabel[key] ?? key}
+                {!disabled && <ChevronDown className={cn('w-3 h-3 ml-0.5 transition-transform', open && 'rotate-180')} />}
+            </button>
+
+            {open && typeof window !== 'undefined' && ReactDOM.createPortal(
+                <>
+                    <div className="fixed inset-0 z-40" onClick={(e) => { e.stopPropagation(); setOpen(false); }} />
+                    <div
+                        className="fixed z-50 w-44 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xl overflow-hidden"
+                        style={{ top: dropdownPos.top, left: dropdownPos.left }}
+                    >
+                        {STATUS_ORDER.map((opt) => (
+                            <button
+                                key={opt}
+                                onClick={(e) => handleSelect(e, opt)}
+                                className={cn(
+                                    'w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-left transition-colors',
+                                    'hover:bg-zinc-50 dark:hover:bg-zinc-800',
+                                    opt === key && 'bg-zinc-50 dark:bg-zinc-800',
+                                )}
+                            >
+                                <span className={cn('inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md', statusStyles[opt] ?? statusStyles.DRAFT)}>
+                                    <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                                    {statusLabel[opt] ?? opt}
+                                </span>
+                                {opt === key && <span className="ml-auto text-zinc-400">✓</span>}
+                            </button>
+                        ))}
+                    </div>
+                </>,
+                document.body,
+            )}
+        </div>
     );
 }

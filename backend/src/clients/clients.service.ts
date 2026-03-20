@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
@@ -120,6 +121,7 @@ export class ClientsService {
   async inviteToPortal(
     workspaceId: string,
     clientId: string,
+    sendEmail = true,
   ): Promise<{ magicLink: string }> {
     const client = await this.clientRepo.findOne({
       where: { id: clientId, workspaceId },
@@ -145,15 +147,16 @@ export class ClientsService {
     );
     const magicLink = `${appUrl}/invite/client?token=${token}`;
 
-    // Send email (always — "si o si")
-    try {
-      await this.mailService.sendClientInvite(
-        client,
-        client.workspace,
-        magicLink,
-      );
-    } catch {
-      // Log but don't fail — magic link is still returned for WhatsApp sharing
+    if (sendEmail) {
+      try {
+        await this.mailService.sendClientInvite(
+          client,
+          client.workspace,
+          magicLink,
+        );
+      } catch {
+        // Log but don't fail — magic link is still returned
+      }
     }
 
     return { magicLink };
@@ -268,6 +271,14 @@ export class ClientsService {
       throw new BadRequestException('Esta invitación ha expirado');
 
     const { client } = invite;
+
+    // Verify the authenticated user's email matches the invited client's email
+    const user = await this.usersService.findOneById(userId);
+    if (!user || user.email.toLowerCase() !== client.email.toLowerCase()) {
+      throw new ForbiddenException(
+        'Esta invitación es para otro correo electrónico.',
+      );
+    }
 
     const existing = await this.workspaceMemberRepo.findOne({
       where: { userId, workspaceId: client.workspaceId },

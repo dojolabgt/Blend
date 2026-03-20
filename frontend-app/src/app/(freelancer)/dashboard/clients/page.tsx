@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Users, UserPlus, Mail, Phone, Building2, User, Edit2, Trash2, Send } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ClientModal } from './_components/ClientModal';
+import { InvitePortalDialog } from './_components/InvitePortalDialog';
 import { toast } from 'sonner';
 import { useWorkspaceSettings } from '@/hooks/use-workspace-settings';
 import { DataTable, ColumnDef } from '@/components/common/DataTable';
@@ -34,6 +35,7 @@ export default function ClientsPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [modalOpen, setModalOpen] = useState(false);
     const [editingClient, setEditingClient] = useState<Client | null>(null);
+    const [inviteClient, setInviteClient] = useState<Client | null>(null);
 
     const loadClients = useCallback(async () => {
         setIsLoading(true);
@@ -73,19 +75,12 @@ export default function ClientsPage() {
         setModalOpen(true);
     };
 
-    const handleInvite = async (client: Client) => {
+    const handleInvite = (client: Client) => {
         if (client.linkedUserId) {
             toast.info(t('clients.alreadyLinked') || 'Este cliente ya tiene cuenta en el portal');
             return;
         }
-        try {
-            await clientsApi.inviteToPortal(client.id);
-            toast.success(
-                (t('clients.inviteSuccess') || 'Invitación enviada a {email}').replace('{email}', client.email)
-            );
-        } catch {
-            toast.error(t('clients.inviteError') || 'Error al enviar la invitación');
-        }
+        setInviteClient(client);
     };
 
     const columns: ColumnDef<Client>[] = [
@@ -243,6 +238,11 @@ export default function ClientsPage() {
                 onOpenChange={setModalOpen}
                 onSuccess={loadClients}
                 initialData={editingClient ?? undefined}
+            />
+            <InvitePortalDialog
+                client={inviteClient}
+                open={!!inviteClient}
+                onOpenChange={(open) => !open && setInviteClient(null)}
             />
         </DashboardShell>
     );

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { FolderKanban } from 'lucide-react';
+import { FolderKanban, Plus } from 'lucide-react';
 import { DashboardShell } from '@/components/layout/DashboardShell';
 import { projectsApi } from '@/features/projects/api';
 import { useAuth } from '@/features/auth/hooks/useAuth';
@@ -12,8 +12,8 @@ import { useListState } from '@/hooks/use-list-state';
 import { AppSearch } from '@/components/common/AppSearch';
 import { AppFilterTabs, FilterOption } from '@/components/common/AppFilterTabs';
 import { AppPagination } from '@/components/common/AppPagination';
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+import { Button } from '@/components/ui/button';
+import { CreateProjectDialog } from './_components/CreateProjectDialog';
 
 type ProjectStatus = 'ACTIVE' | 'COMPLETED';
 
@@ -37,17 +37,18 @@ interface ProjectItem {
     status: string;
     workspace?: { id: string; name?: string; businessName?: string };
     deal?: { client?: { name?: string } };
+    client?: { name?: string };
     collaborators?: unknown[];
     createdAt: string;
     [key: string]: unknown;
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
-
 export default function ProjectsPage() {
     const { activeWorkspace } = useAuth();
     const { t } = useWorkspaceSettings();
     const router = useRouter();
+
+    const [showCreate, setShowCreate] = useState(false);
 
     const STATUS_LABEL: Record<string, string> = {
         ACTIVE: t('projects.statusActive'),
@@ -86,14 +87,16 @@ export default function ProjectsPage() {
         loadProjects();
     }, [loadProjects]);
 
-    const getClientName = (project: ProjectItem) => project.deal?.client?.name ?? '—';
+    const getClientName = (project: ProjectItem) =>
+        project.deal?.client?.name ?? project.client?.name ?? '—';
 
     const columns: ColumnDef<ProjectItem>[] = [
         {
             key: 'name',
             header: t('projects.colProject'),
             render: (project) => {
-                const isShared = project.workspace?.id !== activeWorkspace?.id;
+                const isShared =
+                    !!project.workspace?.id && project.workspace.id !== activeWorkspace?.id;
                 return (
                     <div>
                         <div className="flex items-center gap-2">
@@ -102,7 +105,13 @@ export default function ProjectsPage() {
                             </div>
                             {isShared && (
                                 <span className="px-1.5 py-0.5 rounded text-[10px] whitespace-nowrap font-medium bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400">
-                                    {t('projects.sharedFrom')} {project.workspace?.businessName || project.workspace?.name || '—'}
+                                    {t('projects.sharedFrom')}{' '}
+                                    {project.workspace?.businessName || project.workspace?.name || '—'}
+                                </span>
+                            )}
+                            {!project.deal && (
+                                <span className="px-1.5 py-0.5 rounded text-[10px] whitespace-nowrap font-medium bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400">
+                                    {t('projects.standaloneTag')}
                                 </span>
                             )}
                         </div>
@@ -117,7 +126,9 @@ export default function ProjectsPage() {
             render: (project) => (
                 <StatusBadge
                     status={project.status ?? 'ACTIVE'}
-                    label={STATUS_LABEL[(project.status ?? 'ACTIVE').toUpperCase()] ?? project.status}
+                    label={
+                        STATUS_LABEL[(project.status ?? 'ACTIVE').toUpperCase()] ?? project.status
+                    }
                 />
             ),
         },
@@ -126,7 +137,7 @@ export default function ProjectsPage() {
             header: t('projects.colCollaborators'),
             render: (project) => (
                 <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                    {project.collaborators?.length || 0}
+                    {(project.collaborators as unknown[])?.length || 0}
                 </span>
             ),
         },
@@ -135,7 +146,7 @@ export default function ProjectsPage() {
             header: t('projects.colDate'),
             render: (project) => (
                 <span className="text-sm text-muted-foreground">
-                    {new Date(project.createdAt).toLocaleDateString('es-GT')}
+                    {new Date(project.createdAt).toLocaleDateString()}
                 </span>
             ),
         },
@@ -146,10 +157,12 @@ export default function ProjectsPage() {
             <div className="flex justify-between items-center mb-6">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight">{t('projects.title')}</h1>
-                    <p className="text-muted-foreground mt-1">
-                        {t('projects.titleDesc')}
-                    </p>
+                    <p className="text-muted-foreground mt-1">{t('projects.titleDesc')}</p>
                 </div>
+                <Button size="sm" onClick={() => setShowCreate(true)}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    {t('projects.createBtn')}
+                </Button>
             </div>
 
             <DataTable
@@ -184,6 +197,12 @@ export default function ProjectsPage() {
                     />
                 }
                 onRowClick={(project) => router.push(`/dashboard/projects/${project.id}`)}
+            />
+
+            <CreateProjectDialog
+                open={showCreate}
+                onClose={() => setShowCreate(false)}
+                onCreated={loadProjects}
             />
         </DashboardShell>
     );

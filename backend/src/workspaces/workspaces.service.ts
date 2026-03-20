@@ -76,7 +76,7 @@ export class WorkspacesService {
     this.logger.log(
       `Updating workspace ${id} with data: ${JSON.stringify(data)}`,
     );
-    await this.workspacesRepository.update(id, data);
+    await this.workspacesRepository.update(id, data as Parameters<typeof this.workspacesRepository.update>[1]);
     return this.getWorkspaceById(id);
   }
 
