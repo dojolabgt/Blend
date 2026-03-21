@@ -44,10 +44,10 @@ import { GoogleDriveModule } from './google-drive/google-drive.module';
         DATABASE_NAME: Joi.string().required(),
         JWT_SECRET: Joi.string().required(),
         JWT_REFRESH_SECRET: Joi.string().required(),
-        SEED_ADMIN_EMAIL: Joi.string().email().optional(),
-        SEED_ADMIN_PASSWORD: Joi.string().optional(),
-        SEED_FREELANCER_EMAIL: Joi.string().email().optional(),
-        SEED_FREELANCER_PASSWORD: Joi.string().optional(),
+        SEED_ADMIN_EMAIL: Joi.string().email().optional().allow(''),
+        SEED_ADMIN_PASSWORD: Joi.string().optional().allow(''),
+        SEED_FREELANCER_EMAIL: Joi.string().email().optional().allow(''),
+        SEED_FREELANCER_PASSWORD: Joi.string().optional().allow(''),
         STORAGE_TYPE: Joi.string()
           .valid('local', 's3', 'cloudinary')
           .default('local'),

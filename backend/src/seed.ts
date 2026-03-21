@@ -14,19 +14,21 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
 
   // All credentials come from env — easy to configure per environment
-  const adminEmail = configService.getOrThrow<string>('SEED_ADMIN_EMAIL');
-  const adminPassword = configService.getOrThrow<string>('SEED_ADMIN_PASSWORD');
+  const adminEmail = configService.get<string>('SEED_ADMIN_EMAIL');
+  const adminPassword = configService.get<string>('SEED_ADMIN_PASSWORD');
   const freelancerEmail = configService.get<string>('SEED_FREELANCER_EMAIL');
   const freelancerPassword = configService.get<string>('SEED_FREELANCER_PASSWORD');
 
   const users = [
-    {
-      email: adminEmail,
-      password: adminPassword,
-      firstName: 'Krew',
-      lastName: 'Admin',
-      role: UserRole.ADMIN,
-    },
+    ...(adminEmail && adminPassword
+      ? [{
+          email: adminEmail,
+          password: adminPassword,
+          firstName: 'Krew',
+          lastName: 'Admin',
+          role: UserRole.ADMIN,
+        }]
+      : []),
     ...(freelancerEmail && freelancerPassword
       ? [{
           email: freelancerEmail,
