@@ -1,10 +1,4 @@
 services:
-  redis:
-    image: redis:7-alpine
-    restart: unless-stopped
-    expose:
-      - "6379"
-
   mailer:
     build:
       context: ./mailer
@@ -12,14 +6,12 @@ services:
     restart: unless-stopped
     env_file: .env
     environment:
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=${REDIS_URL}
       - REDIS_QUEUE_NAME=${REDIS_QUEUE_NAME:-email_queue}
       - MAIL_FROM=${MAIL_FROM}
       - MAIL_PROVIDERS=${MAIL_PROVIDERS:-resend,brevo}
       - RESEND_API_KEY=${RESEND_API_KEY}
       - BREVO_API_KEY=${BREVO_API_KEY}
-    depends_on:
-      - redis
 
   pdf-worker:
     build:
@@ -28,13 +20,11 @@ services:
     restart: unless-stopped
     env_file: .env
     environment:
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=${REDIS_URL}
       - PDF_JOBS_QUEUE=${PDF_JOBS_QUEUE:-pdf_jobs}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
       - GOOGLE_REDIRECT_URI=${GOOGLE_REDIRECT_URI}
-    depends_on:
-      - redis
 
   frontend:
     build:
@@ -113,7 +103,7 @@ services:
       - SEED_ADMIN_PASSWORD=${SEED_ADMIN_PASSWORD}
       - SEED_FREELANCER_EMAIL=${SEED_FREELANCER_EMAIL}
       - SEED_FREELANCER_PASSWORD=${SEED_FREELANCER_PASSWORD}
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=${REDIS_URL}
       - REDIS_QUEUE_NAME=${REDIS_QUEUE_NAME:-email_queue}
       - PDF_JOBS_QUEUE=${PDF_JOBS_QUEUE:-pdf_jobs}
       - NEXT_PUBLIC_GOOGLE_CLIENT_ID=${NEXT_PUBLIC_GOOGLE_CLIENT_ID}
@@ -127,8 +117,6 @@ services:
       - BILLING_PRO_YEARLY_CENTS=${BILLING_PRO_YEARLY_CENTS}
       - BILLING_PREMIUM_MONTHLY_CENTS=${BILLING_PREMIUM_MONTHLY_CENTS}
       - BILLING_PREMIUM_YEARLY_CENTS=${BILLING_PREMIUM_YEARLY_CENTS}
-    depends_on:
-      - redis
     volumes:
       - uploads:/app/uploads
     restart: unless-stopped
