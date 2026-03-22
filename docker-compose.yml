@@ -136,4 +136,4 @@ volumes:
 networks:
   redis-net:
     external: true
-    name: hikrew-hikrewredis-dy1viy
+    name: dokploy-network
