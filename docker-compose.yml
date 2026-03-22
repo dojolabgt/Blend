@@ -12,6 +12,8 @@ services:
       - MAIL_PROVIDERS=${MAIL_PROVIDERS:-resend,brevo}
       - RESEND_API_KEY=${RESEND_API_KEY}
       - BREVO_API_KEY=${BREVO_API_KEY}
+    networks:
+      - dokploy-network
 
   pdf-worker:
     build:
@@ -25,6 +27,8 @@ services:
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
       - GOOGLE_REDIRECT_URI=${GOOGLE_REDIRECT_URI}
+    networks:
+      - dokploy-network
 
   frontend:
     build:
@@ -126,4 +130,8 @@ services:
 
 volumes:
   uploads:
+
+networks:
+  dokploy-network:
+    external: true
 
