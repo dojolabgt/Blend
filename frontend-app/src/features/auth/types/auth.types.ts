@@ -19,6 +19,7 @@ export interface AuthState {
     user: User | null;
     activeWorkspaceId: string | null;
     activeWorkspace: Workspace | null;
+    activeWorkspaceRole: 'owner' | 'collaborator' | 'guest' | 'client' | null;
     isLoading: boolean;
     error: string | null;
 }

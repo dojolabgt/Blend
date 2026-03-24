@@ -46,3 +46,18 @@ export interface WorkspaceMember {
     createdAt: string;
     updatedAt: string;
 }
+
+/** Member with user details — returned by GET /workspaces/current/members */
+export interface WorkspaceMemberItem {
+    id: string;
+    userId: string;
+    workspaceId: string;
+    role: 'owner' | 'collaborator' | 'guest' | 'client';
+    user: {
+        id: string;
+        firstName: string;
+        lastName: string;
+        email: string;
+    };
+    createdAt: string;
+}

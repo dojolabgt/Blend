@@ -5,7 +5,11 @@ import {
   UseGuards,
   Patch,
   Post,
+  Delete,
   Body,
+  Param,
+  HttpCode,
+  HttpStatus,
   UploadedFile,
   UseInterceptors,
   ParseFilePipe,
@@ -91,5 +95,32 @@ export class WorkspacesController {
     @Body() body: UpdateRecurrenteKeysDto,
   ) {
     return this.workspacesService.updateRecurrenteKeys(req.workspaceId, body);
+  }
+
+  // ─── Members ──────────────────────────────────────────────────────────────
+
+  @Get('current/members')
+  @UseGuards(WorkspaceGuard)
+  getMembers(@Req() req: AuthRequest) {
+    return this.workspacesService.getMembers(req.workspaceId);
+  }
+
+  @Post('current/members/invite')
+  @UseGuards(WorkspaceGuard)
+  inviteMember(
+    @Req() req: AuthRequest,
+    @Body() body: { email: string },
+  ) {
+    return this.workspacesService.inviteMember(req.workspaceId, body.email);
+  }
+
+  @Delete('current/members/:memberId')
+  @UseGuards(WorkspaceGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  removeMember(
+    @Req() req: AuthRequest,
+    @Param('memberId') memberId: string,
+  ) {
+    return this.workspacesService.removeMember(req.workspaceId, memberId);
   }
 }

@@ -96,6 +96,20 @@ export class MailService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
+  async sendWorkspaceMemberInvite(user: User, workspace: Workspace) {
+    const dashboardUrl = this.config.get<string>('NEXT_PUBLIC_DASHBOARD_URL');
+    await this.enqueue({
+      template: 'workspace-member-invite',
+      to: user.email,
+      subject: `${workspace.businessName} te ha añadido a su equipo en Hi Krew`,
+      data: {
+        firstName: user.firstName,
+        workspaceName: workspace.businessName,
+        dashboardUrl,
+      },
+    });
+  }
+
   async sendConnectionInvite(
     email: string,
     workspaceName: string,

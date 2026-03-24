@@ -1,5 +1,5 @@
 import api from '@/lib/api';
-import type { Workspace } from './types';
+import type { Workspace, WorkspaceMemberItem } from './types';
 import type { DriveFile } from '@/features/projects/driveApi';
 
 export const workspacesApi = {
@@ -55,4 +55,15 @@ export const workspacesApi = {
 
     deleteDriveFile: (fileId: string): Promise<void> =>
         api.delete(`/workspaces/current/google-drive/files/${fileId}`).then(res => res.data),
+
+    // ─── Members ──────────────────────────────────────────────────────────────
+
+    getMembers: (): Promise<WorkspaceMemberItem[]> =>
+        api.get('/workspaces/current/members').then(res => res.data),
+
+    inviteMember: (email: string): Promise<WorkspaceMemberItem> =>
+        api.post('/workspaces/current/members/invite', { email }).then(res => res.data),
+
+    removeMember: (memberId: string): Promise<void> =>
+        api.delete(`/workspaces/current/members/${memberId}`).then(() => undefined),
 };

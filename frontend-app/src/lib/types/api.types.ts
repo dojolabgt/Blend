@@ -11,6 +11,7 @@ export interface User {
     role: UserRole;
     firstName: string;
     lastName: string;
+    isActive: boolean;
     status: 'active' | 'inactive';
     profileImage?: string;
     authProviders?: string[]; // e.g. ['password', 'google']

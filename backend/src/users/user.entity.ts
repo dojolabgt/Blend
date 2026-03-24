@@ -42,6 +42,9 @@ export class User {
   @Column({ nullable: true })
   profileImage: string;
 
+  @Column({ type: 'boolean', default: true })
+  isActive: boolean;
+
   @OneToMany(() => WorkspaceMember, (member) => member.user)
   workspaceMembers: WorkspaceMember[];
 

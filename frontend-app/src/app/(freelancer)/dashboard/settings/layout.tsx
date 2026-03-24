@@ -9,7 +9,8 @@ import {
     FileDigit,
     MapPin,
     Shield,
-    Puzzle
+    Puzzle,
+    Users,
 } from 'lucide-react';
 
 import { useWorkspaceSettings } from '@/hooks/use-workspace-settings';
@@ -25,6 +26,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
                 { href: '/dashboard/settings/security', label: t('settingsLayout.security'), icon: Shield },
                 { href: '/dashboard/settings/branding', label: t('settingsLayout.branding'), icon: Palette },
                 { href: '/dashboard/settings/localization', label: t('settingsLayout.localization'), icon: MapPin },
+                { href: '/dashboard/settings/team', label: 'Equipo', icon: Users },
             ]
         },
         {

@@ -16,6 +16,7 @@ import { Client } from '../../clients/client.entity';
 import { ProjectStatus } from '../enums/project-status.enum';
 import { ProjectCollaborator } from './project-collaborator.entity';
 import { ProjectBrief } from './project-brief.entity';
+import { ProjectTask } from './project-task.entity';
 
 @Entity('projects')
 export class Project {
@@ -88,6 +89,9 @@ export class Project {
 
   @OneToMany(() => ProjectBrief, (b) => b.project, { cascade: true })
   briefs: ProjectBrief[];
+
+  @OneToMany(() => ProjectTask, (t) => t.project, { cascade: true })
+  tasks: ProjectTask[];
 
   // ─── Google Drive ──────────────────────────────────────────────────────────
 

@@ -23,6 +23,12 @@ import {
 import { ProjectsQueryDto } from './dto/projects-query.dto';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { CreateProjectBriefDto, UpdateProjectBriefDto } from './dto/create-project-brief.dto';
+import {
+  CreateTaskDto,
+  UpdateTaskDto,
+  ReorderTasksDto,
+  CreateTaskCommentDto,
+} from './dto/task.dto';
 
 @Controller('workspaces/:workspaceId/projects')
 @UseGuards(JwtAuthGuard)
@@ -203,5 +209,94 @@ export class ProjectsController {
     @Param('splitId') splitId: string,
   ) {
     return this.projectsService.deleteMilestoneSplit(workspaceId, projectId, milestoneId, splitId);
+  }
+
+  // ─── Tasks ─────────────────────────────────────────────────────────────────
+
+  @Get(':id/tasks/assignables')
+  getTaskAssignables(
+    @Param('workspaceId') workspaceId: string,
+    @Param('id') projectId: string,
+  ) {
+    return this.projectsService.getTaskAssignables(workspaceId, projectId);
+  }
+
+  @Get(':id/tasks')
+  getTasks(
+    @Param('workspaceId') workspaceId: string,
+    @Param('id') projectId: string,
+  ) {
+    return this.projectsService.getTasks(workspaceId, projectId);
+  }
+
+  @Post(':id/tasks')
+  createTask(
+    @Param('workspaceId') workspaceId: string,
+    @Param('id') projectId: string,
+    @Body() dto: CreateTaskDto,
+  ) {
+    return this.projectsService.createTask(workspaceId, projectId, dto);
+  }
+
+  @Patch(':id/tasks/reorder')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  reorderTasks(
+    @Param('workspaceId') workspaceId: string,
+    @Param('id') projectId: string,
+    @Body() dto: ReorderTasksDto,
+  ) {
+    return this.projectsService.reorderTasks(workspaceId, projectId, dto);
+  }
+
+  @Patch(':id/tasks/:taskId')
+  updateTask(
+    @Param('workspaceId') workspaceId: string,
+    @Param('id') projectId: string,
+    @Param('taskId') taskId: string,
+    @Body() dto: UpdateTaskDto,
+  ) {
+    return this.projectsService.updateTask(workspaceId, projectId, taskId, dto);
+  }
+
+  @Delete(':id/tasks/:taskId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  deleteTask(
+    @Param('workspaceId') workspaceId: string,
+    @Param('id') projectId: string,
+    @Param('taskId') taskId: string,
+  ) {
+    return this.projectsService.deleteTask(workspaceId, projectId, taskId);
+  }
+
+  // ─── Task Comments ─────────────────────────────────────────────────────────
+
+  @Get(':id/tasks/:taskId/comments')
+  getTaskComments(
+    @Param('workspaceId') workspaceId: string,
+    @Param('id') projectId: string,
+    @Param('taskId') taskId: string,
+  ) {
+    return this.projectsService.getTaskComments(workspaceId, projectId, taskId);
+  }
+
+  @Post(':id/tasks/:taskId/comments')
+  createTaskComment(
+    @Param('workspaceId') workspaceId: string,
+    @Param('id') projectId: string,
+    @Param('taskId') taskId: string,
+    @Body() dto: CreateTaskCommentDto,
+  ) {
+    return this.projectsService.createTaskComment(workspaceId, projectId, taskId, dto);
+  }
+
+  @Delete(':id/tasks/:taskId/comments/:commentId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  deleteTaskComment(
+    @Param('workspaceId') workspaceId: string,
+    @Param('id') projectId: string,
+    @Param('taskId') taskId: string,
+    @Param('commentId') commentId: string,
+  ) {
+    return this.projectsService.deleteTaskComment(workspaceId, projectId, taskId, commentId);
   }
 }

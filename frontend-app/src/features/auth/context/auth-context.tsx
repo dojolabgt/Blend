@@ -35,6 +35,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [activeWorkspaceId, setActiveWorkspaceId] = useState<string | null>(null);
     const [activeWorkspace, setActiveWorkspace] = useState<Workspace | null>(null);
+    const [activeWorkspaceRole, setActiveWorkspaceRole] = useState<'owner' | 'collaborator' | 'guest' | 'client' | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -54,6 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         setActiveWorkspaceId(workspaceData.workspaceId);
         setActiveWorkspace(workspaceData.workspace);
+        setActiveWorkspaceRole(workspaceData.role as 'owner' | 'collaborator' | 'guest' | 'client');
     };
 
     const switchWorkspace = (workspaceId: string) => {
@@ -62,12 +64,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const workspaceData = user.workspaceMembers.find(wm => wm.workspaceId === workspaceId);
         if (workspaceData) {
             localStorage.setItem('activeWorkspaceId', workspaceId);
-            setActiveWorkspaceId(workspaceId);
-            setActiveWorkspace(workspaceData.workspace);
-
-            // Reload page or re-fetch queries depending on routing implementation
-            // Using straight push/refresh to reload data context globally.
-            router.refresh();
+            // Full page reload so all client components re-fetch with the new workspace context
+            window.location.assign('/dashboard');
         }
     };
 
@@ -89,6 +87,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUser(null);
             setActiveWorkspace(null);
             setActiveWorkspaceId(null);
+            setActiveWorkspaceRole(null);
         } finally {
             setIsLoading(false);
         }
@@ -105,6 +104,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUser(null);
             setActiveWorkspace(null);
             setActiveWorkspaceId(null);
+            setActiveWorkspaceRole(null);
             localStorage.removeItem('activeWorkspaceId');
             router.push('/login');
         };
@@ -175,6 +175,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUser(null);
             setActiveWorkspace(null);
             setActiveWorkspaceId(null);
+            setActiveWorkspaceRole(null);
             localStorage.removeItem('activeWorkspaceId');
             router.push('/login');
             setIsLoading(false);
@@ -189,6 +190,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 user,
                 activeWorkspaceId,
                 activeWorkspace,
+                activeWorkspaceRole,
                 isLoading,
                 error,
                 login,

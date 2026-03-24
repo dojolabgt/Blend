@@ -2,16 +2,19 @@ import {
   Injectable,
   BadRequestException,
   NotFoundException,
+  ForbiddenException,
   Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Workspace } from './workspace.entity';
 import { WorkspaceMember, WorkspaceRole } from './workspace-member.entity';
+import { User } from '../users/user.entity';
 import { EncryptionService } from '../common/encryption/encryption.service';
 import { StorageService } from '../storage/storage.service';
 import { storageConfig } from '../storage/storage.config';
 import { PlanLimitsService } from '../billing/plan-limits.service';
+import { MailService } from '../core/mail/mail.service';
 
 export interface UpdateRecurrenteKeysDto {
   publicKey: string;
@@ -25,9 +28,12 @@ export class WorkspacesService {
     private workspacesRepository: Repository<Workspace>,
     @InjectRepository(WorkspaceMember)
     private workspaceMembersRepository: Repository<WorkspaceMember>,
+    @InjectRepository(User)
+    private usersRepository: Repository<User>,
     private readonly encryptionService: EncryptionService,
     private readonly storageService: StorageService,
     private readonly planLimits: PlanLimitsService,
+    private readonly mailService: MailService,
   ) {}
 
   async createDefaultWorkspace(userId: string): Promise<Workspace> {
@@ -128,6 +134,63 @@ export class WorkspacesService {
       recurrentePublicKey: encryptedPublic,
       recurrentePrivateKey: encryptedPrivate,
     });
+  }
+
+  // ─── Workspace Members ────────────────────────────────────────────────────
+
+  async getMembers(workspaceId: string): Promise<WorkspaceMember[]> {
+    return this.workspaceMembersRepository.find({
+      where: { workspaceId },
+      relations: ['user'],
+      order: { createdAt: 'ASC' },
+    });
+  }
+
+  async inviteMember(workspaceId: string, email: string): Promise<WorkspaceMember> {
+    const workspace = await this.getWorkspaceById(workspaceId);
+
+    // Premium-only feature
+    this.planLimits.assertNumericLimit(
+      workspace.plan,
+      'workspaceMembers',
+      await this.workspaceMembersRepository.count({ where: { workspaceId } }),
+    );
+
+    const user = await this.usersRepository.findOne({ where: { email } });
+    if (!user) throw new NotFoundException('No existe una cuenta con ese correo electrónico.');
+
+    const existing = await this.workspaceMembersRepository.findOne({
+      where: { workspaceId, userId: user.id },
+    });
+    if (existing) throw new BadRequestException('Este usuario ya es miembro del workspace.');
+
+    const member = this.workspaceMembersRepository.create({
+      workspaceId,
+      userId: user.id,
+      role: WorkspaceRole.COLLABORATOR,
+    });
+    const saved = await this.workspaceMembersRepository.save(member);
+
+    // Notify via email (fire & forget)
+    this.mailService
+      .sendWorkspaceMemberInvite(user, workspace)
+      .catch((err) => this.logger.error('Failed to send member invite email', err));
+
+    return this.workspaceMembersRepository.findOne({
+      where: { id: saved.id },
+      relations: ['user'],
+    }) as Promise<WorkspaceMember>;
+  }
+
+  async removeMember(workspaceId: string, memberId: string): Promise<void> {
+    const member = await this.workspaceMembersRepository.findOne({
+      where: { id: memberId, workspaceId },
+    });
+    if (!member) throw new NotFoundException('Member not found');
+    if (member.role === WorkspaceRole.OWNER) {
+      throw new ForbiddenException('No puedes eliminar al propietario del workspace.');
+    }
+    await this.workspaceMembersRepository.remove(member);
   }
 
   async getRecurrenteStatus(id: string): Promise<{ configured: boolean }> {

@@ -6,7 +6,11 @@ import { ProjectsService } from './projects.service';
 import { Project } from './entities/project.entity';
 import { ProjectBrief } from './entities/project-brief.entity';
 import { ProjectCollaborator } from './entities/project-collaborator.entity';
+import { ProjectTask } from './entities/project-task.entity';
+import { ProjectTaskComment } from './entities/project-task-comment.entity';
 import { Workspace } from '../workspaces/workspace.entity';
+import { WorkspaceMember } from '../workspaces/workspace-member.entity';
+import { User } from '../users/user.entity';
 import { Deal } from '../deals/entities/deal.entity';
 import { Brief } from '../deals/entities/brief.entity';
 import { Quotation } from '../deals/entities/quotation.entity';
@@ -23,7 +27,11 @@ import { BriefTemplate } from '../deals/entities/brief-template.entity';
       Project,
       ProjectBrief,
       ProjectCollaborator,
+      ProjectTask,
+      ProjectTaskComment,
       Workspace,
+      WorkspaceMember,
+      User,
       Deal,
       Brief,
       Quotation,

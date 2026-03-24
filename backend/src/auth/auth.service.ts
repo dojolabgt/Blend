@@ -131,6 +131,9 @@ export class AuthService {
   ): Promise<AuthenticatedUser | null> {
     const user = await this.usersService.findOneByEmailWithPassword(email);
     if (user && user.password && (await bcrypt.compare(pass, user.password))) {
+      if (user.isActive === false) {
+        throw new ForbiddenException('account_disabled');
+      }
       return this.mapToAuthenticatedUser(user);
     }
     return null;
@@ -220,6 +223,10 @@ export class AuthService {
         );
         user = await this.usersService.findOneById(newUser.id);
       }
+    }
+
+    if (user!.isActive === false) {
+      throw new ForbiddenException('account_disabled');
     }
 
     const authenticatedUser = this.mapToAuthenticatedUser(user!);

@@ -68,6 +68,7 @@ export class UsersService {
         'lastName',
         'role',
         'profileImage',
+        'isActive',
         'createdAt',
         'updatedAt',
         'refreshToken',
@@ -92,6 +93,7 @@ export class UsersService {
         'lastName',
         'role',
         'profileImage',
+        'isActive',
         'createdAt',
         'updatedAt',
         'refreshToken',
@@ -124,6 +126,7 @@ export class UsersService {
         lastName: true,
         role: true,
         profileImage: true,
+        isActive: true,
         createdAt: true,
         updatedAt: true,
         workspaceMembers: {
@@ -158,6 +161,15 @@ export class UsersService {
     }
     await this.usersRepository.update(id, dataToUpdate);
     return this.findOneById(id) as Promise<User>;
+  }
+
+  async setUserActiveStatus(id: string, isActive: boolean): Promise<{ isActive: boolean }> {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    await this.usersRepository.update(id, { isActive });
+    return { isActive };
   }
 
   async changePassword(

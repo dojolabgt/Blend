@@ -37,6 +37,17 @@ import {
   UpdateProjectBriefDto,
 } from './dto/create-project-brief.dto';
 import { paginate, PaginatedResponse } from '../common/dto/pagination.dto';
+import { ProjectTask } from './entities/project-task.entity';
+import { ProjectTaskComment } from './entities/project-task-comment.entity';
+import { TaskStatus } from './enums/task-status.enum';
+import { WorkspaceMember } from '../workspaces/workspace-member.entity';
+import { User } from '../users/user.entity';
+import {
+  CreateTaskDto,
+  UpdateTaskDto,
+  ReorderTasksDto,
+  CreateTaskCommentDto,
+} from './dto/task.dto';
 
 @Injectable()
 export class ProjectsService {
@@ -67,6 +78,12 @@ export class ProjectsService {
     private readonly quotationItemsRepository: Repository<QuotationItem>,
     @InjectRepository(Client)
     private readonly clientsRepository: Repository<Client>,
+    @InjectRepository(ProjectTask)
+    private readonly tasksRepository: Repository<ProjectTask>,
+    @InjectRepository(ProjectTaskComment)
+    private readonly taskCommentsRepository: Repository<ProjectTaskComment>,
+    @InjectRepository(WorkspaceMember)
+    private readonly workspaceMembersRepository: Repository<WorkspaceMember>,
     private readonly pdfService: PdfService,
     private readonly planLimits: PlanLimitsService,
   ) {}
@@ -671,5 +688,196 @@ export class ProjectsService {
     });
 
     return { queued: true, pendingBriefs: pendingProjectBriefs.length };
+  }
+
+  // ─── Tasks ─────────────────────────────────────────────────────────────────
+
+  async getTasks(workspaceId: string, projectId: string): Promise<ProjectTask[]> {
+    await this.assertProjectAccess(workspaceId, projectId);
+    return this.tasksRepository.find({
+      where: { projectId },
+      relations: ['assigneeWorkspace', 'assigneeUser'],
+      order: { status: 'ASC', position: 'ASC' },
+    });
+  }
+
+  async createTask(workspaceId: string, projectId: string, dto: CreateTaskDto): Promise<ProjectTask> {
+    await this.assertProjectAccess(workspaceId, projectId);
+
+    // Assign position at end of the column
+    const maxPositionResult = await this.tasksRepository
+      .createQueryBuilder('t')
+      .select('MAX(t.position)', 'max')
+      .where('t.projectId = :projectId AND t.status = :status', {
+        projectId,
+        status: dto.status ?? TaskStatus.TODO,
+      })
+      .getRawOne<{ max: number | null }>();
+
+    const position = (maxPositionResult?.max ?? 0) + 1000;
+
+    const task = this.tasksRepository.create({
+      projectId,
+      title: dto.title,
+      description: dto.description ?? null,
+      status: dto.status ?? TaskStatus.TODO,
+      priority: dto.priority,
+      dueDate: dto.dueDate ?? null,
+      assigneeWorkspaceId: dto.assigneeWorkspaceId ?? null,
+      assigneeUserId: dto.assigneeUserId ?? null,
+      position,
+    });
+
+    const saved = await this.tasksRepository.save(task);
+    return this.tasksRepository.findOne({
+      where: { id: saved.id },
+      relations: ['assigneeWorkspace', 'assigneeUser'],
+    }) as Promise<ProjectTask>;
+  }
+
+  async updateTask(workspaceId: string, projectId: string, taskId: string, dto: UpdateTaskDto): Promise<ProjectTask> {
+    await this.assertProjectAccess(workspaceId, projectId);
+
+    const task = await this.tasksRepository.findOne({ where: { id: taskId, projectId } });
+    if (!task) throw new NotFoundException('Task not found');
+
+    Object.assign(task, {
+      ...(dto.title !== undefined && { title: dto.title }),
+      ...(dto.description !== undefined && { description: dto.description }),
+      ...(dto.status !== undefined && { status: dto.status }),
+      ...(dto.priority !== undefined && { priority: dto.priority }),
+      ...(dto.dueDate !== undefined && { dueDate: dto.dueDate }),
+      ...(dto.assigneeWorkspaceId !== undefined && { assigneeWorkspaceId: dto.assigneeWorkspaceId }),
+      ...(dto.assigneeUserId !== undefined && { assigneeUserId: dto.assigneeUserId }),
+      ...(dto.position !== undefined && { position: dto.position }),
+    });
+
+    await this.tasksRepository.save(task);
+    return this.tasksRepository.findOne({
+      where: { id: taskId },
+      relations: ['assigneeWorkspace', 'assigneeUser'],
+    }) as Promise<ProjectTask>;
+  }
+
+  async reorderTasks(workspaceId: string, projectId: string, dto: ReorderTasksDto): Promise<void> {
+    await this.assertProjectAccess(workspaceId, projectId);
+    await Promise.all(
+      dto.tasks.map((t) =>
+        this.tasksRepository.update(
+          { id: t.id, projectId },
+          { position: t.position, status: t.status },
+        ),
+      ),
+    );
+  }
+
+  async deleteTask(workspaceId: string, projectId: string, taskId: string): Promise<void> {
+    await this.assertProjectAccess(workspaceId, projectId);
+    const task = await this.tasksRepository.findOne({ where: { id: taskId, projectId } });
+    if (!task) throw new NotFoundException('Task not found');
+    await this.tasksRepository.remove(task);
+  }
+
+  // ─── Task Comments ─────────────────────────────────────────────────────────
+
+  async getTaskComments(workspaceId: string, projectId: string, taskId: string): Promise<ProjectTaskComment[]> {
+    await this.assertProjectAccess(workspaceId, projectId);
+    return this.taskCommentsRepository.find({
+      where: { taskId },
+      relations: ['workspace'],
+      order: { createdAt: 'ASC' },
+    });
+  }
+
+  async createTaskComment(
+    workspaceId: string,
+    projectId: string,
+    taskId: string,
+    dto: CreateTaskCommentDto,
+  ): Promise<ProjectTaskComment> {
+    await this.assertProjectAccess(workspaceId, projectId);
+    const task = await this.tasksRepository.findOne({ where: { id: taskId, projectId } });
+    if (!task) throw new NotFoundException('Task not found');
+
+    const comment = this.taskCommentsRepository.create({
+      taskId,
+      workspaceId,
+      content: dto.content,
+    });
+    const saved = await this.taskCommentsRepository.save(comment);
+    return this.taskCommentsRepository.findOne({
+      where: { id: saved.id },
+      relations: ['workspace'],
+    }) as Promise<ProjectTaskComment>;
+  }
+
+  async deleteTaskComment(
+    workspaceId: string,
+    projectId: string,
+    taskId: string,
+    commentId: string,
+  ): Promise<void> {
+    await this.assertProjectAccess(workspaceId, projectId);
+    const comment = await this.taskCommentsRepository.findOne({
+      where: { id: commentId, taskId, workspaceId },
+    });
+    if (!comment) throw new NotFoundException('Comment not found');
+    await this.taskCommentsRepository.remove(comment);
+  }
+
+  // ─── Task Assignables ──────────────────────────────────────────────────────
+
+  /**
+   * Returns the users that can be assigned to tasks within a project:
+   *  - All members of the owner workspace (assigned by userId)
+   *  - All project collaborator workspaces (assigned by workspaceId)
+   */
+  async getTaskAssignables(workspaceId: string, projectId: string) {
+    await this.assertProjectAccess(workspaceId, projectId);
+
+    const project = await this.projectsRepository.findOne({
+      where: { id: projectId },
+      relations: ['collaborators', 'collaborators.workspace'],
+    });
+    if (!project) throw new NotFoundException('Project not found');
+
+    // Owner workspace members (users)
+    const members = await this.workspaceMembersRepository.find({
+      where: { workspaceId: project.workspaceId },
+      relations: ['user'],
+    });
+
+    const teamUsers = members.map((m) => ({
+      type: 'user' as const,
+      userId: m.user.id,
+      label: `${m.user.firstName} ${m.user.lastName}`.trim(),
+      avatar: null as string | null,
+    }));
+
+    // Project collaborator workspaces
+    const collaborators = (project.collaborators ?? []).map((c) => ({
+      type: 'workspace' as const,
+      workspaceId: c.workspace.id,
+      label: c.workspace.businessName ?? 'Colaborador',
+      avatar: c.workspace.logo ?? null,
+    }));
+
+    return { team: teamUsers, collaborators };
+  }
+
+  // ─── Private helpers ───────────────────────────────────────────────────────
+
+  /** Ensures the workspace owns or collaborates on the project. */
+  private async assertProjectAccess(workspaceId: string, projectId: string): Promise<void> {
+    const project = await this.projectsRepository.findOne({ where: { id: projectId } });
+    if (!project) throw new NotFoundException('Project not found');
+
+    const isOwner = project.workspaceId === workspaceId;
+    if (isOwner) return;
+
+    const isCollaborator = await this.projectCollaboratorsRepository.findOne({
+      where: { projectId, workspaceId },
+    });
+    if (!isCollaborator) throw new NotFoundException('Project not found');
   }
 }

@@ -51,7 +51,7 @@ export const PLAN_LIMITS = {
         projectBriefs: 10,
         clients: 200,
         services: 75,
-        workspaceMembers: 4,
+        workspaceMembers: 1,
         currencies: 5,
         taxes: 8,
         connections: 30,

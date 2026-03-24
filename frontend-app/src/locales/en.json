@@ -701,7 +701,7 @@
         "driveDisconnectError": "Could not disconnect. Please try again.",
         "driveFolderSection": "Workspace folder",
         "driveFolderDesc": "All project folders will be created inside this folder in your Drive, keeping everything organized.",
-        "driveFolderPlaceholder": "e.g. My Business – Blend",
+        "driveFolderPlaceholder": "e.g. My Business – HiKrew",
         "driveFolderCreate": "Create",
         "driveFolderRename": "Rename",
         "driveFolderCreated": "Folder created in Drive",

@@ -1,4 +1,4 @@
-# Blend — Implementation Plan
+# HiKrew — Implementation Plan
 
 > **Plataforma de cobros, cotizaciones y servicios para agencias y freelancers en Centroamérica**
 >
@@ -8,7 +8,7 @@
 
 ## El negocio en una línea
 
-Blend cobra suscripción a los espacios de trabajo (Workspaces). Los usuarios cobran a sus clientes usando su propia cuenta Recurrente conectada a su Workspace en Blend. Los profesionales pueden invitar a colaboradores a sus espacios para trabajar juntos y repartir ganancias.
+HiKrew cobra suscripción a los espacios de trabajo (Workspaces). Los usuarios cobran a sus clientes usando su propia cuenta Recurrente conectada a su Workspace en HiKrew. Los profesionales pueden invitar a colaboradores a sus espacios para trabajar juntos y repartir ganancias.
 
 ---
 ## Roles y Permisos
@@ -174,7 +174,7 @@ Client
 ### RecurrenteModule (wrapper interno)
 
 - Recibe `workspaceId`, busca el Workspace y desencripta keys en memoria.
-- Incluye metadata: `{ workspaceId, paymentId, context: blend_payment }` en los checkouts.
+- Incluye metadata: `{ workspaceId, paymentId, context: HiKrew_payment }` en los checkouts.
 
 ### Payments
 
@@ -201,7 +201,7 @@ Payment
 
 ## Fase 4 — Conexiones entre Workspaces y Colaboración (Red / Network) ✅
 
-Blend permite que múltiples agencias y freelancers (Workspaces) operen bajo un esquema de invitaciones. En lugar de usuarios "invitados" per se, el sistema une Workspaces enteros a través de `WorkspaceConnection`.
+HiKrew permite que múltiples agencias y freelancers (Workspaces) operen bajo un esquema de invitaciones. En lugar de usuarios "invitados" per se, el sistema une Workspaces enteros a través de `WorkspaceConnection`.
 
 ### Reglas de Colaboración y Permisos en Proposals (Deals)
 Para mantener un SaaS escalable y justo, la propiedad de los Deals funciona bajo el siguiente modelo:
@@ -226,9 +226,9 @@ Para mantener un SaaS escalable y justo, la propiedad de los Deals funciona bajo
 
 ---
 
-## Fase 5 — Billing (Blend cobra al SaaS) ✅
+## Fase 5 — Billing (HiKrew cobra al SaaS) ✅
 
-> Blend usa sus propias keys maestras de Recurrente, no las del usuario.
+> HiKrew usa sus propias keys maestras de Recurrente, no las del usuario.
 
 ### BillingSubscription
 
@@ -240,7 +240,7 @@ BillingSubscription
   - status, currentPeriodStart, currentPeriodEnd
 ```
 
-- `POST /billing/subscribe` — Genera checkout de suscripción de Blend.
+- `POST /billing/subscribe` — Genera checkout de suscripción de HiKrew.
 - `POST /webhooks/recurrente/billing` — Escucha pagos de suscripción y actualiza el plan del Workspace.
 
 ---
@@ -304,11 +304,11 @@ BillingSubscription
 
 - Invitaciones a colaborar en un Workspace
 - Cotización enviada / Link de pago generado
-- Comprobante de pago (Recibo interno de Blend)
+- Comprobante de pago (Recibo interno de HiKrew)
 
 ### Automatizaciones (Pro/Premium)
 
-- Módulo n8n / Zapier vía Webhooks expuestos por Blend
+- Módulo n8n / Zapier vía Webhooks expuestos por HiKrew
 - Recordatorios de pago a los 3 y 7 días de vencimiento
 
 ---
@@ -322,7 +322,7 @@ BillingSubscription
 | 2 | Negociación | Deals + Briefs + Propuestas + Estructura de Cobro ✅ |
 | 3 | Pagos | Checkout dinámico de hitos + integraciones Recurrente 🚧 |
 | 4 | Colaboración | Invitaciones + CollaborationSplit ✅ |
-| 5 | Billing | Blend cobra suscripción al Workspace ✅ |
+| 5 | Billing | HiKrew cobra suscripción al Workspace ✅ |
 | 6 | Dashboard FR | Resumen del Workspace |
 | 7 | Dashboard Client | Vista del cliente |
 | 8 | Admin Panel | Métricas + gestión |

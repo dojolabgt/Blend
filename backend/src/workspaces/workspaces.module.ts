@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Workspace } from './workspace.entity';
 import { WorkspaceMember } from './workspace-member.entity';
 import { WorkspaceTax } from './workspace-tax.entity';
+import { User } from '../users/user.entity';
 import { WorkspacesController } from './workspaces.controller';
 import { WorkspacesService } from './workspaces.service';
 import { WorkspaceTaxesController } from './workspace-taxes.controller';
@@ -13,7 +14,7 @@ import { PlanLimitsService } from '../billing/plan-limits.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Workspace, WorkspaceMember, WorkspaceTax]),
+    TypeOrmModule.forFeature([Workspace, WorkspaceMember, WorkspaceTax, User]),
     StorageModule,
     EncryptionModule,
   ],

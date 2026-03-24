@@ -701,7 +701,7 @@
         "driveDisconnectError": "No se pudo desconectar. Intenta de nuevo.",
         "driveFolderSection": "Carpeta del workspace",
         "driveFolderDesc": "Todas las carpetas de proyectos se crearán dentro de esta carpeta en tu Drive, manteniendo todo organizado.",
-        "driveFolderPlaceholder": "ej. Mi Negocio – Blend",
+        "driveFolderPlaceholder": "ej. Mi Negocio – HiKrew",
         "driveFolderCreate": "Crear",
         "driveFolderRename": "Renombrar",
         "driveFolderCreated": "Carpeta creada en Drive",

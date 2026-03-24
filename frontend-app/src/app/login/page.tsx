@@ -6,11 +6,20 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { AuthInput } from '@/components/common/AuthInput';
-import { Eye, EyeOff, Mail, Lock, ArrowLeft, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, ArrowLeft, AlertCircle, ShieldOff } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+} from '@/components/ui/dialog';
 import Link from 'next/link';
 import { UserRole } from '@/types';
+
+const SUPPORT_EMAIL = 'soporte@hikrew.com';
 
 const PUBLIC_URL = process.env.NEXT_PUBLIC_PUBLIC_URL || '/';
 
@@ -36,6 +45,7 @@ function LoginContent() {
     const [email, setEmail] = useState(searchParams.get('email') ?? '');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [showDisabledDialog, setShowDisabledDialog] = useState(false);
 
     const callbackUrl = searchParams.get('callbackUrl');
 
@@ -47,7 +57,9 @@ function LoginContent() {
 
     useEffect(() => {
         const err = searchParams.get('error');
-        if (err === 'google_auth_failed') {
+        if (err === 'account_disabled') {
+            setShowDisabledDialog(true);
+        } else if (err === 'google_auth_failed') {
             toast.error('No se pudo iniciar sesión con Google. Intenta de nuevo.');
         } else if (err === 'google_no_account') {
             toast.error('No hay ninguna cuenta registrada con ese Google. Regístrate primero.');
@@ -62,12 +74,18 @@ function LoginContent() {
 
     if (isLoading || user) return null;
 
+    const displayError = error === 'account_disabled' ? null : error;
+
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
             await login({ email, password });
-        } catch (err) {
-            console.error('Error al iniciar sesión', err);
+        } catch (err: unknown) {
+            const apiErr = err as { response?: { data?: { message?: string } } };
+            const msg = apiErr.response?.data?.message;
+            if (msg === 'account_disabled') {
+                setShowDisabledDialog(true);
+            }
         }
     };
 
@@ -101,10 +119,10 @@ function LoginContent() {
                         </p>
 
                         <form onSubmit={handleLogin} className="space-y-3">
-                            {error && (
+                            {displayError && (
                                 <div className="flex items-start gap-2.5 px-3.5 py-3 rounded-lg bg-red-500/[0.07] border border-red-500/[0.15] animate-in fade-in slide-in-from-top-1 duration-200">
                                     <AlertCircle className="h-4 w-4 text-red-400/70 mt-0.5 shrink-0" />
-                                    <p className="text-[13px] text-red-300/80 leading-snug">{error}</p>
+                                    <p className="text-[13px] text-red-300/80 leading-snug">{displayError}</p>
                                 </div>
                             )}
 
@@ -241,6 +259,43 @@ function LoginContent() {
                     </div>
                 </div>
             </div>
+            {/* Account disabled dialog */}
+            <Dialog open={showDisabledDialog} onOpenChange={setShowDisabledDialog}>
+                <DialogContent className="max-w-sm bg-[#111111] border-white/[0.08] text-white">
+                    <DialogHeader>
+                        <div className="flex items-center gap-3 mb-1">
+                            <div className="w-9 h-9 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center shrink-0">
+                                <ShieldOff className="h-4 w-4 text-red-400" />
+                            </div>
+                            <DialogTitle className="text-white text-[16px]">Cuenta deshabilitada</DialogTitle>
+                        </div>
+                        <DialogDescription className="text-white/50 text-[13px] leading-relaxed pt-1">
+                            Tu cuenta ha sido suspendida temporalmente por un administrador y no puedes iniciar sesión en este momento.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="mt-2 rounded-xl bg-white/[0.04] border border-white/[0.07] px-4 py-3.5">
+                        <p className="text-[11px] text-white/35 uppercase tracking-wider font-semibold mb-1">¿Crees que es un error?</p>
+                        <p className="text-[13px] text-white/60 leading-relaxed">
+                            Escríbenos a{' '}
+                            <a
+                                href={`mailto:${SUPPORT_EMAIL}?subject=Cuenta%20deshabilitada`}
+                                className="text-white/85 underline underline-offset-2 hover:text-white transition-colors"
+                            >
+                                {SUPPORT_EMAIL}
+                            </a>
+                            {' '}y resolveremos tu caso lo antes posible.
+                        </p>
+                    </div>
+
+                    <button
+                        onClick={() => setShowDisabledDialog(false)}
+                        className="mt-2 w-full h-10 rounded-xl bg-white/[0.06] text-white/60 text-[13px] font-medium hover:bg-white/[0.1] hover:text-white/80 transition-colors"
+                    >
+                        Entendido
+                    </button>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

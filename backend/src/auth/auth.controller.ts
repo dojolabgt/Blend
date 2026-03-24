@@ -195,12 +195,14 @@ export class AuthController {
       );
     } catch (error) {
       this.logger.error('Google OAuth error:', error);
-      const isMissingAccount = error?.message === 'google_login_only';
-      return res.redirect(
-        isMissingAccount
-          ? `${frontendUrl}/login?error=google_no_account`
-          : `${frontendUrl}/login?error=google_auth_failed`,
-      );
+      const msg = error?.message ?? '';
+      if (msg === 'google_login_only') {
+        return res.redirect(`${frontendUrl}/login?error=google_no_account`);
+      }
+      if (msg === 'account_disabled') {
+        return res.redirect(`${frontendUrl}/login?error=account_disabled`);
+      }
+      return res.redirect(`${frontendUrl}/login?error=google_auth_failed`);
     }
   }
 
