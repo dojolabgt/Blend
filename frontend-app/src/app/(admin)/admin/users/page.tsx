@@ -393,18 +393,16 @@ export default function AdminUsersPage() {
                                             </div>
                                         ) : (
                                             <>
-                                                {ws.plan !== 'premium' && (
-                                                    <Button
-                                                        size="sm"
-                                                        variant="default"
-                                                        className="text-xs h-7"
-                                                        disabled={isUpgrading === ws.id}
-                                                        onClick={() => handleUpgrade(ws.id, 'premium')}
-                                                    >
-                                                        {isUpgrading === ws.id ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <ArrowUpCircle className="h-3 w-3 mr-1" />}
-                                                        → Premium
-                                                    </Button>
-                                                )}
+                                                <Button
+                                                    size="sm"
+                                                    variant="default"
+                                                    className="text-xs h-7"
+                                                    disabled={isUpgrading === ws.id}
+                                                    onClick={() => handleUpgrade(ws.id, 'premium')}
+                                                >
+                                                    {isUpgrading === ws.id ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <ArrowUpCircle className="h-3 w-3 mr-1" />}
+                                                    → Premium
+                                                </Button>
                                                 {ws.plan === 'free' && (
                                                     <Button
                                                         size="sm"
