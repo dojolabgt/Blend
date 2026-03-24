@@ -30,6 +30,9 @@ export class BrowserOnlyMiddleware implements NestMiddleware {
     '/public/',
   ];
 
+  // Query params that indicate an OAuth callback landing on root
+  private static readonly PUBLIC_QUERY_PARAMS = ['mode', 'code', 'state', 'error'];
+
   constructor(private readonly config: ConfigService) {
     const frontendUrl       = config.get<string>('FRONTEND_URL') ?? '';
     const frontendPublicUrl = config.get<string>('FRONTEND_PUBLIC_URL') ?? '';
@@ -55,6 +58,12 @@ export class BrowserOnlyMiddleware implements NestMiddleware {
       path.startsWith(prefix),
     );
     if (isPublic) return next();
+
+    // Dejar pasar callbacks OAuth (Google redirige a /?mode=login_only&code=...)
+    const hasOAuthParam = BrowserOnlyMiddleware.PUBLIC_QUERY_PARAMS.some(
+      (param) => req.query[param] !== undefined,
+    );
+    if (hasOAuthParam) return next();
 
     const origin     = req.headers['origin'] as string | undefined;
     const clientType = req.headers['x-client-type'] as string | undefined;
