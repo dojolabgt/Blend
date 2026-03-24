@@ -1,5 +1,6 @@
-import { Module } from '@nestjs/common';
+import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { BrowserOnlyMiddleware } from './common/middleware/browser-only.middleware';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
@@ -125,4 +126,8 @@ import { GoogleDriveModule } from './google-drive/google-drive.module';
     },
   ],
 })
-export class AppModule { }
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(BrowserOnlyMiddleware).forRoutes('*');
+  }
+}

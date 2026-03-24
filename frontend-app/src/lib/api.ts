@@ -22,6 +22,10 @@ api.interceptors.request.use(
             if (activeWorkspaceId && !isAuthRoute) {
                 config.headers['x-workspace-id'] = activeWorkspaceId;
             }
+
+            // Identifies requests as coming from the web frontend.
+            // The backend rejects requests without this header or a valid Origin in production.
+            config.headers['x-client-type'] = 'web';
         }
         return config;
     },
@@ -47,6 +51,14 @@ api.interceptors.response.use(
         const errData = error.response?.data as Record<string, unknown> | undefined;
         if (error.response?.status === 401 && errData?.message && typeof errData.message === 'object') {
             return Promise.reject(error);
+        }
+
+        // Handle plan limit / feature gate errors (403)
+        if (error.response?.status === 403 && typeof window !== 'undefined') {
+            const code = (errData?.code as string | undefined);
+            if (code === 'PLAN_LIMIT_REACHED' || code === 'FEATURE_NOT_AVAILABLE') {
+                window.dispatchEvent(new CustomEvent('plan-limit-reached', { detail: errData }));
+            }
         }
 
         // Handle 401 Unauthorized (Token Expired)

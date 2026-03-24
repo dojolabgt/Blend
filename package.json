@@ -12,6 +12,7 @@
         "logs:backend": "docker compose -f docker-compose.dev.yml logs -f backend",
         "db:migrate": "docker compose -f docker-compose.dev.yml exec backend npm run migration:run",
         "db:seed": "docker compose -f docker-compose.dev.yml exec backend npm run seed",
+        "db:plan": "docker compose -f docker-compose.dev.yml exec backend npm run dev:plan --",
         "db:generate": "docker compose -f docker-compose.dev.yml exec backend npm run migration:generate",
         "bash:backend": "docker compose -f docker-compose.dev.yml exec backend sh"
     }

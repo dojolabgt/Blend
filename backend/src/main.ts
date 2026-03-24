@@ -62,6 +62,7 @@ async function bootstrap() {
       'Authorization',
       'Cookie',
       'x-workspace-id',
+      'x-client-type',
     ],
     exposedHeaders: ['Set-Cookie', 'x-workspace-id'],
   });

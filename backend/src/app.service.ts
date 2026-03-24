@@ -4,9 +4,8 @@ import { Injectable } from '@nestjs/common';
 export class AppService {
   getHello(): object {
     return {
-      status: 'ok',
-      name: 'API',
-      version: '1.0.0',
+      status: 'protected',
+      message: 'Acceso no autorizado.',
     };
   }
 }
