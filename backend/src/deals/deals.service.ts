@@ -761,7 +761,15 @@ export class DealsService {
     return this.recalculateQuotationTotals(reloaded);
   }
 
-  /** Recalculates and persists subtotal, taxTotal, discount, total on a Quotation */
+  /** Recalculates and persists subtotal, taxTotal, discount, total on a Quotation.
+   *
+   * NOTE: `quotation.discount` holds ONLY the freelancer-set global discount.
+   * Item-level discounts are summed separately here and NOT stored back into
+   * `quotation.discount`, preventing the value from ballooning on every
+   * recalculation. The persisted `quotation.discount` always reflects only the
+   * global discount, while the returned `discount` on the object equals the
+   * combined total (global + items) so the frontend can display it correctly.
+   */
   private async recalculateQuotationTotals(
     quotation: Quotation,
   ): Promise<Quotation> {
@@ -772,27 +780,42 @@ export class DealsService {
     let subtotal = 0;
     let itemDiscountTotal = 0;
 
-    for (const item of items) {
-      const lineTotal = Number(item.price) * Number(item.quantity);
-      subtotal += lineTotal;
-      itemDiscountTotal += Number(item.discount);
-    }
+    // Attach computed `subtotal` to each item so both frontends always receive
+    // the pre-calculated line total and never render undefined/NaN.
+    const itemsWithSubtotal = items.map((item) => {
+      const lineTotal =
+        Number(item.price) * Number(item.quantity) -
+        Number(item.discount ?? 0);
+      subtotal += Number(item.price) * Number(item.quantity);
+      itemDiscountTotal += Number(item.discount ?? 0);
+      return Object.assign(item, { subtotal: Math.max(0, lineTotal) });
+    });
 
-    const discount = itemDiscountTotal + Number(quotation.discount || 0);
-    // taxTotal: placeholder — actual tax logic will use the deal's tax snapshot (handled in future)
+    // `quotation.discount` is the global (freelancer-level) discount only.
+    // We read it BEFORE saving so we don't accidentally overwrite with the
+    // combined total on the next recalculation.
+    const globalDiscount = Number(quotation.discount ?? 0);
+    const combinedDiscount = itemDiscountTotal + globalDiscount;
+
+    // taxTotal: placeholder — actual tax logic will use the deal's tax
+    // snapshot (handled in future)
     const taxTotal = 0;
-    const total = Math.max(0, subtotal - discount + taxTotal);
+    const total = Math.max(0, subtotal - combinedDiscount + taxTotal);
 
     quotation.subtotal = subtotal;
-    quotation.discount = discount;
+    // Keep only the global discount persisted; item discounts are already
+    // reflected in each item's own column.
+    quotation.discount = globalDiscount;
     quotation.taxTotal = taxTotal;
     quotation.total = total;
 
-    // Prevent TypeORM cascade from trying to detach/delete items that aren't in the loaded relation
+    // Prevent TypeORM cascade from trying to detach/delete items that aren't
+    // in the loaded relation.
     quotation.items = undefined as unknown as QuotationItem[];
 
     const saved = await this.quotationsRepository.save(quotation);
-    saved.items = items; // Attach fresh items array for the response
+    // Attach fresh items (with computed subtotal) for the response.
+    saved.items = itemsWithSubtotal;
     return saved;
   }
 

@@ -24,7 +24,17 @@ interface BriefField {
     dependsOn?: { fieldId: string; value: string };
 }
 
-interface QuotationItem { id: string; name: string; description?: string; quantity: number; price: number; subtotal: number; }
+interface QuotationItem {
+  id: string;
+  name: string;
+  description?: string;
+  quantity: number;
+  price: number;
+  discount?: number;
+  /** Computed by the backend (price × quantity − discount). Always use this
+   *  value; never recalculate on the client to keep both frontends in sync. */
+  subtotal: number;
+}
 interface Quotation { id: string; optionName: string; description?: string; currency?: string; isApproved: boolean; subtotal: number; discount: number; taxTotal: number; total: number; items: QuotationItem[]; }
 interface Milestone { id: string; name: string; amount: number; percentage?: number; dueDate?: string; status: string; }
 
@@ -382,8 +392,8 @@ function ProposalView({ deal, token, onApproved }: { deal: DealData; token: stri
                                     {item.description && <p className="text-[11px] text-white/30 mt-0.5">{item.description}</p>}
                                 </div>
                                 <div className="flex items-center gap-5 sm:justify-end shrink-0">
-                                    <span className="text-[12px] text-white/30">{item.quantity} × {fmt(item.price, sym)}</span>
-                                    <span className="text-[13px] font-bold text-white/80 min-w-[80px] text-right">{fmt(item.subtotal, sym)}</span>
+                                    <span className="text-[12px] text-white/30">{item.quantity} × {fmt(Number(item.price), sym)}</span>
+                                    <span className="text-[13px] font-bold text-white/80 min-w-[80px] text-right">{fmt(Number(item.subtotal), sym)}</span>
                                 </div>
                             </div>
                         ))}
