@@ -417,7 +417,7 @@ export function QuotationStep({ deal, dealId, publicToken, currency, readonly, o
                             const lineTotal =
                                 item.subtotal !== undefined
                                     ? Number(item.subtotal)
-                                    : Math.max(0, Number(item.price) * Number(item.quantity) - Number(item.discount || 0));
+                                    : Math.max(0, (Number(item.price) - Number(item.discount || 0)) * Number(item.quantity));
                             return (
                                 <div key={item.id} className="grid grid-cols-12 gap-2 items-center px-4 py-2 border-b border-zinc-100 dark:border-zinc-800/50 group hover:bg-zinc-50/80 dark:hover:bg-zinc-900/30 transition-colors">
                                     <div className="col-span-5">

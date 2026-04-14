@@ -789,10 +789,10 @@ export class DealsService {
     // NET subtotal: sum of each item's line total AFTER its own discount.
     let netSubtotal = 0;
     const itemsWithSubtotal = items.map((item) => {
+      // discount is per-unit: (price - discount) × quantity
       const lineTotal = Math.max(
         0,
-        Number(item.price) * Number(item.quantity) -
-          Number(item.discount ?? 0),
+        (Number(item.price) - Number(item.discount ?? 0)) * Number(item.quantity),
       );
       netSubtotal += lineTotal;
       // Ensure the virtual field is set on the in-memory object we return,

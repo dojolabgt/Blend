@@ -90,9 +90,10 @@ export class QuotationItem {
 
   @AfterLoad()
   computeSubtotal() {
+    // discount is a per-unit amount: (price - discount) × quantity
     this.subtotal = Math.max(
       0,
-      Number(this.price) * Number(this.quantity) - Number(this.discount ?? 0),
+      (Number(this.price) - Number(this.discount ?? 0)) * Number(this.quantity),
     );
   }
 }
