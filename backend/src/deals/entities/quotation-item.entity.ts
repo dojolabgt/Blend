@@ -6,6 +6,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  AfterLoad,
 } from 'typeorm';
 import { Quotation } from './quotation.entity';
 import {
@@ -64,7 +65,7 @@ export class QuotationItem {
   isTaxable: boolean;
 
   @Column({ type: 'numeric', precision: 12, scale: 2, default: 0 })
-  discount: number; // Discount exact amount for the item
+  discount: number; // Absolute discount amount for this line item
 
   @Column({ type: 'numeric', precision: 12, scale: 2, default: 0 })
   internalCost: number; // Snapshot of service internalCost for margin reporting
@@ -74,4 +75,24 @@ export class QuotationItem {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  /**
+   * Virtual field — NOT persisted in the DB.
+   * TypeORM calls `computeSubtotal()` automatically via @AfterLoad after
+   * every find / findOne / getMany that loads this entity. This guarantees
+   * `subtotal` is always a valid number in any GET response, eliminating the
+   * QNaN bug that occurred when items were read directly from the DB without
+   * going through the recalculate helper.
+   *
+   *   subtotal = max(0, price × quantity − discount)
+   */
+  subtotal: number;
+
+  @AfterLoad()
+  computeSubtotal() {
+    this.subtotal = Math.max(
+      0,
+      Number(this.price) * Number(this.quantity) - Number(this.discount ?? 0),
+    );
+  }
 }

@@ -411,7 +411,13 @@ export function QuotationStep({ deal, dealId, publicToken, currency, readonly, o
                         </div>
                     ) : (
                         (activeQuotation.items || []).map((item: Record<string, any>) => {
-                            const lineTotal = Number(item.price) * Number(item.quantity) - Number(item.discount || 0);
+                            // Use the backend-computed subtotal (@AfterLoad on QuotationItem).
+                            // Fall back to local calculation (with Number() guards for PG numeric
+                            // strings) in case of stale data from before the @AfterLoad fix.
+                            const lineTotal =
+                                item.subtotal !== undefined
+                                    ? Number(item.subtotal)
+                                    : Math.max(0, Number(item.price) * Number(item.quantity) - Number(item.discount || 0));
                             return (
                                 <div key={item.id} className="grid grid-cols-12 gap-2 items-center px-4 py-2 border-b border-zinc-100 dark:border-zinc-800/50 group hover:bg-zinc-50/80 dark:hover:bg-zinc-900/30 transition-colors">
                                     <div className="col-span-5">
@@ -424,7 +430,7 @@ export function QuotationStep({ deal, dealId, publicToken, currency, readonly, o
                                         </span>
                                     </div>
                                     <div className="col-span-1 text-center text-[13px] text-zinc-600 dark:text-zinc-400">{item.quantity}</div>
-                                    <div className="col-span-2 text-right text-[13px] text-zinc-600 dark:text-zinc-400">{fmt(item.price)}</div>
+                                    <div className="col-span-2 text-right text-[13px] text-zinc-600 dark:text-zinc-400">{fmt(Number(item.price))}</div>
                                     <div className="col-span-2 text-right flex items-center justify-end gap-1">
                                         <span className="text-[13px] font-medium text-zinc-900 dark:text-zinc-100">{fmt(lineTotal)}</span>
                                         {!readonly && (
