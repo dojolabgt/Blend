@@ -345,8 +345,8 @@ function ProposalView({ deal, token, onApproved }: { deal: DealData; token: stri
     // Payment plan helpers
     const plan = deal.paymentPlan;
     const hasMilestones = (plan?.milestones?.length ?? 0) > 0;
-    const totalPaid = plan?.milestones?.filter(m => m.status === 'PAID').reduce((s, m) => s + m.amount, 0) ?? 0;
-    const totalAmount = plan?.milestones?.reduce((s, m) => s + m.amount, 0) ?? 0;
+    const totalPaid = plan?.milestones?.filter(m => m.status === 'PAID').reduce((s, m) => s + Number(m.amount), 0) ?? 0;
+    const totalAmount = plan?.milestones?.reduce((s, m) => s + Number(m.amount), 0) ?? 0;
     const paidPct = totalAmount > 0 ? Math.round((totalPaid / totalAmount) * 100) : 0;
     const milestoneStatusMap: Record<string, { label: string; cls: string }> = {
         PENDING:   { label: 'Pendiente', cls: 'text-white/30 bg-white/[0.05]' },
