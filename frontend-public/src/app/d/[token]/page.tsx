@@ -476,66 +476,67 @@ function ProposalView({ deal, token, onApproved }: { deal: DealData; token: stri
             </div>
 
             {/* ── Plan de pagos integrado ───────────────────────────────────── */}
-            {hasMilestones && (
+            {/* Si ya hay hitos configurados → mostrar siempre, sin importar si está aprobada */}
+            {hasMilestones ? (
                 <div className="rounded-2xl border border-white/[0.07] bg-white/[0.03] overflow-hidden">
                     <div className="px-5 py-4 border-b border-white/[0.06] flex items-center gap-2">
                         <CreditCard className="w-4 h-4 text-white/40" />
                         <p className="text-sm font-bold text-white/70">Plan de pagos</p>
                     </div>
-
-                    {!isApproved ? (
-                        /* Locked state – propuesta aún no aprobada */
-                        <div className="flex items-center gap-3 px-5 py-5">
-                            <div className="w-8 h-8 rounded-lg bg-white/[0.05] flex items-center justify-center shrink-0">
-                                <Lock className="w-4 h-4 text-white/25" />
+                    {/* Progress summary */}
+                    <div className="px-5 py-4 border-b border-white/[0.05] flex flex-col sm:flex-row sm:items-center gap-4">
+                        <div className="flex-1">
+                            <p className="text-xs font-bold uppercase tracking-widest text-white/40 mb-1">Total acordado</p>
+                            <p className="text-2xl font-black text-white tracking-tight">{fmt(totalAmount, sym)}</p>
+                        </div>
+                        <div className="flex-1">
+                            <div className="flex items-center justify-between mb-2">
+                                <p className="text-xs text-white/45">Pagado</p>
+                                <p className="text-xs font-bold text-white/70">{paidPct}%</p>
                             </div>
-                            <div>
-                                <p className="text-sm font-semibold text-white/50">Disponible al aprobar</p>
-                                <p className="text-xs text-white/30 mt-0.5">Se desbloquea cuando apruebes esta propuesta.</p>
+                            <div className="h-1.5 rounded-full bg-white/[0.07] overflow-hidden">
+                                <div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: `${paidPct}%` }} />
                             </div>
                         </div>
-                    ) : (
-                        /* Plan desbloqueado */
-                        <div>
-                            {/* Progress summary */}
-                            <div className="px-5 py-4 border-b border-white/[0.05] flex flex-col sm:flex-row sm:items-center gap-4">
-                                <div className="flex-1">
-                                    <p className="text-xs font-bold uppercase tracking-widest text-white/40 mb-1">Total acordado</p>
-                                    <p className="text-2xl font-black text-white tracking-tight">{fmt(totalAmount, sym)}</p>
+                    </div>
+                    {/* Milestone list */}
+                    {plan!.milestones.map((m, i) => {
+                        const s = milestoneStatusMap[m.status] ?? milestoneStatusMap['PENDING'];
+                        return (
+                            <div key={m.id} className="flex items-start justify-between px-5 py-4 border-b border-white/[0.05] last:border-0 gap-4">
+                                <div className="flex items-start gap-3">
+                                    <span className="text-white/35 text-sm font-bold pt-0.5 w-5 shrink-0">{i + 1}.</span>
+                                    <div>
+                                        <p className="text-sm font-semibold text-white/85">{m.name}</p>
+                                        {m.dueDate && <p className="text-xs text-white/45 mt-0.5 flex items-center gap-1"><Calendar className="w-3 h-3" />{fmtDate(m.dueDate)}</p>}
+                                    </div>
                                 </div>
-                                <div className="flex-1">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <p className="text-xs text-white/45">Pagado</p>
-                                        <p className="text-xs font-bold text-white/70">{paidPct}%</p>
-                                    </div>
-                                    <div className="h-1.5 rounded-full bg-white/[0.07] overflow-hidden">
-                                        <div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: `${paidPct}%` }} />
-                                    </div>
+                                <div className="text-right shrink-0">
+                                    <p className="text-sm font-bold text-white/85">{fmt(m.amount, sym)}</p>
+                                    <span className={cn('text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md', s.cls)}>{s.label}</span>
                                 </div>
                             </div>
-                            {/* Milestone list */}
-                            {plan!.milestones.map((m, i) => {
-                                const s = milestoneStatusMap[m.status] ?? milestoneStatusMap['PENDING'];
-                                return (
-                                    <div key={m.id} className="flex items-start justify-between px-5 py-4 border-b border-white/[0.05] last:border-0 gap-4">
-                                        <div className="flex items-start gap-3">
-                                            <span className="text-white/35 text-sm font-bold pt-0.5 w-5 shrink-0">{i + 1}.</span>
-                                            <div>
-                                                <p className="text-sm font-semibold text-white/85">{m.name}</p>
-                                                {m.dueDate && <p className="text-xs text-white/45 mt-0.5 flex items-center gap-1"><Calendar className="w-3 h-3" />{fmtDate(m.dueDate)}</p>}
-                                            </div>
-                                        </div>
-                                        <div className="text-right shrink-0">
-                                            <p className="text-sm font-bold text-white/85">{fmt(m.amount, sym)}</p>
-                                            <span className={cn('text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md', s.cls)}>{s.label}</span>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    )}
+                        );
+                    })}
                 </div>
-            )}
+            ) : !isApproved ? (
+                /* Sin hitos aún y propuesta no aprobada → mostrar estado bloqueado */
+                <div className="rounded-2xl border border-white/[0.07] bg-white/[0.03] overflow-hidden">
+                    <div className="px-5 py-4 border-b border-white/[0.06] flex items-center gap-2">
+                        <CreditCard className="w-4 h-4 text-white/40" />
+                        <p className="text-sm font-bold text-white/70">Plan de pagos</p>
+                    </div>
+                    <div className="flex items-center gap-3 px-5 py-5">
+                        <div className="w-8 h-8 rounded-lg bg-white/[0.05] flex items-center justify-center shrink-0">
+                            <Lock className="w-4 h-4 text-white/25" />
+                        </div>
+                        <div>
+                            <p className="text-sm font-semibold text-white/50">Disponible al aprobar</p>
+                            <p className="text-xs text-white/30 mt-0.5">Aprueba esta propuesta para ver el plan de pagos.</p>
+                        </div>
+                    </div>
+                </div>
+            ) : null}
 
             {/* ── Términos y condiciones ────────────────────────────────────── */}
             {deal.proposalTerms && (
