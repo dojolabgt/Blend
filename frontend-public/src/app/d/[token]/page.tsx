@@ -327,12 +327,6 @@ function OverviewView({ deal, brandColor, onNav }: { deal: DealData; brandColor:
                 )}
             </div>
 
-            {deal.proposalTerms && (
-                <div className="rounded-2xl border border-white/[0.07] bg-white/[0.03] px-5 py-5">
-                    <p className="text-xs font-bold uppercase tracking-widest text-white/50 mb-3 flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5" />Términos y Condiciones</p>
-                    <p className="text-sm text-white/55 leading-relaxed whitespace-pre-line">{deal.proposalTerms}</p>
-                </div>
-            )}
         </div>
     );
 }
@@ -347,6 +341,19 @@ function ProposalView({ deal, token, onApproved }: { deal: DealData; token: stri
     const activeQ = quotations.find(q => q.id === activeId) ?? quotations[0];
     const displayQ = isApproved ? approvedQ! : activeQ;
     const sym = getSymbol(deal, displayQ);
+
+    // Payment plan helpers
+    const plan = deal.paymentPlan;
+    const hasMilestones = (plan?.milestones?.length ?? 0) > 0;
+    const totalPaid = plan?.milestones?.filter(m => m.status === 'PAID').reduce((s, m) => s + m.amount, 0) ?? 0;
+    const totalAmount = plan?.milestones?.reduce((s, m) => s + m.amount, 0) ?? 0;
+    const paidPct = totalAmount > 0 ? Math.round((totalPaid / totalAmount) * 100) : 0;
+    const milestoneStatusMap: Record<string, { label: string; cls: string }> = {
+        PENDING:   { label: 'Pendiente', cls: 'text-white/30 bg-white/[0.05]' },
+        PAID:      { label: 'Pagado',    cls: 'text-emerald-400 bg-emerald-500/10' },
+        OVERDUE:   { label: 'Vencido',   cls: 'text-red-400 bg-red-500/10' },
+        CANCELLED: { label: 'Cancelado', cls: 'text-white/20 bg-white/[0.03]' },
+    };
 
     const handleApprove = async () => {
         if (!activeQ || approving) return;
@@ -368,7 +375,17 @@ function ProposalView({ deal, token, onApproved }: { deal: DealData; token: stri
 
     return (
         <div className="space-y-4">
-            {/* Tab selector */}
+            {/* ── Introducción de propuesta ──────────────────────────────────── */}
+            {deal.proposalIntro && (
+                <div className="rounded-2xl border border-white/[0.07] bg-white/[0.03] px-6 py-5">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-white/35 mb-3 flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5" />Introducción
+                    </p>
+                    <p className="text-[15px] text-white/75 leading-relaxed whitespace-pre-line">{deal.proposalIntro}</p>
+                </div>
+            )}
+
+            {/* ── Tab selector (múltiples opciones) ────────────────────────── */}
             {!isApproved && quotations.length > 1 && (
                 <div className="flex gap-2 p-1.5 bg-white/[0.04] rounded-2xl border border-white/[0.06] w-fit">
                     {quotations.map(q => (
@@ -380,6 +397,7 @@ function ProposalView({ deal, token, onApproved }: { deal: DealData; token: stri
                 </div>
             )}
 
+            {/* ── Cotización (header + items + CTA) ────────────────────────── */}
             <div className="rounded-2xl border border-white/[0.07] bg-white/[0.03] overflow-hidden">
                 {/* Header */}
                 <div className="px-6 py-5 border-b border-white/[0.06] flex flex-col sm:flex-row sm:items-end justify-between gap-4">
@@ -421,7 +439,7 @@ function ProposalView({ deal, token, onApproved }: { deal: DealData; token: stri
                     </div>
                 )}
 
-                {/* CTA / approved */}
+                {/* CTA / approved badge */}
                 <div className="px-6 py-5 border-t border-white/[0.06]">
                     {isApproved ? (
                         <div className="flex items-start gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] px-4 py-4">
@@ -456,6 +474,78 @@ function ProposalView({ deal, token, onApproved }: { deal: DealData; token: stri
                     )}
                 </div>
             </div>
+
+            {/* ── Plan de pagos integrado ───────────────────────────────────── */}
+            {hasMilestones && (
+                <div className="rounded-2xl border border-white/[0.07] bg-white/[0.03] overflow-hidden">
+                    <div className="px-5 py-4 border-b border-white/[0.06] flex items-center gap-2">
+                        <CreditCard className="w-4 h-4 text-white/40" />
+                        <p className="text-sm font-bold text-white/70">Plan de pagos</p>
+                    </div>
+
+                    {!isApproved ? (
+                        /* Locked state – propuesta aún no aprobada */
+                        <div className="flex items-center gap-3 px-5 py-5">
+                            <div className="w-8 h-8 rounded-lg bg-white/[0.05] flex items-center justify-center shrink-0">
+                                <Lock className="w-4 h-4 text-white/25" />
+                            </div>
+                            <div>
+                                <p className="text-sm font-semibold text-white/50">Disponible al aprobar</p>
+                                <p className="text-xs text-white/30 mt-0.5">Se desbloquea cuando apruebes esta propuesta.</p>
+                            </div>
+                        </div>
+                    ) : (
+                        /* Plan desbloqueado */
+                        <div>
+                            {/* Progress summary */}
+                            <div className="px-5 py-4 border-b border-white/[0.05] flex flex-col sm:flex-row sm:items-center gap-4">
+                                <div className="flex-1">
+                                    <p className="text-xs font-bold uppercase tracking-widest text-white/40 mb-1">Total acordado</p>
+                                    <p className="text-2xl font-black text-white tracking-tight">{fmt(totalAmount, sym)}</p>
+                                </div>
+                                <div className="flex-1">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <p className="text-xs text-white/45">Pagado</p>
+                                        <p className="text-xs font-bold text-white/70">{paidPct}%</p>
+                                    </div>
+                                    <div className="h-1.5 rounded-full bg-white/[0.07] overflow-hidden">
+                                        <div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: `${paidPct}%` }} />
+                                    </div>
+                                </div>
+                            </div>
+                            {/* Milestone list */}
+                            {plan!.milestones.map((m, i) => {
+                                const s = milestoneStatusMap[m.status] ?? milestoneStatusMap['PENDING'];
+                                return (
+                                    <div key={m.id} className="flex items-start justify-between px-5 py-4 border-b border-white/[0.05] last:border-0 gap-4">
+                                        <div className="flex items-start gap-3">
+                                            <span className="text-white/35 text-sm font-bold pt-0.5 w-5 shrink-0">{i + 1}.</span>
+                                            <div>
+                                                <p className="text-sm font-semibold text-white/85">{m.name}</p>
+                                                {m.dueDate && <p className="text-xs text-white/45 mt-0.5 flex items-center gap-1"><Calendar className="w-3 h-3" />{fmtDate(m.dueDate)}</p>}
+                                            </div>
+                                        </div>
+                                        <div className="text-right shrink-0">
+                                            <p className="text-sm font-bold text-white/85">{fmt(m.amount, sym)}</p>
+                                            <span className={cn('text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md', s.cls)}>{s.label}</span>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* ── Términos y condiciones ────────────────────────────────────── */}
+            {deal.proposalTerms && (
+                <div className="rounded-2xl border border-white/[0.07] bg-white/[0.03] px-6 py-5">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-white/35 mb-3 flex items-center gap-1.5">
+                        <FileText className="w-3.5 h-3.5" />Términos y condiciones
+                    </p>
+                    <p className="text-sm text-white/50 leading-relaxed whitespace-pre-line">{deal.proposalTerms}</p>
+                </div>
+            )}
         </div>
     );
 }
